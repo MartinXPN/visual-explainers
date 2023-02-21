@@ -5,7 +5,7 @@ Any script can be run with:
 python -m manim <name_script.py> <scene_name> -<flags>
 
 # For example
-python -m manim number-theory/prime_number_checking.py PrimeNumberChecking -qm -v WARNING
+python -m manim primality_check_in_sqrt_n/prime_number_checking.py PrimeNumberChecking -qm -v WARNING
 # or
-python -m manim number-theory/prime_number_checking.py PrimeNumberChecking -pqm
+python -m manim primality_check_in_sqrt_n/prime_number_checking.py PrimeNumberChecking -pqm
 ```
