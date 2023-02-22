@@ -68,10 +68,11 @@ class FillInitialArray(Scene):
         array_mobj = array.get_mobject().center()
 
         # Add indices below the array
-        indices = Array([i for i in range(9)], width=0.8, height=0.8, spacing=0.05, scale_text=0.5, stroke_color=BLACK)\
-            .get_mobject()\
-            .center()\
-            .next_to(array_mobj, 0.0001 * DOWN)
+        indices = Array(
+            [i for i in range(9)],
+            width=array.width, height=array.height,
+            spacing=array.spacing, scale_text=array.scale_text, stroke_color=BLACK,
+        ).get_mobject().center().next_to(array_mobj, 0.0001 * DOWN)
 
         text = Text('Video Score By Day').center().next_to(array_mobj, UP)
         self.add(logo, text, indices, array_mobj)
@@ -127,7 +128,7 @@ class FillInitialArray(Scene):
         array.stroke_width = [2, 2, 5, 5, 5, 5, 5, 5, 2]
         self.play(
             logo.animate.shift(5 * UP),
-            text.animate.become(Text("What's the Sum of the Range?").center().next_to(array_mobj, UP)),
+            text.animate.become(Text("What's the Sum of the Range?").center().next_to(array_mobj, UP).shift(1.5 * UP)),
         )
         self.play(array_mobj.animate.become(array.get_mobject().center()), run_time=0.001)
         self.wait(2)
@@ -136,4 +137,95 @@ class FillInitialArray(Scene):
         array.stroke_color = [WHITE, WHITE, WHITE, ORANGE, ORANGE, ORANGE, ORANGE, WHITE, WHITE]
         array.stroke_width = [2, 2, 2, 5, 5, 5, 5, 2, 2]
         self.play(array_mobj.animate.become(array.get_mobject().center()), run_time=0.001)
+        self.wait(2)
+
+
+class NaiveApproach(Scene):
+    def construct(self):
+        # Add the array
+        values = [8, 3, -2, 4, 10, -1, 0, 5, 3]
+        array = Array(values, width=0.8, height=0.8, spacing=0.05, scale_text=0.8)
+        array.stroke_color = [WHITE, WHITE, WHITE, ORANGE, ORANGE, ORANGE, ORANGE, WHITE, WHITE]
+        array.stroke_width = [2, 2, 2, 5, 5, 5, 5, 2, 2]
+        array_mobj = array.get_mobject().center()
+
+        # Add indices below the array
+        indices = Array(
+            [i for i in range(9)],
+            width=array.width, height=array.height,
+            spacing=array.spacing, scale_text=array.scale_text, stroke_color=BLACK,
+        ).get_mobject().center().next_to(array_mobj, 0.0001 * DOWN)
+
+        text = Text("What's the Sum of the Range?").center().next_to(array_mobj, UP).shift(1.5 * UP)
+        arrow = Arrow(
+            start=UP, end=DOWN, color=ORANGE, buff=0.1,
+            stroke_width=10, max_stroke_width_to_length_ratio=15,
+            max_tip_length_to_length_ratio=0.5, tip_length=0.2,
+        ).scale(0.3).next_to(array_mobj, UP).shift(array.width * 1 * LEFT)
+        self.add(text, indices, array_mobj, arrow)
+        self.wait()
+
+        self.play(arrow.animate.shift(array.width * RIGHT), run_time=0.5)
+        self.play(arrow.animate.shift(array.width * RIGHT), run_time=0.5)
+        self.play(arrow.animate.shift(array.width * RIGHT), run_time=0.5)
+        self.wait()
+
+        # Highlight the 2 -> 7
+        array.stroke_color = [WHITE, WHITE, YELLOW, YELLOW, YELLOW, YELLOW, YELLOW, YELLOW, WHITE]
+        array.stroke_width = [2, 2, 5, 5, 5, 5, 5, 5, 2]
+        self.play(
+            array_mobj.animate.become(array.get_mobject().center()),
+            FadeOut(arrow),
+            run_time=0.001
+        )
+
+        # Range sum from 2 to 7
+        start, end = 2, 7
+        total = Text('Sum: 0').center().next_to(array_mobj, DOWN).scale(0.8).shift(1.5 * DOWN)
+        arrow.shift(0.8 * 4 * LEFT).set_color(YELLOW)
+        self.play(Write(total))
+        self.play(
+            DrawBorderThenFill(arrow),
+            total.animate.become(
+                Text(f'Sum: {values[start]}').center().next_to(array_mobj, DOWN).scale(0.8).shift(1.5 * DOWN)
+            ),
+        )
+        for i in range(start + 1, end + 1):
+            self.play(
+                arrow.animate.shift(array.width * RIGHT),
+                total.animate.become(Text(f'Sum: {sum(values[start:i + 1])}')
+                                     .center().next_to(array_mobj, DOWN)
+                                     .scale(0.8).shift(1.5 * DOWN)),
+                run_time=1,
+            )
+
+        self.wait()
+        self.play(FadeOut(arrow))
+
+        # Range sum from 3 to 6
+        start, end = 3, 6
+        arrow.shift(array.width * 4 * LEFT).set_color(ORANGE)
+        array.stroke_color = [WHITE, WHITE, WHITE, ORANGE, ORANGE, ORANGE, ORANGE, WHITE, WHITE]
+        array.stroke_width = [2, 2, 2, 5, 5, 5, 5, 2, 2]
+        self.play(
+            array_mobj.animate.become(array.get_mobject().center()),
+            total.animate.become(Text('Sum: 0')).center().next_to(array_mobj, DOWN).scale(0.8).shift(1.5 * DOWN),
+            run_time=0.001
+        )
+        self.wait(2)
+        self.play(
+            DrawBorderThenFill(arrow),
+            total.animate.become(
+                Text(f'Sum: {values[start]}').center().next_to(array_mobj, DOWN).scale(0.8).shift(1.5 * DOWN)
+            )
+        )
+
+        for i in range(start + 1, end + 1):
+            self.play(
+                arrow.animate.shift(array.width * RIGHT),
+                total.animate.become(Text(f'Sum: {sum(values[start:i + 1])}')
+                                     .center().next_to(array_mobj, DOWN)
+                                     .scale(0.8).shift(1.5 * DOWN)),
+                run_time=0.5,
+            )
         self.wait(2)
