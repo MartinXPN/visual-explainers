@@ -5,20 +5,16 @@ from manim import *
 
 @dataclass
 class Array:
-    values: list[int]
+    values: list[int | None]
     color: str = WHITE
     fill_color: str = BLACK
     fill_opacity: float = 0.5
-    stroke_width: float = 2
-    stroke_color: str = WHITE
+    stroke_width: float | list[float] = 2.
+    stroke_color: str | list[str] = WHITE
     height: float = 0.5
     width: float = 0.5
-    spacing: float = 0.5
-
-    def __post_init__(self):
-        self.values = [int(value) for value in self.values]
-        self.length = len(self.values)
-        self.total = sum(self.values)
+    spacing: float = 0.1
+    scale_text: float = 0.5
 
     def get_rectangles(self):
         rectangles = []
@@ -26,11 +22,10 @@ class Array:
             rectangle = Rectangle(
                 height=self.height,
                 width=self.width,
-                color=self.color,
                 fill_color=self.fill_color,
                 fill_opacity=self.fill_opacity,
-                stroke_width=self.stroke_width,
-                stroke_color=self.stroke_color,
+                stroke_width=self.stroke_width if isinstance(self.stroke_width, (float, int)) else self.stroke_width[i],
+                stroke_color=self.stroke_color if isinstance(self.stroke_color, str) else self.stroke_color[i],
             )
             rectangle.shift(i * (self.width + self.spacing) * RIGHT)
             rectangles.append(rectangle)
@@ -39,8 +34,8 @@ class Array:
     def get_labels(self):
         labels = []
         for i, value in enumerate(self.values):
-            label = Tex(str(value))
-            label.scale(0.5)
+            label = Tex(str(value) if value is not None else '', color=self.color)
+            label.scale(self.scale_text)
             label.move_to(self.get_rectangles()[i])
             labels.append(label)
         return labels
@@ -50,27 +45,3 @@ class Array:
 
     def get_mobject(self):
         return VGroup(*self.get_mobjects())
-
-    def get_prefix_sum_array(self):
-        prefix_sum_array = []
-        for i in range(self.length):
-            prefix_sum_array.append(sum(self.values[:i + 1]))
-        return Array(prefix_sum_array, color=self.color, fill_color=self.fill_color, fill_opacity=self.fill_opacity,
-                     stroke_width=self.stroke_width, stroke_color=self.stroke_color, height=self.height,
-                     width=self.width, spacing=self.spacing)
-
-    def get_prefix_sum_rectangles(self):
-        prefix_sum_rectangles = []
-        for i, rectangle in enumerate(self.get_rectangles()):
-            prefix_sum_rectangles.append(
-                Rectangle(
-                    height=self.height * sum(self.values[:i + 1]) / self.total,
-                    width=self.width,
-                    color=self.color,
-                    fill_color=self.fill_color,
-                    fill_opacity=self.fill_opacity,
-                    stroke_width=self.stroke_width,
-                    stroke_color=self.stroke_color,
-                )
-            )
-        return prefix_sum_rectangles

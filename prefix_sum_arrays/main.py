@@ -1,3 +1,5 @@
+import random
+
 from manim import *
 from prefix_sum_arrays.array import Array
 
@@ -46,10 +48,92 @@ class UploadToYoutube(Scene):
 
         # Remove the tick and add an array that represents the video performance by days
         self.remove(tick)
-        array = Array([8, 3, -2, 4, 10, -1, 0, 5, 3]).get_mobject().center()
+        array = Array([None] * 9, width=0.8, height=0.8, spacing=0.05, scale_text=0.8)\
+            .get_mobject()\
+            .center()
         text = Text('Video Score by Day').center().next_to(array, UP)
         self.play(
-            FadeIn(array),
             FadeIn(text),
+            FadeIn(array),
         )
         self.wait()
+
+
+class FillInitialArray(Scene):
+    def construct(self):
+        logo = SVGMobject('prefix_sum_arrays/youtube-icon.svg').scale(0.5).move_to(2.5 * UP)
+
+        # Add the array
+        array = Array([None] * 9, width=0.8, height=0.8, spacing=0.05, scale_text=0.8)
+        array_mobj = array.get_mobject().center()
+
+        # Add indices below the array
+        indices = Array([i for i in range(9)], width=0.8, height=0.8, spacing=0.05, scale_text=0.5, stroke_color=BLACK)\
+            .get_mobject()\
+            .center()\
+            .next_to(array_mobj, 0.0001 * DOWN)
+
+        text = Text('Video Score By Day').center().next_to(array_mobj, UP)
+        self.add(logo, text, indices, array_mobj)
+
+        def get_reactions(nb_likes: int, nb_dislikes: int):
+            likes = [
+                SVGMobject('prefix_sum_arrays/like.svg', color=WHITE, fill_color=WHITE, fill_opacity=1).scale(0.2)
+                for _ in range(nb_likes)
+            ]
+            dislikes = [
+                SVGMobject('prefix_sum_arrays/dislike.svg', color=RED, fill_color=RED, fill_opacity=1).scale(0.2)
+                for _ in range(nb_dislikes)
+            ]
+            res = likes + dislikes
+            # Move likes to a random position
+            for reaction in res:
+                left = random.uniform(-4, 4)
+                down = random.uniform(1.5, 3.5)
+                reaction.move_to(left * LEFT + down * DOWN)
+            return res
+
+        # Animate the array: When adding each value animate the number of likes and dislikes
+        values = [8,    3, -2, 4, 10, -1, 0, 5, 3]
+        upvotes = [8,   3,  2, 4, 10,  0, 2, 7, 3]
+        downvotes = [0, 0,  4, 0,  0,  1, 2, 2, 0]
+
+        # On the day of uploading the video it got 8 likes, so we add 8 to day 0
+        for i, val in enumerate(values):
+            # Add the reactions
+            reactions = get_reactions(upvotes[i], downvotes[i])
+            if len(reactions) > 0 and i < 4:
+                self.play(*[DrawBorderThenFill(reaction, run_time=random.uniform(0.01, 4)) for reaction in reactions])
+
+            # Increase the value up to the number of upvotes and then decrease it by the number of downvotes
+            for diff in range(1, upvotes[i] + 1):
+                array.values[i] = diff
+                self.play(array_mobj.animate.become(array.get_mobject().center()), run_time=0.001)
+                self.wait(0.1)
+            for diff in range(1, downvotes[i] + 1):
+                array.values[i] = upvotes[i] - diff
+                self.play(array_mobj.animate.become(array.get_mobject().center()), run_time=0.001)
+                self.wait(0.1)
+
+            # Fade out the reactions
+            if len(reactions) > 0 and i < 4:
+                self.play(*[FadeOut(reaction, run_time=random.uniform(0.001, 1)) for reaction in reactions])
+                self.wait(0.5)
+
+        self.wait()
+
+        # Highlight the 2 -> 7
+        array.stroke_color = [WHITE, WHITE, YELLOW, YELLOW, YELLOW, YELLOW, YELLOW, YELLOW, WHITE]
+        array.stroke_width = [2, 2, 5, 5, 5, 5, 5, 5, 2]
+        self.play(
+            logo.animate.shift(5 * UP),
+            text.animate.become(Text("What's the Sum of the Range?").center().next_to(array_mobj, UP)),
+        )
+        self.play(array_mobj.animate.become(array.get_mobject().center()), run_time=0.001)
+        self.wait(2)
+
+        # Highlight the 3 -> 6
+        array.stroke_color = [WHITE, WHITE, WHITE, ORANGE, ORANGE, ORANGE, ORANGE, WHITE, WHITE]
+        array.stroke_width = [2, 2, 2, 5, 5, 5, 5, 2, 2]
+        self.play(array_mobj.animate.become(array.get_mobject().center()), run_time=0.001)
+        self.wait(2)
