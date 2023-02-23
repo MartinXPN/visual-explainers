@@ -273,11 +273,11 @@ class NaivePrefixSum(Scene):
         self.wait()
 
         def get_sum_tex(a):
-            res = f'{len(a) - 1}: ' + ' + '.join([f'a_{i}' for i in range(len(a))]) + ' = '
-            res += f'{a[0]}'
+            res = f'{{{{ {len(a) - 1} }}}}: ' + ' + '.join([f'{{{{ a_{i} }}}}' for i in range(len(a))]) + ' = '
+            res += f'{{{{ {a[0]} }}}}'
             for i in range(1, len(a)):
-                res += f' + {a[i]}' if a[i] >= 0 else f' - {-a[i]}'
-            res += f' = {sum(a)}'
+                res += f' + {{{{ {a[i]} }}}}' if a[i] >= 0 else f' - {{{{ {-a[i]} }}}}'
+            res += f' = {{{{ {sum(a)} }}}}'
             print(res)
             return res
 
@@ -289,12 +289,67 @@ class NaivePrefixSum(Scene):
         ).scale(0.25).next_to(array_mobj, UP).shift((array.width + array.spacing) * 4 * LEFT).shift(0.1 * DOWN)
         self.add(arrow)
 
-        # 0 -> 3 and Add text to display the calculation
-        array.stroke_color = [YELLOW, YELLOW, YELLOW, YELLOW, WHITE, WHITE, WHITE, WHITE, WHITE]
-        array.stroke_width = [5, 5, 5, 5, 2, 2, 2, 2, 2]
-        self.play(array_mobj.animate.become(array.get_mobject().center().move_to(1.2 * UP)), run_time=0.001)
+        def animate_sum(color, x, align_mobj, shift=0):
+            array.stroke_color = [color] * (x + 1) + [WHITE] * (len(values) - x - 1)
+            array.stroke_width = [5] * (x + 1) + [2] * (len(values) - x - 1)
+            arrow.set_color(color)
+            self.play(array_mobj.animate.become(array.get_mobject().center().move_to(1.2 * UP)), run_time=0.001)
+            self.wait()
+
+            # Animate the arrow
+            for _ in range(x):
+                self.play(arrow.animate.shift((array.width + array.spacing) * RIGHT), run_time=0.5)
+
+            res = MathTex(get_sum_tex(values[: x + 1])).scale(0.6)\
+                .next_to(align_mobj, DOWN).align_to(align_mobj, LEFT).shift(shift)
+            self.play(Write(res), run_time=0.5)
+            self.wait()
+            arrow.shift((array.width + array.spacing) * LEFT * x)
+            return res
+
+        sum3 = animate_sum(YELLOW, 3, indices, 0.5 * DOWN)
+        sum5 = animate_sum(RED, 5, sum3)
+        sum2 = animate_sum(GREEN, 2, sum5)
+        sum7 = animate_sum(ORANGE, 7, sum2)
+        self.play(FadeOut(arrow))
         self.wait()
-        sum3 = MathTex(get_sum_tex(values[:4])).scale(0.8)\
-            .next_to(indices, DOWN).align_to(indices, LEFT).shift(0.5 * DOWN)
-        self.play(Write(sum3))
+
+        # Common for 3 and 5 -> Isolate the common parts of the sums
+        common = ['a_0', 'a_1', 'a_2', 'a_3']
+        for tex in common:
+            sum3.set_color_by_tex(tex, ORANGE)
+            sum5.set_color_by_tex(tex, ORANGE)
+        self.wait(3)
+
+        # Reset the colors
+        sum3.set_color(WHITE)
+        sum5.set_color(WHITE)
+
+        # common for 5 and 7
+        common = ['a_0', 'a_1', 'a_2', 'a_3', 'a_4', 'a_5']
+        for tex in common:
+            sum5.set_color_by_tex(tex, ORANGE)
+            sum7.set_color_by_tex(tex, ORANGE)
+        self.wait(3)
+
+        array.stroke_color = [WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE]
+        array.stroke_width = [2, 2, 2, 2, 2, 2, 2, 2, 2]
+        self.play(array_mobj.animate.become(array.get_mobject().center().move_to(1.2 * UP)), run_time=0.001)
+
+        # Transition to the next scene
+        p = Array(
+            [None] * len(values),
+            width=array.width, height=array.height,
+            spacing=array.spacing, scale_text=array.scale_text
+        )
+        p_mobj = p.get_mobject().center().next_to(array_mobj, DOWN)
+
+        array_name = Text('a:').scale(0.8).move_to(array_mobj, LEFT).shift(0.7 * LEFT)
+        p_name = Text('p:').scale(0.8).move_to(p_mobj, LEFT).shift(0.7 * LEFT)
+
+        self.play(
+            FadeOut(sum3), FadeOut(sum5), FadeOut(sum2), FadeOut(sum7),
+            FadeIn(p_mobj), FadeIn(p_name), FadeIn(array_name),
+            indices.animate.next_to(p_mobj, 0.0001 * DOWN)
+        )
         self.wait()
