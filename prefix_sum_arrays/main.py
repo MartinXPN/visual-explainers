@@ -181,24 +181,25 @@ class NaiveApproach(Scene):
 
         # Range sum from 2 to 7
         start, end = 2, 7
-        total = Text('Sum: 0').center().next_to(array_mobj, DOWN).scale(0.8).shift(1.5 * DOWN)
+        total_text = Text('Sum: ')
+        total_num = Integer(0).next_to(total_text, RIGHT).scale(1.3)
+        total = always_redraw(
+            lambda: VGroup(total_text, total_num)
+        ).center().next_to(array_mobj, DOWN).scale(0.8).shift(1.5 * DOWN)
         arrow.shift(0.8 * 4 * LEFT).set_color(YELLOW)
         self.play(Write(total))
+        self.wait()
+
         self.play(
             DrawBorderThenFill(arrow),
-            total.animate.become(
-                Text(f'Sum: {values[start]}').center().next_to(array_mobj, DOWN).scale(0.8).shift(1.5 * DOWN)
-            ),
+            total_num.animate.set_value(values[start]),
         )
         for i in range(start + 1, end + 1):
             self.play(
+                total_num.animate.set_value(sum(values[start:i + 1])),
                 arrow.animate.shift(array.width * RIGHT),
-                total.animate.become(Text(f'Sum: {sum(values[start:i + 1])}')
-                                     .center().next_to(array_mobj, DOWN)
-                                     .scale(0.8).shift(1.5 * DOWN)),
                 run_time=1,
             )
-
         self.wait()
         self.play(FadeOut(arrow))
 
@@ -209,23 +210,20 @@ class NaiveApproach(Scene):
         array.stroke_width = [2, 2, 2, 5, 5, 5, 5, 2, 2]
         self.play(
             array_mobj.animate.become(array.get_mobject().center()),
-            total.animate.become(Text('Sum: 0')).center().next_to(array_mobj, DOWN).scale(0.8).shift(1.5 * DOWN),
+            total_num.animate.set_value(0),
             run_time=0.001
         )
         self.wait(2)
         self.play(
             DrawBorderThenFill(arrow),
-            total.animate.become(
-                Text(f'Sum: {values[start]}').center().next_to(array_mobj, DOWN).scale(0.8).shift(1.5 * DOWN)
-            )
+            total_num.animate.set_value(values[start]),
+            run_time=0.5,
         )
 
         for i in range(start + 1, end + 1):
             self.play(
                 arrow.animate.shift(array.width * RIGHT),
-                total.animate.become(Text(f'Sum: {sum(values[start:i + 1])}')
-                                     .center().next_to(array_mobj, DOWN)
-                                     .scale(0.8).shift(1.5 * DOWN)),
+                total_num.animate.set_value(sum(values[start:i + 1])),
                 run_time=0.5,
             )
         self.wait(2)
