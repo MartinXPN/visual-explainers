@@ -227,3 +227,74 @@ class NaiveApproach(Scene):
                 run_time=0.5,
             )
         self.wait(2)
+
+
+class NaivePrefixSum(Scene):
+    def construct(self):
+        values = [8, 3, -2, 4, 10, -1, 0, 5, 3]
+        array = Array(values, width=0.8, height=0.8, spacing=0.05, scale_text=0.8)
+        array.stroke_color = [ORANGE, ORANGE, ORANGE, ORANGE, ORANGE, ORANGE, ORANGE, WHITE, WHITE]
+        array.stroke_width = [5, 5, 5, 5, 5, 5, 5, 2, 2]
+        array_mobj = array.get_mobject().center().move_to(1.2 * UP)
+
+        # Add indices below the array
+        indices = Array(
+            [i for i in range(9)],
+            width=array.width, height=array.height,
+            spacing=array.spacing, scale_text=array.scale_text, stroke_color=BLACK,
+        ).get_mobject().center().next_to(array_mobj, 0.0001 * DOWN)
+
+        text = Text("What's the Sum Up To Day X?").center().next_to(array_mobj, UP).shift(0.5 * UP)
+        self.add(text, indices, array_mobj)
+        self.wait()
+
+        # 0 -> 3
+        array.stroke_color = [YELLOW, YELLOW, YELLOW, YELLOW, WHITE, WHITE, WHITE, WHITE, WHITE]
+        array.stroke_width = [5, 5, 5, 5, 2, 2, 2, 2, 2]
+        self.play(array_mobj.animate.become(array.get_mobject().center().move_to(1.2 * UP)), run_time=0.001)
+        self.wait()
+
+        # 0 -> 5
+        array.stroke_color = [RED, RED, RED, RED, RED, RED, WHITE, WHITE, WHITE]
+        array.stroke_width = [5, 5, 5, 5, 5, 5, 2, 2, 2]
+        self.play(array_mobj.animate.become(array.get_mobject().center().move_to(1.2 * UP)), run_time=0.001)
+        self.wait()
+
+        # 0 -> 2
+        array.stroke_color = [GREEN, GREEN, GREEN, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE]
+        array.stroke_width = [5, 5, 5, 2, 2, 2, 2, 2, 2]
+        self.play(array_mobj.animate.become(array.get_mobject().center().move_to(1.2 * UP)), run_time=0.001)
+        self.wait()
+
+        # 0 -> 7
+        array.stroke_color = [ORANGE, ORANGE, ORANGE, ORANGE, ORANGE, ORANGE, ORANGE, ORANGE, WHITE]
+        array.stroke_width = [5, 5, 5, 5, 5, 5, 5, 5, 2]
+        self.play(array_mobj.animate.become(array.get_mobject().center().move_to(1.2 * UP)), run_time=0.001)
+        self.wait()
+
+        def get_sum_tex(a):
+            res = f'{len(a) - 1}: ' + ' + '.join([f'a_{i}' for i in range(len(a))]) + ' = '
+            res += f'{a[0]}'
+            for i in range(1, len(a)):
+                res += f' + {a[i]}' if a[i] >= 0 else f' - {-a[i]}'
+            res += f' = {sum(a)}'
+            print(res)
+            return res
+
+        # Arrow shows which element is currently being added to the sum
+        arrow = Arrow(
+            start=UP, end=DOWN, color=YELLOW, buff=0,
+            stroke_width=10, max_stroke_width_to_length_ratio=15,
+            max_tip_length_to_length_ratio=0.5, tip_length=0.2,
+        ).scale(0.25).next_to(array_mobj, UP).shift((array.width + array.spacing) * 4 * LEFT).shift(0.1 * DOWN)
+        self.add(arrow)
+
+        # 0 -> 3 and Add text to display the calculation
+        array.stroke_color = [YELLOW, YELLOW, YELLOW, YELLOW, WHITE, WHITE, WHITE, WHITE, WHITE]
+        array.stroke_width = [5, 5, 5, 5, 2, 2, 2, 2, 2]
+        self.play(array_mobj.animate.become(array.get_mobject().center().move_to(1.2 * UP)), run_time=0.001)
+        self.wait()
+        sum3 = MathTex(get_sum_tex(values[:4])).scale(0.8)\
+            .next_to(indices, DOWN).align_to(indices, LEFT).shift(0.5 * DOWN)
+        self.play(Write(sum3))
+        self.wait()
