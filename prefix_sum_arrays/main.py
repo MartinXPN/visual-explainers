@@ -1,4 +1,5 @@
 import random
+from textwrap import dedent
 
 from manim import *
 from prefix_sum_arrays.array import Array
@@ -485,4 +486,39 @@ class PrefixSumCalculation(Scene):
         highlights = [highlight_one(0, indices)]
         for i in range(1, len(values)):
             highlights.append(highlight_one(i, highlights[-1]))
+        self.wait()
+
+        # Transition to the next scene
+        array.stroke_color = [WHITE] * (len(values))
+        array.stroke_width = [2] * (len(values))
+        p.stroke_color = [WHITE] * len(values)
+        p.stroke_width = [2] * len(values)
+        self.play(
+            array_mobj.animate.become(array.get_mobject().center().move_to(1.2 * UP)),
+            p_mobj.animate.become(p.get_mobject().center().next_to(array_mobj, DOWN)),
+            run_time=0.001
+        )
+        self.play(
+            text.animate.become(Text('Prefix Sum Array').center().next_to(array_mobj, UP).shift(0.5 * UP)),
+            FadeOut(*[item for item in highlights if item is not None]),
+        )
+        self.wait()
+
+
+class PrefixSumCode(Scene):
+    def construct(self):
+        code = Code(
+            code=dedent('''
+                p = [0] * n
+                p[0] = a[0]
+                for i in range(1, n):
+                    p[i] = p[i - 1] + a[i]
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            font='Monospace',
+            style='monokai',
+        ).code
+        for line in code.chars:
+            self.play(AddTextLetterByLetter(line))
         self.wait()
