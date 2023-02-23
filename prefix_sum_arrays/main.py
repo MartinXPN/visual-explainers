@@ -507,6 +507,31 @@ class PrefixSumCalculation(Scene):
 
 class PrefixSumCode(Scene):
     def construct(self):
+        values = [8, 3, -2, 4, 10, -1, 0, 5, 3]
+        array = Array(
+            values, width=0.6, height=0.6, spacing=0.2, scale_text=0.6,
+            stroke_color=WHITE, stroke_width=2
+        )
+        array_mobj = array.get_mobject().center().move_to(1.2 * UP)
+        p = Array(
+            [sum(values[:i]) for i in range(len(values))],
+            width=array.width, height=array.height,
+            spacing=array.spacing, scale_text=array.scale_text
+        )
+        p_mobj = p.get_mobject().center().next_to(array_mobj, DOWN)
+        array_name = Text('a:').scale(0.8).move_to(array_mobj, LEFT).shift(0.7 * LEFT)
+        p_name = Text('p:').scale(0.8).move_to(p_mobj, LEFT).shift(0.7 * LEFT)
+
+        text = Text('Prefix Sum Array').center().next_to(array_mobj, UP).shift(0.5 * UP)
+        # Add indices below the array
+        indices = Array(
+            [i for i in range(9)],
+            width=array.width, height=array.height,
+            spacing=array.spacing, scale_text=array.scale_text, stroke_color=BLACK,
+        ).get_mobject().center().next_to(p_mobj, 0.0001 * DOWN)
+        self.add(text, indices, array_mobj, array_name, p_mobj, p_name)
+        self.wait()
+
         code = Code(
             code=dedent('''
                 p = [0] * n
@@ -518,7 +543,23 @@ class PrefixSumCode(Scene):
             language='Python',
             font='Monospace',
             style='monokai',
-        ).code
+        ).next_to(indices, DOWN).code
         for line in code.chars:
             self.play(AddTextLetterByLetter(line))
+        self.wait()
+
+        # Highlight p[6]
+        p.stroke_color = [WHITE] * len(values)
+        p.stroke_color[6] = ORANGE
+        p.stroke_width = [2] * len(values)
+        p.stroke_width[6] = 5
+        self.play(p_mobj.animate.become(p.get_mobject().center().next_to(array_mobj, DOWN)), run_time=0.001)
+        self.wait()
+
+        # Highlight p[8]
+        p.stroke_color = [WHITE] * len(values)
+        p.stroke_color[8] = ORANGE
+        p.stroke_width = [2] * len(values)
+        p.stroke_width[8] = 5
+        self.play(p_mobj.animate.become(p.get_mobject().center().next_to(array_mobj, DOWN)), run_time=0.001)
         self.wait()
