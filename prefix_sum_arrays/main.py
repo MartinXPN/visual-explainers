@@ -229,6 +229,16 @@ class NaiveApproach(Scene):
         self.wait(2)
 
 
+def get_sum_tex(a):
+    res = f'{{{{ {len(a) - 1} }}}}: ' + ' + '.join([f'{{{{ a_{i} }}}}' for i in range(len(a))]) + ' = '
+    res += f'{{{{ {a[0]} }}}}'
+    for i in range(1, len(a)):
+        res += f' + {{{{ {a[i]} }}}}' if a[i] >= 0 else f' - {{{{ {-a[i]} }}}}'
+    res += f' = {{{{ {sum(a)} }}}}'
+    print(res)
+    return res
+
+
 class NaivePrefixSum(Scene):
     def construct(self):
         values = [8, 3, -2, 4, 10, -1, 0, 5, 3]
@@ -271,15 +281,6 @@ class NaivePrefixSum(Scene):
         array.stroke_width = [5, 5, 5, 5, 5, 5, 5, 5, 2]
         self.play(array_mobj.animate.become(array.get_mobject().center().move_to(1.2 * UP)), run_time=0.001)
         self.wait()
-
-        def get_sum_tex(a):
-            res = f'{{{{ {len(a) - 1} }}}}: ' + ' + '.join([f'{{{{ a_{i} }}}}' for i in range(len(a))]) + ' = '
-            res += f'{{{{ {a[0]} }}}}'
-            for i in range(1, len(a)):
-                res += f' + {{{{ {a[i]} }}}}' if a[i] >= 0 else f' - {{{{ {-a[i]} }}}}'
-            res += f' = {{{{ {sum(a)} }}}}'
-            print(res)
-            return res
 
         # Arrow shows which element is currently being added to the sum
         arrow = Arrow(
@@ -352,4 +353,136 @@ class NaivePrefixSum(Scene):
             FadeIn(p_mobj), FadeIn(p_name), FadeIn(array_name),
             indices.animate.next_to(p_mobj, 0.0001 * DOWN)
         )
+        self.wait()
+
+
+class PrefixSumCalculation(Scene):
+    def construct(self):
+        values = [8, 3, -2, 4, 10, -1, 0, 5, 3]
+        array = Array(
+            values, width=0.6, height=0.6, spacing=0.2, scale_text=0.6,
+            stroke_color=WHITE, stroke_width=2
+        )
+        array_mobj = array.get_mobject().center().move_to(1.2 * UP)
+        text = Text("What's the Sum Up To Day X?").center().next_to(array_mobj, UP).shift(0.5 * UP)
+
+        p = Array(
+            [None] * len(values),
+            width=array.width, height=array.height,
+            spacing=array.spacing, scale_text=array.scale_text
+        )
+        p_mobj = p.get_mobject().center().next_to(array_mobj, DOWN)
+
+        array_name = Text('a:').scale(0.8).move_to(array_mobj, LEFT).shift(0.7 * LEFT)
+        p_name = Text('p:').scale(0.8).move_to(p_mobj, LEFT).shift(0.7 * LEFT)
+
+        # Add indices below the array
+        indices = Array(
+            [i for i in range(9)],
+            width=array.width, height=array.height,
+            spacing=array.spacing, scale_text=array.scale_text, stroke_color=BLACK,
+        ).get_mobject().center().next_to(p_mobj, 0.0001 * DOWN)
+        self.add(text, indices, array_mobj, array_name, p_mobj, p_name)
+        self.wait()
+
+        # Highlight the 7th cell of the prefix sum
+        p.stroke_color = [WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, ORANGE, WHITE]
+        p.stroke_width = [2, 2, 2, 2, 2, 2, 2, 5, 2]
+        self.play(p_mobj.animate.become(p.get_mobject().center().next_to(array_mobj, DOWN)), run_time=0.001)
+        self.wait()
+
+        def highlight_sum(x, align_mobj):
+            array.stroke_color = [YELLOW] * (x + 1) + [WHITE] * (len(values) - x - 1)
+            array.stroke_width = [5] * (x + 1) + [2] * (len(values) - x - 1)
+            p.stroke_color = [WHITE] * len(values)
+            p.stroke_color[x] = ORANGE
+            p.stroke_width = [2] * len(values)
+            p.stroke_width[x] = 5
+            self.play(
+                array_mobj.animate.become(array.get_mobject().center().move_to(1.2 * UP)),
+                p_mobj.animate.become(p.get_mobject().center().next_to(array_mobj, DOWN)),
+                run_time=0.001
+            )
+
+            if x < 5:
+                res = MathTex(get_sum_tex(values[: x + 1]))
+            elif x == 5:
+                res = MathTex(f'{{{{ {x} }}}}: ...')
+            else:
+                res = None
+
+            if res:
+                res = res.scale(0.6).next_to(align_mobj, DOWN).align_to(align_mobj, LEFT)
+                self.play(Write(res), run_time=0.5)
+            self.wait()
+            return res
+
+        highlights = [highlight_sum(0, indices)]
+        for i in range(1, len(values)):
+            highlights.append(highlight_sum(i, highlights[-1]))
+        self.wait()
+
+        # Remove the highlights
+        array.stroke_color = [WHITE] * len(values)
+        array.stroke_width = [2] * len(values)
+        p.stroke_color = [WHITE] * len(values)
+        p.stroke_width = [2] * len(values)
+        self.play(
+            array_mobj.animate.become(array.get_mobject().center().move_to(1.2 * UP)),
+            p_mobj.animate.become(p.get_mobject().center().next_to(array_mobj, DOWN)),
+            FadeOut(*[item for item in highlights if item is not None]),
+            run_time=0.001,
+        )
+        self.wait()
+
+        # Compute the prefix sum
+        def get_one_tex(x):
+            res = f'{{{{ {x} }}}}: ' + (f'{{{{ p_{x - 1} }}}} + ' if x > 0 else '') + f'{{{{ a_{x} }}}} = '
+            if x == 0:
+                res += f'{{{{ {values[x]} }}}}'
+                return res
+            res += f'{{{{ {p.values[x - 1]} }}}}'
+            res += f' + {{{{ {values[x]} }}}}' if values[x] >= 0 else f' - {{{{ {-values[x]} }}}}'
+            res += f' = {{{{ {p.values[x - 1] + values[x]} }}}}'
+            print(res)
+            return res
+
+        def highlight_one(x, align_mobj):
+            array.stroke_color = [WHITE] * (len(values))
+            array.stroke_color[x] = YELLOW
+            array.stroke_width = [2] * (len(values))
+            array.stroke_width[x] = 5
+            p.stroke_color = [WHITE] * len(values)
+            p.stroke_color[x] = ORANGE
+            p.stroke_width = [2] * len(values)
+            p.stroke_width[x] = 5
+
+            if x == 0:
+                p.values[x] = values[x]
+            else:
+                p.values[x] = p.values[x - 1] + values[x]
+                p.stroke_color[x - 1] = YELLOW
+                p.stroke_width[x - 1] = 5
+            self.play(
+                array_mobj.animate.become(array.get_mobject().center().move_to(1.2 * UP)),
+                p_mobj.animate.become(p.get_mobject().center().next_to(array_mobj, DOWN)),
+                run_time=0.001
+            )
+
+            if x < 5:
+                res = MathTex(get_one_tex(x))
+            elif x == 5:
+                res = MathTex(f'{{{{ {x} }}}}: ...')
+            else:
+                res = None
+
+            if res:
+                res = res.scale(0.6).next_to(align_mobj, DOWN).align_to(align_mobj, LEFT)
+                self.play(Write(res), run_time=0.5)
+            self.wait()
+            return res
+
+        highlights = [highlight_one(0, indices)]
+        for i in range(1, len(values)):
+            highlights.append(highlight_one(i, highlights[-1]))
         self.wait()
