@@ -563,3 +563,7 @@ class PrefixSumCode(Scene):
         p.stroke_width[8] = 5
         self.play(p_mobj.animate.become(p.get_mobject().center().next_to(array_mobj, DOWN)), run_time=0.001)
         self.wait()
+
+        # Circumscribe p
+        self.play(Circumscribe(p_mobj), run_time=3)
+        self.wait()
