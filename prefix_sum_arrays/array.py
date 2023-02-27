@@ -45,3 +45,6 @@ class Array:
 
     def get_mobject(self):
         return VGroup(*self.get_mobjects())
+
+    def __len__(self):
+        return len(self.values)
