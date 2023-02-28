@@ -14,7 +14,7 @@ class UploadToYoutube(Scene):
         text = Text('Uploading...')
         text.next_to(logo, DOWN)
         # Add the progress bar
-        bar = Rectangle(width=6, height=0.5)
+        bar = RoundedRectangle(width=6., height=0.25, corner_radius=0.125)
         bar.next_to(text, DOWN)
 
         # Group the logo, text and progress bar + Center the group
@@ -26,15 +26,19 @@ class UploadToYoutube(Scene):
 
         # Add filler to the progress bar
         def get_filler():
-            fill = Rectangle(width=progress.get_value(), height=0.5, fill_color=GREEN, fill_opacity=1)
-            fill.set_stroke(width=0)
-            fill.align_to(bar, DOWN)
-            fill.align_to(bar, LEFT)
+            fill = Rectangle(
+                width=max(0, progress.get_value() - 0.25), height=0.25, fill_color=GREEN, fill_opacity=1, stroke_width=0
+            ).align_to(bar, DOWN).align_to(bar, LEFT).shift(0.125 * RIGHT)
+            left = Circle(
+                radius=0.125, fill_color=GREEN, fill_opacity=1, stroke_width=0
+            ).align_to(bar, DOWN).align_to(bar, LEFT)
+            right = Circle(
+                radius=0.125, fill_color=GREEN, fill_opacity=1, stroke_width=0
+            ).align_to(bar, DOWN).align_to(fill, RIGHT).shift(0.125 * RIGHT)
+            fill.add(left, right)
             return fill
         filler = always_redraw(get_filler)
-        bar.add(filler)
-
-        self.add(logo, text, bar)
+        self.add(logo, text, bar, filler)
         self.play(progress.animate.set_value(6), run_time=2)
 
         # Move the logo to the top and turn the progress bar to a green tick
@@ -79,21 +83,23 @@ class FillInitialArray(Scene):
         self.add(logo, text, indices, array_mobj)
 
         def get_reactions(nb_likes: int, nb_dislikes: int):
-            likes = [
-                SVGMobject('prefix_sum_arrays/like.svg', color=WHITE, fill_color=WHITE, fill_opacity=1).scale(0.2)
-                for _ in range(nb_likes)
-            ]
-            dislikes = [
-                SVGMobject('prefix_sum_arrays/dislike.svg', color=RED, fill_color=RED, fill_opacity=1).scale(0.2)
-                for _ in range(nb_dislikes)
-            ]
-            res = likes + dislikes
-            # Move likes to a random position
-            for reaction in res:
-                left = random.uniform(-4, 4)
-                down = random.uniform(1.5, 3.5)
-                reaction.move_to(left * LEFT + down * DOWN)
-            return res
+            like_svg = SVGMobject(
+                'prefix_sum_arrays/dislike.svg', color=WHITE, fill_color=WHITE, fill_opacity=1
+            ).scale(0.5).rotate(PI).shift(LEFT).shift(2 * DOWN)
+            like_text = Text(
+                f'{nb_likes}', color=BLACK, weight=BOLD, font='Consolas',
+            ).scale(0.7).align_to(like_svg, RIGHT).shift(0.35 * LEFT).align_to(like_svg, UP).shift(0.5 * DOWN)
+            like = VGroup(like_svg, like_text)
+
+            dislike_svg = SVGMobject(
+                'prefix_sum_arrays/dislike.svg', color=WHITE, fill_color=WHITE, fill_opacity=1
+            ).scale(0.5).shift(RIGHT).shift(2.35 * DOWN)
+            dislike_text = Text(
+                f'{nb_dislikes}', color=BLACK, weight=BOLD, font='Consolas',
+            ).scale(0.7).align_to(dislike_svg, LEFT).shift(0.35 * RIGHT).align_to(dislike_svg, UP).shift(0.2 * DOWN)
+            dislike = VGroup(dislike_svg, dislike_text)
+
+            return [like, dislike]
 
         # Animate the array: When adding each value animate the number of likes and dislikes
         values = [8,    3, -2, 4, 10, -1, 0, 5, 3]
@@ -104,22 +110,36 @@ class FillInitialArray(Scene):
         for i, val in enumerate(values):
             # Add the reactions
             reactions = get_reactions(upvotes[i], downvotes[i])
-            if len(reactions) > 0 and i < 4:
-                self.play(*[DrawBorderThenFill(reaction, run_time=random.uniform(0.01, 4)) for reaction in reactions])
+            [l, d] = reactions
+            if i < 4:
+                if upvotes[i] > 0:
+                    self.play(
+                        FadeIn(l),
+                        Flash(l, flash_radius=0.8, line_length=0.3, color=ORANGE)
+                    )
+                if downvotes[i] > 0:
+                    self.play(FadeIn(d), run_time=0.2)
 
             # Increase the value up to the number of upvotes and then decrease it by the number of downvotes
             for diff in range(1, upvotes[i] + 1):
                 array.values[i] = diff
                 self.play(array_mobj.animate.become(array.get_mobject().center()), run_time=0.001)
                 self.wait(0.1)
+            if downvotes[i] > 0:
+                self.wait(0.5)
             for diff in range(1, downvotes[i] + 1):
                 array.values[i] = upvotes[i] - diff
                 self.play(array_mobj.animate.become(array.get_mobject().center()), run_time=0.001)
                 self.wait(0.1)
 
             # Fade out the reactions
-            if len(reactions) > 0 and i < 4:
-                self.play(*[FadeOut(reaction, run_time=random.uniform(0.001, 1)) for reaction in reactions])
+            if i < 4:
+                to_remove = []
+                if upvotes[i] > 0:
+                    to_remove.append(l)
+                if downvotes[i] > 0:
+                    to_remove.append(d)
+                self.play(FadeOut(*to_remove))
                 self.wait(0.5)
 
         self.wait()
