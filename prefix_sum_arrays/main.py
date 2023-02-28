@@ -380,10 +380,7 @@ class NaivePrefixSum(Scene):
 class PrefixSumCalculation(Scene):
     def construct(self):
         values = [8, 3, -2, 4, 10, -1, 0, 5, 3]
-        array = Array(
-            values, width=0.6, height=0.6, spacing=0.2, scale_text=0.6,
-            stroke_color=WHITE, stroke_width=2
-        )
+        array = Array(values, width=0.8, height=0.8, spacing=0.05, scale_text=0.8)
         array_mobj = array.get_mobject().center().move_to(1.2 * UP)
         text = Text("What's the Sum Up To Day X?").center().next_to(array_mobj, UP).shift(0.5 * UP)
 
@@ -425,9 +422,9 @@ class PrefixSumCalculation(Scene):
                 run_time=0.001
             )
 
-            if x < 5:
+            if x < 4:
                 res = MathTex(get_sum_tex(values[: x + 1]))
-            elif x == 5:
+            elif x == 4:
                 res = MathTex(f'{{{{ {x} }}}}: ...')
             else:
                 res = None
@@ -490,9 +487,9 @@ class PrefixSumCalculation(Scene):
                 run_time=0.001
             )
 
-            if x < 5:
+            if x < 4:
                 res = MathTex(get_one_tex(x))
-            elif x == 5:
+            elif x == 4:
                 res = MathTex(f'{{{{ {x} }}}}: ...')
             else:
                 res = None
@@ -528,10 +525,7 @@ class PrefixSumCalculation(Scene):
 class PrefixSumCode(Scene):
     def construct(self):
         values = [8, 3, -2, 4, 10, -1, 0, 5, 3]
-        array = Array(
-            values, width=0.6, height=0.6, spacing=0.2, scale_text=0.6,
-            stroke_color=WHITE, stroke_width=2
-        )
+        array = Array(values, width=0.8, height=0.8, spacing=0.05, scale_text=0.8)
         array_mobj = array.get_mobject().center().move_to(1.2 * UP)
         p = Array(
             [sum(values[:i + 1]) for i in range(len(values))],
@@ -606,10 +600,7 @@ class PrefixSumCode(Scene):
 class AnsweringRangeQueries(Scene):
     def construct(self):
         values = [8, 3, -2, 4, 10, -1, 0, 5, 3]
-        array = Array(
-            values, width=0.6, height=0.6, spacing=0.2, scale_text=0.6,
-            stroke_color=WHITE, stroke_width=2
-        )
+        array = Array(values, width=0.8, height=0.8, spacing=0.05, scale_text=0.8)
         array_mobj = array.get_mobject().center().move_to(1.2 * UP)
         p = Array(
             [sum(values[:i + 1]) for i in range(len(values))],
@@ -744,10 +735,7 @@ class AnsweringRangeQueries(Scene):
 class NewCode(Scene):
     def construct(self):
         values = [8, 3, -2, 4, 10, -1, 0, 5, 3]
-        array = Array(
-            values, width=0.6, height=0.6, spacing=0.2, scale_text=0.6,
-            stroke_color=WHITE, stroke_width=2
-        )
+        array = Array(values, width=0.8, height=0.8, spacing=0.05, scale_text=0.8)
         array.stroke_color = [YELLOW_A, YELLOW_A, YELLOW, YELLOW, YELLOW, YELLOW, YELLOW, YELLOW, WHITE]
         array.stroke_width = [5, 5, 5, 5, 5, 5, 5, 5, 2]
         array_mobj = array.get_mobject().center().move_to(1.2 * UP)
