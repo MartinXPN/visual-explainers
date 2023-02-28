@@ -1,7 +1,7 @@
-import random
 from textwrap import dedent
 
 from manim import *
+
 from prefix_sum_arrays.array import Array
 
 
