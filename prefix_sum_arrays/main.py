@@ -848,3 +848,24 @@ class NewCode(Scene):
         self.play(Circumscribe(range_0_2))
         self.play(Circumscribe(range_5_8))
         self.wait()
+
+        # Time complexity is O(n + q), Memory complexity is O(n)
+        time_complexity = MathTex(
+            '\\mathrm{Time \\ Complexity}: \\mathcal{O}(n + q)'
+        ).scale(0.7).align_to(code, LEFT + UP)
+        memory_complexity = MathTex(
+            '\\mathrm{Memory \\ Complexity}: \\mathcal{O}(n)'
+        ).scale(0.7).next_to(time_complexity, DOWN).align_to(time_complexity, LEFT)
+
+        # Remove the code
+        self.play(FadeOut(code))
+        self.wait()
+        self.play(Circumscribe(p_mobj))                                                 # O(n) for the prefix sum array
+        self.play(Circumscribe(VGroup(range_2_4, range_5_8, range_0_2, range_0_0)))     # O(q) for the queries
+        self.play(Write(time_complexity))
+        self.wait()
+
+        # O(n) memory for the prefix sum array
+        self.play(Circumscribe(p_mobj))
+        self.play(Write(memory_complexity))
+        self.wait()
