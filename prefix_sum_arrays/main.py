@@ -123,13 +123,13 @@ class FillInitialArray(Scene):
             # Increase the value up to the number of upvotes and then decrease it by the number of downvotes
             for diff in range(1, upvotes[i] + 1):
                 array.values[i] = diff
-                self.play(array_mobj.animate.become(array.get_mobject().center()), run_time=0.001)
+                array_mobj.become(array.get_mobject().center())
                 self.wait(0.1)
             if downvotes[i] > 0:
                 self.wait(0.5)
             for diff in range(1, downvotes[i] + 1):
                 array.values[i] = upvotes[i] - diff
-                self.play(array_mobj.animate.become(array.get_mobject().center()), run_time=0.001)
+                array_mobj.become(array.get_mobject().center())
                 self.wait(0.1)
 
             # Fade out the reactions
@@ -145,19 +145,18 @@ class FillInitialArray(Scene):
         self.wait()
 
         # Highlight the 2 -> 7
-        array.stroke_color = [WHITE, WHITE, YELLOW, YELLOW, YELLOW, YELLOW, YELLOW, YELLOW, WHITE]
-        array.stroke_width = [2, 2, 5, 5, 5, 5, 5, 5, 2]
         self.play(
             logo.animate.shift(5 * UP),
             text.animate.become(Text("What's the Sum of the Range?").center().next_to(array_mobj, UP).shift(1.5 * UP)),
         )
-        self.play(array_mobj.animate.become(array.get_mobject().center()), run_time=0.001)
+        array.highlight(2, 7, color=YELLOW, width=5)
+        array_mobj.become(array.get_mobject().center())
         self.wait(2)
 
         # Highlight the 3 -> 6
-        array.stroke_color = [WHITE, WHITE, WHITE, ORANGE, ORANGE, ORANGE, ORANGE, WHITE, WHITE]
-        array.stroke_width = [2, 2, 2, 5, 5, 5, 5, 2, 2]
-        self.play(array_mobj.animate.become(array.get_mobject().center()), run_time=0.001)
+        array.unhighlight()
+        array.highlight(3, 6, color=ORANGE, width=5)
+        array_mobj.become(array.get_mobject().center())
         self.wait(2)
 
 
@@ -166,8 +165,7 @@ class NaiveApproach(Scene):
         # Add the array
         values = [8, 3, -2, 4, 10, -1, 0, 5, 3]
         array = Array(values, width=0.8, height=0.8, spacing=0.05, scale_text=0.8)
-        array.stroke_color = [WHITE, WHITE, WHITE, ORANGE, ORANGE, ORANGE, ORANGE, WHITE, WHITE]
-        array.stroke_width = [2, 2, 2, 5, 5, 5, 5, 2, 2]
+        array.highlight(3, 6, color=ORANGE, width=5)
         array_mobj = array.get_mobject().center()
 
         # Add indices below the array
@@ -192,13 +190,10 @@ class NaiveApproach(Scene):
         self.wait()
 
         # Highlight the 2 -> 7
-        array.stroke_color = [WHITE, WHITE, YELLOW, YELLOW, YELLOW, YELLOW, YELLOW, YELLOW, WHITE]
-        array.stroke_width = [2, 2, 5, 5, 5, 5, 5, 5, 2]
-        self.play(
-            array_mobj.animate.become(array.get_mobject().center()),
-            FadeOut(arrow),
-            run_time=0.001
-        )
+        array.unhighlight()
+        array.highlight(2, 7, color=YELLOW, width=5)
+        array_mobj.become(array.get_mobject().center())
+        self.play(FadeOut(arrow), run_time=0.5)
 
         # Range sum from 2 to 7
         start, end = 2, 7
@@ -227,13 +222,10 @@ class NaiveApproach(Scene):
         # Range sum from 3 to 6
         start, end = 3, 6
         arrow.shift(array.width * 4 * LEFT).set_color(ORANGE)
-        array.stroke_color = [WHITE, WHITE, WHITE, ORANGE, ORANGE, ORANGE, ORANGE, WHITE, WHITE]
-        array.stroke_width = [2, 2, 2, 5, 5, 5, 5, 2, 2]
-        self.play(
-            array_mobj.animate.become(array.get_mobject().center()),
-            total_num.animate.set_value(0),
-            run_time=0.001
-        )
+        array.unhighlight()
+        array.highlight(3, 6, color=ORANGE, width=5)
+        array_mobj.become(array.get_mobject().center())
+        total_num.set_value(0)
         self.wait(2)
         self.play(
             DrawBorderThenFill(arrow),
@@ -264,8 +256,7 @@ class NaivePrefixSum(Scene):
     def construct(self):
         values = [8, 3, -2, 4, 10, -1, 0, 5, 3]
         array = Array(values, width=0.8, height=0.8, spacing=0.05, scale_text=0.8)
-        array.stroke_color = [ORANGE, ORANGE, ORANGE, ORANGE, ORANGE, ORANGE, ORANGE, WHITE, WHITE]
-        array.stroke_width = [5, 5, 5, 5, 5, 5, 5, 2, 2]
+        array.highlight(0, 6, color=ORANGE, width=5)
         array_mobj = array.get_mobject().center().move_to(1.2 * UP)
 
         # Add indices below the array
@@ -280,27 +271,27 @@ class NaivePrefixSum(Scene):
         self.wait()
 
         # 0 -> 3
-        array.stroke_color = [YELLOW, YELLOW, YELLOW, YELLOW, WHITE, WHITE, WHITE, WHITE, WHITE]
-        array.stroke_width = [5, 5, 5, 5, 2, 2, 2, 2, 2]
-        self.play(array_mobj.animate.become(array.get_mobject().center().move_to(1.2 * UP)), run_time=0.001)
+        array.unhighlight()
+        array.highlight(0, 3, color=YELLOW, width=5)
+        array_mobj.become(array.get_mobject().center()).move_to(1.2 * UP)
         self.wait()
 
         # 0 -> 5
-        array.stroke_color = [RED, RED, RED, RED, RED, RED, WHITE, WHITE, WHITE]
-        array.stroke_width = [5, 5, 5, 5, 5, 5, 2, 2, 2]
-        self.play(array_mobj.animate.become(array.get_mobject().center().move_to(1.2 * UP)), run_time=0.001)
+        array.unhighlight()
+        array.highlight(0, 5, color=RED, width=5)
+        array_mobj.become(array.get_mobject().center()).move_to(1.2 * UP)
         self.wait()
 
         # 0 -> 2
-        array.stroke_color = [GREEN, GREEN, GREEN, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE]
-        array.stroke_width = [5, 5, 5, 2, 2, 2, 2, 2, 2]
-        self.play(array_mobj.animate.become(array.get_mobject().center().move_to(1.2 * UP)), run_time=0.001)
+        array.unhighlight()
+        array.highlight(0, 2, color=GREEN, width=5)
+        array_mobj.become(array.get_mobject().center()).move_to(1.2 * UP)
         self.wait()
 
         # 0 -> 7
-        array.stroke_color = [ORANGE, ORANGE, ORANGE, ORANGE, ORANGE, ORANGE, ORANGE, ORANGE, WHITE]
-        array.stroke_width = [5, 5, 5, 5, 5, 5, 5, 5, 2]
-        self.play(array_mobj.animate.become(array.get_mobject().center().move_to(1.2 * UP)), run_time=0.001)
+        array.unhighlight()
+        array.highlight(0, 7, color=ORANGE, width=5)
+        array_mobj.become(array.get_mobject().center()).move_to(1.2 * UP)
         self.wait()
 
         # Arrow shows which element is currently being added to the sum
@@ -312,10 +303,10 @@ class NaivePrefixSum(Scene):
         self.add(arrow)
 
         def animate_sum(color, x, align_mobj, shift=0):
-            array.stroke_color = [color] * (x + 1) + [WHITE] * (len(values) - x - 1)
-            array.stroke_width = [5] * (x + 1) + [2] * (len(values) - x - 1)
+            array.unhighlight()
+            array.highlight(0, x, color=color, width=5)
+            array_mobj.become(array.get_mobject().center()).move_to(1.2 * UP)
             arrow.set_color(color)
-            self.play(array_mobj.animate.become(array.get_mobject().center().move_to(1.2 * UP)), run_time=0.001)
             self.wait()
 
             # Animate the arrow
@@ -354,9 +345,8 @@ class NaivePrefixSum(Scene):
             sum7.set_color_by_tex(tex, ORANGE)
         self.wait(3)
 
-        array.stroke_color = [WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE]
-        array.stroke_width = [2, 2, 2, 2, 2, 2, 2, 2, 2]
-        self.play(array_mobj.animate.become(array.get_mobject().center().move_to(1.2 * UP)), run_time=0.001)
+        array.unhighlight()
+        array_mobj.become(array.get_mobject().center()).move_to(1.2 * UP)
 
         # Transition to the next scene
         p = Array(
@@ -404,23 +394,17 @@ class PrefixSumCalculation(Scene):
         self.wait()
 
         # Highlight the 7th cell of the prefix sum
-        p.stroke_color = [WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, ORANGE, WHITE]
-        p.stroke_width = [2, 2, 2, 2, 2, 2, 2, 5, 2]
-        self.play(p_mobj.animate.become(p.get_mobject().center().next_to(array_mobj, DOWN)), run_time=0.001)
-        self.wait()
+        p.highlight(7, 7, color=ORANGE, width=5)
+        p_mobj.become(p.get_mobject().center().next_to(array_mobj, DOWN))
+        self.wait(2)
 
         def highlight_sum(x, align_mobj):
-            array.stroke_color = [YELLOW] * (x + 1) + [WHITE] * (len(values) - x - 1)
-            array.stroke_width = [5] * (x + 1) + [2] * (len(values) - x - 1)
-            p.stroke_color = [WHITE] * len(values)
-            p.stroke_color[x] = ORANGE
-            p.stroke_width = [2] * len(values)
-            p.stroke_width[x] = 5
-            self.play(
-                array_mobj.animate.become(array.get_mobject().center().move_to(1.2 * UP)),
-                p_mobj.animate.become(p.get_mobject().center().next_to(array_mobj, DOWN)),
-                run_time=0.001
-            )
+            array.unhighlight()
+            p.unhighlight()
+            array.highlight(0, x, color=YELLOW, width=5)
+            p.highlight(x, x, color=ORANGE, width=5)
+            array_mobj.become(array.get_mobject().center().move_to(1.2 * UP))
+            p_mobj.become(p.get_mobject().center().next_to(array_mobj, DOWN))
 
             if x < 4:
                 res = MathTex(get_sum_tex(values[: x + 1]))
@@ -441,16 +425,11 @@ class PrefixSumCalculation(Scene):
         self.wait()
 
         # Remove the highlights
-        array.stroke_color = [WHITE] * len(values)
-        array.stroke_width = [2] * len(values)
-        p.stroke_color = [WHITE] * len(values)
-        p.stroke_width = [2] * len(values)
-        self.play(
-            array_mobj.animate.become(array.get_mobject().center().move_to(1.2 * UP)),
-            p_mobj.animate.become(p.get_mobject().center().next_to(array_mobj, DOWN)),
-            FadeOut(*[item for item in highlights if item is not None]),
-            run_time=0.001,
-        )
+        array.unhighlight()
+        p.unhighlight()
+        array_mobj.become(array.get_mobject().center().move_to(1.2 * UP))
+        p_mobj.become(p.get_mobject().center().next_to(array_mobj, DOWN))
+        self.play(FadeOut(*[item for item in highlights if item is not None]), run_time=0.2)
         self.wait()
 
         # Compute the prefix sum
@@ -466,14 +445,10 @@ class PrefixSumCalculation(Scene):
             return res
 
         def highlight_one(x, align_mobj):
-            array.stroke_color = [WHITE] * (len(values))
-            array.stroke_color[x] = YELLOW
-            array.stroke_width = [2] * (len(values))
-            array.stroke_width[x] = 5
-            p.stroke_color = [WHITE] * len(values)
-            p.stroke_color[x] = ORANGE
-            p.stroke_width = [2] * len(values)
-            p.stroke_width[x] = 5
+            array.unhighlight()
+            p.unhighlight()
+            array.highlight(x, x, color=YELLOW, width=5)
+            p.highlight(x, x, color=ORANGE, width=5)
 
             if x == 0:
                 p.values[x] = values[x]
@@ -481,11 +456,8 @@ class PrefixSumCalculation(Scene):
                 p.values[x] = p.values[x - 1] + values[x]
                 p.stroke_color[x - 1] = YELLOW
                 p.stroke_width[x - 1] = 5
-            self.play(
-                array_mobj.animate.become(array.get_mobject().center().move_to(1.2 * UP)),
-                p_mobj.animate.become(p.get_mobject().center().next_to(array_mobj, DOWN)),
-                run_time=0.001
-            )
+            array_mobj.become(array.get_mobject().center().move_to(1.2 * UP))
+            p_mobj.become(p.get_mobject().center().next_to(array_mobj, DOWN))
 
             if x < 4:
                 res = MathTex(get_one_tex(x))
@@ -506,15 +478,10 @@ class PrefixSumCalculation(Scene):
         self.wait()
 
         # Transition to the next scene
-        array.stroke_color = [WHITE] * (len(values))
-        array.stroke_width = [2] * (len(values))
-        p.stroke_color = [WHITE] * len(values)
-        p.stroke_width = [2] * len(values)
-        self.play(
-            array_mobj.animate.become(array.get_mobject().center().move_to(1.2 * UP)),
-            p_mobj.animate.become(p.get_mobject().center().next_to(array_mobj, DOWN)),
-            run_time=0.001
-        )
+        array.unhighlight()
+        p.unhighlight()
+        array_mobj.become(array.get_mobject().center().move_to(1.2 * UP))
+        p_mobj.become(p.get_mobject().center().next_to(array_mobj, DOWN))
         self.play(
             text.animate.become(Text('Prefix Sum Array').center().next_to(array_mobj, UP).shift(0.5 * UP)),
             FadeOut(*[item for item in highlights if item is not None]),
@@ -564,19 +531,15 @@ class PrefixSumCode(Scene):
         self.wait()
 
         # Highlight p[6]
-        p.stroke_color = [WHITE] * len(values)
-        p.stroke_color[6] = ORANGE
-        p.stroke_width = [2] * len(values)
-        p.stroke_width[6] = 5
-        self.play(p_mobj.animate.become(p.get_mobject().center().next_to(array_mobj, DOWN)), run_time=0.001)
+        p.unhighlight()
+        p.highlight(6, 6, color=ORANGE, width=5)
+        p_mobj.become(p.get_mobject().center().next_to(array_mobj, DOWN))
         self.wait()
 
         # Highlight p[8]
-        p.stroke_color = [WHITE] * len(values)
-        p.stroke_color[8] = ORANGE
-        p.stroke_width = [2] * len(values)
-        p.stroke_width[8] = 5
-        self.play(p_mobj.animate.become(p.get_mobject().center().next_to(array_mobj, DOWN)), run_time=0.001)
+        p.unhighlight()
+        p.highlight(8, 8, color=ORANGE, width=5)
+        p_mobj.become(p.get_mobject().center().next_to(array_mobj, DOWN))
         self.wait()
 
         # Circumscribe p
@@ -584,10 +547,8 @@ class PrefixSumCode(Scene):
         self.wait()
 
         # Transition to the next scene
-        p.stroke_color = [WHITE] * len(values)
-        p.stroke_width = [2] * len(values)
-
-        self.play(p_mobj.animate.become(p.get_mobject().center().next_to(array_mobj, DOWN)), run_time=0.001)
+        p.unhighlight()
+        p_mobj.become(p.get_mobject().center().next_to(array_mobj, DOWN))
         self.play(
             FadeOut(code),
             text.animate.become(MathTex(
@@ -622,21 +583,21 @@ class AnsweringRangeQueries(Scene):
         self.wait()
 
         # Highlight the range 3 -> 6
-        array.stroke_color = [WHITE, WHITE, WHITE, ORANGE, ORANGE, ORANGE, ORANGE, WHITE, WHITE]
-        array.stroke_width = [2, 2, 2, 5, 5, 5, 5, 2, 2]
-        self.play(array_mobj.animate.become(array.get_mobject().center().move_to(1.2 * UP)), run_time=0.001)
+        array.unhighlight()
+        array.highlight(3, 6, color=ORANGE, width=5)
+        array_mobj.become(array.get_mobject().center().move_to(1.2 * UP))
         self.wait(2)
 
         # Highlight the range 5 -> 8
-        array.stroke_color = [WHITE, WHITE, WHITE, WHITE, WHITE, GREEN, GREEN, GREEN, GREEN]
-        array.stroke_width = [2, 2, 2, 2, 2, 5, 5, 5, 5]
-        self.play(array_mobj.animate.become(array.get_mobject().center().move_to(1.2 * UP)), run_time=0.001)
+        array.unhighlight()
+        array.highlight(5, 8, color=GREEN, width=5)
+        array_mobj.become(array.get_mobject().center().move_to(1.2 * UP))
         self.wait(1)
 
         # Highlight the range 2 -> 7
-        array.stroke_color = [WHITE, WHITE, YELLOW, YELLOW, YELLOW, YELLOW, YELLOW, YELLOW, WHITE]
-        array.stroke_width = [2, 2, 5, 5, 5, 5, 5, 5, 2]
-        self.play(array_mobj.animate.become(array.get_mobject().center().move_to(1.2 * UP)), run_time=0.001)
+        array.unhighlight()
+        array.highlight(2, 7, color=YELLOW, width=5)
+        array_mobj.become(array.get_mobject().center().move_to(1.2 * UP))
         self.wait(3)
 
         # Add a text Range [2; 7]
@@ -646,29 +607,21 @@ class AnsweringRangeQueries(Scene):
         self.add(range_2_7)
 
         # Highlight the range 0 -> 7
-        array.stroke_color = [YELLOW, YELLOW, YELLOW, YELLOW, YELLOW, YELLOW, YELLOW, YELLOW, WHITE]
-        array.stroke_width = [5, 5, 5, 5, 5, 5, 5, 5, 2]
-        p.stroke_color = [WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, YELLOW, WHITE]
-        p.stroke_width = [2, 2, 2, 2, 2, 2, 2, 5, 2]
-        self.play(
-            array_mobj.animate.become(array.get_mobject().center().move_to(1.2 * UP)),
-            p_mobj.animate.become(p.get_mobject().center().next_to(array_mobj, DOWN)),
-            run_time=0.001
-        )
+        array.unhighlight()
+        array.highlight(0, 7, color=YELLOW, width=5)
+        p.unhighlight()
+        p.highlight(7, 7, color=YELLOW, width=5)
+        array_mobj.become(array.get_mobject().center().move_to(1.2 * UP))
+        p_mobj.become(p.get_mobject().center().next_to(array_mobj, DOWN))
         range_7 = MathTex(' = p_7').scale(0.8).center().next_to(range_2_7, RIGHT)
         self.play(Write(range_7))
         self.wait()
 
         # Subtract the range 0 -> 1
-        array.stroke_color = [YELLOW_A, YELLOW_A, YELLOW, YELLOW, YELLOW, YELLOW, YELLOW, YELLOW, WHITE]
-        array.stroke_width = [5, 5, 5, 5, 5, 5, 5, 5, 2]
-        p.stroke_color = [WHITE, YELLOW_A, WHITE, WHITE, WHITE, WHITE, WHITE, YELLOW, WHITE]
-        p.stroke_width = [2, 5, 2, 2, 2, 2, 2, 5, 2]
-        self.play(
-            array_mobj.animate.become(array.get_mobject().center().move_to(1.2 * UP)),
-            p_mobj.animate.become(p.get_mobject().center().next_to(array_mobj, DOWN)),
-            run_time=0.001
-        )
+        array.highlight(0, 1, color=YELLOW_A, width=2)
+        p.highlight(1, 1, color=YELLOW_A, width=5)
+        array_mobj.become(array.get_mobject().center().move_to(1.2 * UP))
+        p_mobj.become(p.get_mobject().center().next_to(array_mobj, DOWN))
         range_1 = MathTex(f' - p_1 = {p.values[7]} - {p.values[1]} = {p.values[7] - p.values[1]}')\
             .scale(0.8).center().next_to(range_7, RIGHT).shift(0.15 * LEFT)
         self.play(Write(range_1))
@@ -696,9 +649,10 @@ class AnsweringRangeQueries(Scene):
 
         # Add 0 at the beginning of p
         p.values.insert(0, 0)
-        p.stroke_color = [WHITE, WHITE, YELLOW_A, WHITE, WHITE, WHITE, WHITE, WHITE, YELLOW, WHITE]
-        p.stroke_width = [2, 2, 5, 2, 2, 2, 2, 2, 5, 2]
-        new_p_mobj = p.get_mobject().next_to(p_name, RIGHT)
+        p.unhighlight()
+        p.highlight(2, 2, color=YELLOW_A, width=5)
+        p.highlight(8, 8, color=YELLOW, width=5)
+        new_p_mobj = p.get_mobject().next_to(array_mobj, DOWN).align_to(array_mobj, LEFT)
         new_indices = Array(
             [i for i in range(len(p))],
             width=p.width, height=p.height,
@@ -736,17 +690,16 @@ class NewCode(Scene):
     def construct(self):
         values = [8, 3, -2, 4, 10, -1, 0, 5, 3]
         array = Array(values, width=0.8, height=0.8, spacing=0.05, scale_text=0.8)
-        array.stroke_color = [YELLOW_A, YELLOW_A, YELLOW, YELLOW, YELLOW, YELLOW, YELLOW, YELLOW, WHITE]
-        array.stroke_width = [5, 5, 5, 5, 5, 5, 5, 5, 2]
+        array.highlight(2, 7, color=YELLOW, width=5)
+        array.highlight(0, 1, color=YELLOW_A, width=2)
         array_mobj = array.get_mobject().center().move_to(1.2 * UP)
         p = Array(
-            [sum(values[:i + 1]) for i in range(len(values))],
+            [0] + [sum(values[:i + 1]) for i in range(len(values))],
             width=array.width, height=array.height,
             spacing=array.spacing, scale_text=array.scale_text
         )
-        p.values.insert(0, 0)
-        p.stroke_color = [WHITE, WHITE, YELLOW_A, WHITE, WHITE, WHITE, WHITE, WHITE, YELLOW, WHITE]
-        p.stroke_width = [2, 2, 5, 2, 2, 2, 2, 2, 5, 2]
+        p.highlight(2, 2, color=YELLOW_A, width=5)
+        p.highlight(8, 8, color=YELLOW, width=5)
         p_mobj = p.get_mobject().center().next_to(array_mobj, DOWN).align_to(array_mobj, LEFT)
         array_name = Text('a:').scale(0.8).move_to(array_mobj, LEFT).shift(0.7 * LEFT)
         p_name = Text('p:').scale(0.8).move_to(p_mobj, LEFT).shift(0.7 * LEFT)
@@ -780,36 +733,23 @@ class NewCode(Scene):
         self.wait()
 
         # The algorithm in action
-        array.stroke_color = [WHITE] * len(array)
-        array.stroke_width = [2] * len(array)
+        array.unhighlight()
         p.values = [0] * len(p)
-        p.stroke_color = [WHITE] * len(p)
-        p.stroke_width = [2] * len(p)
-        self.play(
-            array_mobj.animate.become(array.get_mobject().center().move_to(1.2 * UP)),
-            p_mobj.animate.become(p.get_mobject().center().next_to(array_mobj, DOWN).align_to(array_mobj, LEFT)),
-            run_time=0.001
-        )
+        p.unhighlight()
+        array_mobj.become(array.get_mobject().center().move_to(1.2 * UP))
+        p_mobj.become(p.get_mobject().center().next_to(array_mobj, DOWN).align_to(array_mobj, LEFT))
         self.wait()
 
         def highlight_one(x):
-            array.stroke_color = [WHITE] * (len(array))
-            array.stroke_color[x - 1] = YELLOW
-            array.stroke_width = [2] * (len(array))
-            array.stroke_width[x - 1] = 5
-            p.stroke_color = [WHITE] * len(p)
-            p.stroke_color[x] = ORANGE
-            p.stroke_width = [2] * len(p)
-            p.stroke_width[x] = 5
+            array.unhighlight()
+            p.unhighlight()
+            array.highlight(x - 1, x - 1, color=YELLOW, width=5)
+            p.highlight(x, x, color=ORANGE, width=5)
 
             p.values[x] = p.values[x - 1] + values[x - 1]
-            p.stroke_color[x - 1] = YELLOW
-            p.stroke_width[x - 1] = 5
-            self.play(
-                array_mobj.animate.become(array.get_mobject().center().move_to(1.2 * UP)),
-                p_mobj.animate.become(p.get_mobject().center().next_to(array_mobj, DOWN).align_to(array_mobj, LEFT)),
-                run_time=0.001
-            )
+            p.highlight(x - 1, x - 1, color=YELLOW, width=5)
+            array_mobj.become(array.get_mobject().center().move_to(1.2 * UP))
+            p_mobj.become(p.get_mobject().center().next_to(array_mobj, DOWN).align_to(array_mobj, LEFT))
 
         for i in range(1, len(values) + 1):
             highlight_one(i)
@@ -817,20 +757,13 @@ class NewCode(Scene):
 
         # Queries
         def highlight_query(l, r, align=None):
-            array.stroke_color = [WHITE] * (len(array))
-            array.stroke_color[l:r + 1] = [YELLOW] * (r - l + 1)
-            array.stroke_width = [2] * (len(array))
-            p.stroke_color = [WHITE] * len(p)
-            p.stroke_color[r + 1] = YELLOW
-            p.stroke_color[l] = YELLOW_A
-            p.stroke_width = [2] * len(p)
-            p.stroke_width[r + 1] = 5
-            p.stroke_width[l] = 5
-            self.play(
-                array_mobj.animate.become(array.get_mobject().center().move_to(1.2 * UP)),
-                p_mobj.animate.become(p.get_mobject().center().next_to(array_mobj, DOWN).align_to(array_mobj, LEFT)),
-                run_time=0.001
-            )
+            array.unhighlight()
+            p.unhighlight()
+            array.highlight(l, r, color=YELLOW, width=5)
+            p.highlight(r + 1, r + 1, color=YELLOW, width=5)
+            p.highlight(l, l, color=YELLOW_A, width=5)
+            array_mobj.become(array.get_mobject().center().move_to(1.2 * UP))
+            p_mobj.become(p.get_mobject().center().next_to(array_mobj, DOWN).align_to(array_mobj, LEFT))
             self.wait()
 
             query = MathTex(

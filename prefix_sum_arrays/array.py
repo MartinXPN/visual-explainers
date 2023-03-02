@@ -16,6 +16,14 @@ class Array:
     spacing: float = 0.1
     scale_text: float = 0.5
 
+    def __post_init__(self):
+        self.stroke_color: list[str] = [self.stroke_color] * len(self.values) \
+            if isinstance(self.stroke_color, str) \
+            else self.stroke_color
+        self.stroke_width: list[float] = [self.stroke_width] * len(self.values) \
+            if isinstance(self.stroke_width, (float, int)) \
+            else self.stroke_width
+
     def get_rectangles(self):
         rectangles = []
         for i, value in enumerate(self.values):
@@ -24,8 +32,8 @@ class Array:
                 width=self.width,
                 fill_color=self.fill_color,
                 fill_opacity=self.fill_opacity,
-                stroke_width=self.stroke_width if isinstance(self.stroke_width, (float, int)) else self.stroke_width[i],
-                stroke_color=self.stroke_color if isinstance(self.stroke_color, str) else self.stroke_color[i],
+                stroke_width=self.stroke_width[i],
+                stroke_color=self.stroke_color[i],
             )
             rectangle.shift(i * (self.width + self.spacing) * RIGHT)
             rectangles.append(rectangle)
@@ -45,6 +53,14 @@ class Array:
 
     def get_mobject(self):
         return VGroup(*self.get_mobjects())
+
+    def highlight(self, start: int, end: int, color=RED, width=5.):
+        self.stroke_color = [color if start <= i <= end else self.stroke_color[i] for i in range(len(self.values))]
+        self.stroke_width = [width if start <= i <= end else self.stroke_width[i] for i in range(len(self.values))]
+
+    def unhighlight(self):
+        self.stroke_color = [WHITE] * len(self.values)
+        self.stroke_width = [2.] * len(self.values)
 
     def __len__(self):
         return len(self.values)
