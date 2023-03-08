@@ -24,11 +24,27 @@ p = [
 
 class OpeningScene(Scene):
     def construct(self):
-        title = Title('2D Prefix Sum', include_underline=False)
-        self.play(Write(title))
-        self.wait(2)
+        title = Title("What's the Sum of a Submatrix?", include_underline=False).shift(0.5 * DOWN)
+        self.add(title)
 
         m = Matrix(a)
-        m_mobj = m.get_mobject()
+        m_mobj = m.get_mobject().center()
         self.play(FadeIn(m_mobj))
         self.wait(2)
+
+        # Highlight (1, 1) -> (5, 3)
+        m.highlight(1, 1, 5, 3, color=RED, width=5)
+        m_mobj.become(m.get_mobject().center())
+        self.wait()
+
+        # Highlight (3, 4) -> (5, 5)
+        m.unhighlight()
+        m.highlight(3, 4, 5, 5, color=YELLOW, width=5)
+        m_mobj.become(m.get_mobject().center())
+        self.wait()
+
+        # Highlight (2, 2) -> (4, 6)
+        m.unhighlight()
+        m.highlight(2, 2, 4, 6, color=GREEN, width=5)
+        m_mobj.become(m.get_mobject().center())
+        self.wait()

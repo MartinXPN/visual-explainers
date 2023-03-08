@@ -26,7 +26,7 @@ class Matrix:
             if isinstance(self.stroke_width, (float, int)) \
             else self.stroke_width
 
-    def get_rectangles(self):
+    def get_rectangles(self) -> list[VMobject]:
         rectangles = []
         for i, row in enumerate(self.values):
             for j, value in enumerate(row):
@@ -43,21 +43,37 @@ class Matrix:
                 rectangles.append(rectangle)
         return rectangles
 
-    def get_labels(self):
+    def get_labels(self) -> list[VMobject]:
         rectangles = self.get_rectangles()
         labels = []
         for i, row in enumerate(self.values):
+            # Add index for the row
+            label = Tex(str(i), color=self.color)
+            label.scale(self.scale_text)
+            label.move_to(rectangles[i * len(row)])
+            label.shift(0.9 * self.width * LEFT)
+            labels.append(label)
+
+            # Add all the values in the row
             for j, value in enumerate(row):
                 label = Tex(str(value) if value is not None else '', color=self.color)
                 label.scale(self.scale_text)
                 label.move_to(rectangles[i * len(row) + j])
                 labels.append(label)
+
+        # Add index for the column
+        for j in range(len(self.values[0])):
+            label = Tex(str(j), color=self.color)
+            label.scale(self.scale_text)
+            label.move_to(rectangles[j])
+            label.shift(0.9 * self.height * UP)
+            labels.append(label)
         return labels
 
-    def get_mobjects(self):
+    def get_mobjects(self) -> list[VMobject]:
         return self.get_rectangles() + self.get_labels()
 
-    def get_mobject(self):
+    def get_mobject(self) -> VMobject:
         return VGroup(*self.get_mobjects())
 
     def highlight(self, ur: int, uc: int, br: int, bc: int, color=RED, width=5.):
@@ -79,8 +95,8 @@ class Matrix:
         """
         Remove all highlights.
         """
-        self.stroke_color = [[WHITE] * len(self.values[0])] * len(self.values)
-        self.stroke_width = [[2.] * len(self.values[0])] * len(self.values)
+        self.stroke_color = [[WHITE] * len(self.values[0]) for _ in range(len(self.values))]
+        self.stroke_width = [[2.] * len(self.values[0]) for _ in range(len(self.values))]
 
     def __len__(self):
         return len(self.values)
