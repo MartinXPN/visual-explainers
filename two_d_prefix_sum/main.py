@@ -1,3 +1,5 @@
+from textwrap import dedent
+
 from manim import *
 
 from two_d_prefix_sum.matrix import Matrix
@@ -224,5 +226,267 @@ class PrefixSumFormula(Scene):
         update_formula(
             '{{ \\mathrm{sum}(2,2,4,6) }} = {{ p[5][7] }} - {{ p[2][7] }} - {{ p[5][2] }} + {{ p[2][2] }}',
             '{{ \\mathrm{sum}(ur, lc, br, rc) }} = {{p[br + 1][rc + 1]}} - {{p[ur][rc + 1]}} - {{p[br + 1][lc]}} + {{p[ur][lc]}}'
+        )
+        self.wait(2)
+
+
+class PrefixSumCalculation(Scene):
+    def construct(self):
+        title = Title('2D Prefix Sum', include_underline=False)
+        self.add(title)
+
+        m = Matrix(a)
+        m_mobj = m.get_mobject().center().shift(3 * LEFT).shift(UP)
+        self.add(m_mobj)
+
+        # Move m to the left and add an empty p matrix on the right
+        pref_values = [[0 if i == 0 or j == 0 else None
+                        for j in range(len(a[0]))]
+                       for i in range(len(a))]
+        pref = Matrix(pref_values)
+        p_mobj = pref.get_mobject().center().align_to(m_mobj, UP).shift(3 * RIGHT)
+        self.add(p_mobj)
+
+        matrix_name = Text('m').scale(0.6).move_to(m_mobj, LEFT).shift(0.5 * LEFT)
+        p_name = Text('p').scale(0.6).move_to(p_mobj, LEFT).shift(0.5 * LEFT)
+        self.add(matrix_name, p_name)
+
+        for i in range(1, len(pref_values)):
+            for j in range(1, len(pref_values[0])):
+                pref.unhighlight()
+                pref.highlight(i, j, i, j, color=YELLOW, width=5)
+                p_mobj.become(pref.get_mobject(), match_center=True)
+                self.wait(0.2 if i * len(pref_values[0]) + j < 10 else 0.1)
+
+        pref.unhighlight()
+        p_mobj.become(pref.get_mobject(), match_center=True)
+        self.wait(1)
+
+        # Highlight upper row and leftmost column
+        pref.highlight(0, 0, 0, len(pref_values[0]) - 1, color=YELLOW, width=5)
+        pref.highlight(0, 0, len(pref_values) - 1, 0, color=YELLOW, width=5)
+        p_mobj.become(pref.get_mobject(), match_center=True)
+        self.wait(2)
+
+        pref.unhighlight()
+        p_mobj.become(pref.get_mobject(), match_center=True)
+        self.wait(1)
+
+        # Code for the prefix sum
+        code = Code(
+            code=dedent('''
+                p = [[0] * (cols + 1) for _ in range(rows + 1)]
+                for r in range(1, rows + 1):
+                    for c in range(1, cols + 1):
+                        p[r][c] = p[r - 1][c] + p[r][c - 1] \\
+                                   - p[r - 1][c - 1] + a[r - 1][c - 1]
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).scale(0.8).next_to(p_mobj, DOWN).align_to(matrix_name, LEFT).code
+        for line in code.chars[:-2]:
+            self.play(AddTextLetterByLetter(line))
+        self.wait()
+
+        # Highlight (3, 4) in prefix sum
+        pref.highlight(3, 4, 3, 4, color=ORANGE, width=5)
+        p_mobj.become(pref.get_mobject(), match_center=True)
+        self.wait(1)
+
+        # Highlight (0, 0) -> (1, 3) in matrix => (2, 4) in prefix sum with YELLOW
+        m.highlight(0, 0, 1, 3, color=YELLOW, width=5)
+        pref.highlight(2, 4, 2, 4, color=YELLOW, width=5)
+        m_mobj.become(m.get_mobject(), match_center=True)
+        p_mobj.become(pref.get_mobject(), match_center=True)
+        self.wait(1)
+
+        # Highlight (0, 0) -> (2, 2) in matrix => (3, 3) in prefix sum with YELLOW
+        m.highlight(0, 0, 2, 2, color=YELLOW, width=5)
+        pref.highlight(3, 3, 3, 3, color=YELLOW, width=5)
+        m_mobj.become(m.get_mobject(), match_center=True)
+        p_mobj.become(pref.get_mobject(), match_center=True)
+        self.wait(1)
+
+        # Highlight (0, 0) -> (1, 2) in matrix => (2, 3) in prefix sum with RED
+        m.highlight(0, 0, 1, 2, color=RED, width=5)
+        pref.highlight(2, 3, 2, 3, color=RED, width=5)
+        m_mobj.become(m.get_mobject(), match_center=True)
+        p_mobj.become(pref.get_mobject(), match_center=True)
+        self.wait(1)
+
+        # Highlight (2, 3) in matrix with ORANGE
+        m.highlight(2, 3, 2, 3, color=ORANGE, width=5)
+        m_mobj.become(m.get_mobject(), match_center=True)
+
+        for line in code.chars[-2:]:
+            self.play(AddTextLetterByLetter(line))
+        self.wait()
+        self.wait(2)
+
+
+class Examples(Scene):
+    def construct(self):
+        title = Title('2D Prefix Sum', include_underline=False)
+        self.add(title)
+
+        m = Matrix(a)
+        m_mobj = m.get_mobject().center().shift(3 * LEFT).shift(UP)
+        self.add(m_mobj)
+
+        # Move m to the left and add an empty p matrix on the right
+        pref = Matrix([[None] * len(p[0]) for _ in range(len(p))])
+        p_mobj = pref.get_mobject().center().align_to(m_mobj, UP).shift(3 * RIGHT)
+        self.add(p_mobj)
+
+        matrix_name = Text('m').scale(0.6).move_to(m_mobj, LEFT).shift(0.5 * LEFT)
+        p_name = Text('p').scale(0.6).move_to(p_mobj, LEFT).shift(0.3 * LEFT)
+        self.add(matrix_name, p_name)
+
+        code = Code(
+            code=dedent('''
+                p = [[0] * (cols + 1) for _ in range(rows + 1)]
+                for r in range(1, rows + 1):
+                    for c in range(1, cols + 1):
+                        p[r][c] = p[r - 1][c] + p[r][c - 1] \\
+                                   - p[r - 1][c - 1] + a[r - 1][c - 1]
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).scale(0.8).next_to(p_mobj, DOWN).align_to(matrix_name, LEFT).code
+        self.wait()
+
+        pref = Matrix([[0] * len(p[0]) for _ in range(len(p))])
+        self.play(
+            p_mobj.animate.become(pref.get_mobject(), match_center=True),
+            AddTextLetterByLetter(code.chars[0])
+        )
+        self.wait()
+
+        # Highlight (1, 1) in prefix sum
+        pref.highlight(1, 1, 1, 1, color=ORANGE, width=5)
+        p_mobj.become(pref.get_mobject(), match_center=True)
+        self.play(AddTextLetterByLetter(code.chars[1]))
+        self.play(AddTextLetterByLetter(code.chars[2]))
+        self.wait()
+
+        # Highlight (0, 1), (1, 0), and (0, 0) in prefix sum
+        pref.highlight(0, 1, 0, 1, color=YELLOW, width=5)
+        pref.highlight(1, 0, 1, 0, color=YELLOW, width=5)
+        p_mobj.become(pref.get_mobject(), match_center=True)
+        self.wait()
+
+        pref.highlight(0, 0, 0, 0, color=RED, width=5)
+        p_mobj.become(pref.get_mobject(), match_center=True)
+        self.wait()
+
+        # Highlight (0, 0) in matrix with ORANGE
+        m.highlight(0, 0, 0, 0, color=ORANGE, width=5)
+        m_mobj.become(m.get_mobject(), match_center=True)
+        self.wait()
+
+        self.play(AddTextLetterByLetter(code.chars[3]))
+        self.play(AddTextLetterByLetter(code.chars[4]))
+        self.wait()
+
+        # Fill the rows of the prefix sum array
+        for r in range(1, len(p)):
+            for c in range(1, len(p[0])):
+                pref.values[r][c] = p[r][c]
+                pref.unhighlight()
+                pref.highlight(r, c, r, c, color=ORANGE, width=5)
+                pref.highlight(r - 1, c, r - 1, c, color=YELLOW, width=5)
+                pref.highlight(r, c - 1, r, c - 1, color=YELLOW, width=5)
+                pref.highlight(r - 1, c - 1, r - 1, c - 1, color=RED, width=5)
+                m.unhighlight()
+                m.highlight(r - 1, c - 1, r - 1, c - 1, color=ORANGE, width=5)
+                p_mobj.become(pref.get_mobject(), match_center=True)
+                m_mobj.become(m.get_mobject(), match_center=True)
+                if r == 1:
+                    self.wait(0.7)
+                elif r == 2:
+                    self.wait(0.3)
+                else:
+                    self.wait(0.1)
+
+        pref.unhighlight()
+        m.unhighlight()
+        p_mobj.become(pref.get_mobject(), match_center=True)
+        m_mobj.become(m.get_mobject(), match_center=True)
+        self.wait(2)
+        self.play(
+            FadeOut(code),
+        )
+        formula = MathTex(
+            '{{ \\mathrm{sum}(ur, lc, br, rc) }} = '
+            '{{p[br + 1][rc + 1]}} - {{p[ur][rc + 1]}} - {{p[br + 1][lc]}} + {{p[ur][lc]}}'
+        ).scale(0.7).next_to(p_mobj, DOWN).align_to(m_mobj, LEFT)
+        self.play(
+            Write(formula),
+        )
+        self.wait(2)
+
+        # Formula for (1, 1) -> (5, 3) => highlight the parts
+        f1153 = MathTex(
+            '{{ \\mathrm{sum}(1, 1, 5, 3) }} = {{p[6][4]}} - {{p[1][4]}} - {{p[6][1]}} + {{p[1][1]}}' +
+            f' = {p[6][4] - p[1][4] - p[6][1] + p[1][1]}'
+        ).scale(0.7).next_to(formula, DOWN).align_to(formula, LEFT)
+        m.highlight(1, 1, 5, 3, color=ORANGE, width=5)
+        pref.highlight(6, 4, 6, 4, color=ORANGE, width=5)
+        pref.highlight(1, 4, 1, 4, color=YELLOW, width=5)
+        pref.highlight(6, 1, 6, 1, color=YELLOW, width=5)
+        pref.highlight(1, 1, 1, 1, color=RED, width=5)
+        m_mobj.become(m.get_mobject(), match_center=True)
+        p_mobj.become(pref.get_mobject(), match_center=True)
+        self.wait(1)
+        self.play(Write(f1153))
+        self.wait(1)
+
+        # Reset
+        m.unhighlight()
+        pref.unhighlight()
+        m_mobj.become(m.get_mobject(), match_center=True)
+        p_mobj.become(pref.get_mobject(), match_center=True)
+        self.wait(1)
+
+        # Formula for (0, 0) -> (3, 6) => highlight the parts
+        f036 = MathTex(
+            '{{ \\mathrm{sum}(0, 0, 3, 6) }} = {{p[4][7]}} - {{p[0][7]}} - {{p[4][0]}} + {{p[0][0]}}' +
+            f' = {p[4][7] - p[0][7] - p[4][0] + p[0][0]}'
+        ).scale(0.7).next_to(f1153, DOWN).align_to(f1153, LEFT)
+        m.highlight(0, 0, 3, 6, color=ORANGE, width=5)
+        pref.highlight(4, 7, 4, 7, color=ORANGE, width=5)
+        pref.highlight(0, 7, 0, 7, color=YELLOW, width=5)
+        pref.highlight(4, 0, 4, 0, color=YELLOW, width=5)
+        pref.highlight(0, 0, 0, 0, color=RED, width=5)
+        m_mobj.become(m.get_mobject(), match_center=True)
+        p_mobj.become(pref.get_mobject(), match_center=True)
+        self.wait(1)
+        self.play(Write(f036))
+        self.wait(1)
+
+        # Remove formulas
+        self.play(
+            FadeOut(f1153),
+            FadeOut(f036),
+            FadeOut(formula),
+        )
+        self.wait(1)
+
+        # Add Time and Memory Complexity text
+        time_complexity = Tex(
+            'Time Complexity: $\\mathcal{O}(R \\cdot C + Q)$'
+        ).scale(0.7).next_to(p_mobj, DOWN).align_to(m_mobj, LEFT)
+        memory_complexity = Tex(
+            'Memory Complexity: $\\mathcal{O}(R \\cdot C)$'
+        ).scale(0.7).next_to(time_complexity, DOWN).align_to(time_complexity, LEFT)
+        self.play(
+            Write(time_complexity),
+            Write(memory_complexity),
         )
         self.wait(2)
