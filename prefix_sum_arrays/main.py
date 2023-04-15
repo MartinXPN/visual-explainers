@@ -23,6 +23,8 @@ class UploadToYoutube(Scene):
 
         # Animate the progress bar
         progress = ValueTracker(0)
+        self.add(logo)
+        self.wait(2)
 
         # Add filler to the progress bar
         def get_filler():
@@ -38,7 +40,7 @@ class UploadToYoutube(Scene):
             fill.add(left, right)
             return fill
         filler = always_redraw(get_filler)
-        self.add(logo, text, bar, filler)
+        self.add(text, bar, filler)
         self.play(progress.animate.set_value(6), run_time=2)
 
         # Move the logo to the top and turn the progress bar to a green tick
@@ -61,7 +63,7 @@ class UploadToYoutube(Scene):
             FadeIn(text),
             FadeIn(array),
         )
-        self.wait()
+        self.wait(3)
 
 
 class FillInitialArray(Scene):
@@ -103,8 +105,8 @@ class FillInitialArray(Scene):
 
         # Animate the array: When adding each value animate the number of likes and dislikes
         values = [8,    3, -2, 4, 10, -1, 0, 5, 3]
-        upvotes = [8,   3,  2, 4, 10,  0, 2, 7, 3]
-        downvotes = [0, 0,  4, 0,  0,  1, 2, 2, 0]
+        upvotes = [8,   3,  2, 4, 10,  0, 2, 5, 3]
+        downvotes = [0, 0,  4, 0,  0,  1, 2, 0, 0]
 
         # On the day of uploading the video it got 8 likes, so we add 8 to day 0
         for i, val in enumerate(values):
@@ -124,13 +126,13 @@ class FillInitialArray(Scene):
             for diff in range(1, upvotes[i] + 1):
                 array.values[i] = diff
                 array_mobj.become(array.get_mobject().center())
-                self.wait(0.1)
+                self.wait(0.15)
             if downvotes[i] > 0:
                 self.wait(0.5)
             for diff in range(1, downvotes[i] + 1):
                 array.values[i] = upvotes[i] - diff
                 array_mobj.become(array.get_mobject().center())
-                self.wait(0.1)
+                self.wait(0.15)
 
             # Fade out the reactions
             if i < 4:
@@ -140,9 +142,9 @@ class FillInitialArray(Scene):
                 if downvotes[i] > 0:
                     to_remove.append(d)
                 self.play(FadeOut(*to_remove))
-                self.wait(0.5)
+            self.wait(0.5)
 
-        self.wait()
+        self.wait(3)
 
         # Highlight the 2 -> 7
         self.play(
@@ -157,7 +159,7 @@ class FillInitialArray(Scene):
         array.unhighlight()
         array.highlight(3, 6, color=ORANGE, width=5)
         array_mobj.become(array.get_mobject().center())
-        self.wait(2)
+        self.wait(6)
 
 
 class NaiveApproach(Scene):
@@ -180,14 +182,15 @@ class NaiveApproach(Scene):
             start=UP, end=DOWN, color=ORANGE, buff=0.1,
             stroke_width=10, max_stroke_width_to_length_ratio=15,
             max_tip_length_to_length_ratio=0.5, tip_length=0.2,
-        ).scale(0.3).next_to(array_mobj, UP).shift(array.width * 1 * LEFT)
+        ).scale(0.3).next_to(array_mobj, UP).shift((array.width + array.spacing) * 1 * LEFT)
         self.add(text, indices, array_mobj, arrow)
         self.wait()
 
-        self.play(arrow.animate.shift(array.width * RIGHT), run_time=0.5)
-        self.play(arrow.animate.shift(array.width * RIGHT), run_time=0.5)
-        self.play(arrow.animate.shift(array.width * RIGHT), run_time=0.5)
-        self.wait()
+        # Highlight the 3 -> 6
+        self.play(arrow.animate.shift((array.width + array.spacing) * RIGHT), run_time=0.7)
+        self.play(arrow.animate.shift((array.width + array.spacing) * RIGHT), run_time=0.7)
+        self.play(arrow.animate.shift((array.width + array.spacing) * RIGHT), run_time=0.7)
+        self.wait(3)
 
         # Highlight the 2 -> 7
         array.unhighlight()
@@ -202,9 +205,9 @@ class NaiveApproach(Scene):
         total = always_redraw(
             lambda: VGroup(total_text, total_num)
         ).center().next_to(array_mobj, DOWN).scale(0.8).shift(1.5 * DOWN)
-        arrow.shift(0.8 * 4 * LEFT).set_color(YELLOW)
+        arrow.shift((array.width + array.spacing) * 4 * LEFT).set_color(YELLOW)
         self.play(Write(total))
-        self.wait()
+        self.wait(3)
 
         self.play(
             DrawBorderThenFill(arrow),
@@ -213,15 +216,15 @@ class NaiveApproach(Scene):
         for i in range(start + 1, end + 1):
             self.play(
                 total_num.animate.set_value(sum(values[start:i + 1])),
-                arrow.animate.shift(array.width * RIGHT),
+                arrow.animate.shift((array.width + array.spacing) * RIGHT),
                 run_time=1,
             )
-        self.wait()
+        self.wait(2)
         self.play(FadeOut(arrow))
 
         # Range sum from 3 to 6
         start, end = 3, 6
-        arrow.shift(array.width * 4 * LEFT).set_color(ORANGE)
+        arrow.shift((array.width + array.spacing) * 4 * LEFT).set_color(ORANGE)
         array.unhighlight()
         array.highlight(3, 6, color=ORANGE, width=5)
         array_mobj.become(array.get_mobject().center())
@@ -235,11 +238,11 @@ class NaiveApproach(Scene):
 
         for i in range(start + 1, end + 1):
             self.play(
-                arrow.animate.shift(array.width * RIGHT),
+                arrow.animate.shift((array.width + array.spacing) * RIGHT),
                 total_num.animate.set_value(sum(values[start:i + 1])),
-                run_time=0.5,
+                run_time=1.2,
             )
-        self.wait(2)
+        self.wait(5)
 
 
 def get_sum_tex(a):
@@ -268,31 +271,31 @@ class NaivePrefixSum(Scene):
 
         text = Text("What's the Sum Up To Day X?").center().next_to(array_mobj, UP).shift(0.5 * UP)
         self.add(text, indices, array_mobj)
-        self.wait()
+        self.wait(4)
 
         # 0 -> 3
         array.unhighlight()
         array.highlight(0, 3, color=YELLOW, width=5)
         array_mobj.become(array.get_mobject().center()).move_to(1.2 * UP)
-        self.wait()
+        self.wait(3)
 
         # 0 -> 5
         array.unhighlight()
         array.highlight(0, 5, color=RED, width=5)
         array_mobj.become(array.get_mobject().center()).move_to(1.2 * UP)
-        self.wait()
+        self.wait(3)
 
         # 0 -> 2
         array.unhighlight()
         array.highlight(0, 2, color=GREEN, width=5)
         array_mobj.become(array.get_mobject().center()).move_to(1.2 * UP)
-        self.wait()
+        self.wait(4)
 
         # 0 -> 7
         array.unhighlight()
         array.highlight(0, 7, color=ORANGE, width=5)
         array_mobj.become(array.get_mobject().center()).move_to(1.2 * UP)
-        self.wait()
+        self.wait(7)
 
         # Arrow shows which element is currently being added to the sum
         arrow = Arrow(
@@ -302,7 +305,7 @@ class NaivePrefixSum(Scene):
         ).scale(0.25).next_to(array_mobj, UP).shift((array.width + array.spacing) * 4 * LEFT).shift(0.1 * DOWN)
         self.add(arrow)
 
-        def animate_sum(color, x, align_mobj, shift=0):
+        def animate_sum(color, x, align_mobj, shift=0, shift_time=0.8):
             array.unhighlight()
             array.highlight(0, x, color=color, width=5)
             array_mobj.become(array.get_mobject().center()).move_to(1.2 * UP)
@@ -311,7 +314,7 @@ class NaivePrefixSum(Scene):
 
             # Animate the arrow
             for _ in range(x):
-                self.play(arrow.animate.shift((array.width + array.spacing) * RIGHT), run_time=0.5)
+                self.play(arrow.animate.shift((array.width + array.spacing) * RIGHT), run_time=shift_time)
 
             res = MathTex(get_sum_tex(values[: x + 1])).scale(0.6)\
                 .next_to(align_mobj, DOWN).align_to(align_mobj, LEFT).shift(shift)
@@ -323,16 +326,16 @@ class NaivePrefixSum(Scene):
         sum3 = animate_sum(YELLOW, 3, indices, 0.5 * DOWN)
         sum5 = animate_sum(RED, 5, sum3)
         sum2 = animate_sum(GREEN, 2, sum5)
-        sum7 = animate_sum(ORANGE, 7, sum2)
+        sum7 = animate_sum(ORANGE, 7, sum2, shift_time=0.1)
         self.play(FadeOut(arrow))
-        self.wait()
+        self.wait(3)
 
         # Common for 3 and 5 -> Isolate the common parts of the sums
         common = ['a_0', 'a_1', 'a_2', 'a_3']
         for tex in common:
             sum3.set_color_by_tex(tex, ORANGE)
             sum5.set_color_by_tex(tex, ORANGE)
-        self.wait(3)
+        self.wait(7)
 
         # Reset the colors
         sum3.set_color(WHITE)
@@ -343,7 +346,7 @@ class NaivePrefixSum(Scene):
         for tex in common:
             sum5.set_color_by_tex(tex, ORANGE)
             sum7.set_color_by_tex(tex, ORANGE)
-        self.wait(3)
+        self.wait(7)
 
         array.unhighlight()
         array_mobj.become(array.get_mobject().center()).move_to(1.2 * UP)
@@ -391,12 +394,12 @@ class PrefixSumCalculation(Scene):
             spacing=array.spacing, scale_text=array.scale_text, stroke_color=BLACK,
         ).get_mobject().center().next_to(p_mobj, 0.0001 * DOWN)
         self.add(text, indices, array_mobj, array_name, p_mobj, p_name)
-        self.wait()
+        self.wait(14)
 
         # Highlight the 7th cell of the prefix sum
         p.highlight(7, 7, color=ORANGE, width=5)
         p_mobj.become(p.get_mobject().center().next_to(array_mobj, DOWN))
-        self.wait(2)
+        self.wait(10)
 
         def highlight_sum(x, align_mobj):
             array.unhighlight()
@@ -415,8 +418,8 @@ class PrefixSumCalculation(Scene):
 
             if res:
                 res = res.scale(0.6).next_to(align_mobj, DOWN).align_to(align_mobj, LEFT)
-                self.play(Write(res), run_time=0.5)
-            self.wait()
+                self.play(Write(res), run_time=1.5)
+            self.wait(1.5)
             return res
 
         highlights = [highlight_sum(0, indices)]
@@ -430,7 +433,7 @@ class PrefixSumCalculation(Scene):
         array_mobj.become(array.get_mobject().center().move_to(1.2 * UP))
         p_mobj.become(p.get_mobject().center().next_to(array_mobj, DOWN))
         self.play(FadeOut(*[item for item in highlights if item is not None]), run_time=0.2)
-        self.wait()
+        self.wait(0.5)
 
         # Compute the prefix sum
         def get_one_tex(x):
@@ -469,7 +472,7 @@ class PrefixSumCalculation(Scene):
             if res:
                 res = res.scale(0.6).next_to(align_mobj, DOWN).align_to(align_mobj, LEFT)
                 self.play(Write(res), run_time=0.5)
-            self.wait()
+            self.wait(0.5)
             return res
 
         highlights = [highlight_one(0, indices)]
@@ -528,22 +531,23 @@ class PrefixSumCode(Scene):
         ).next_to(indices, DOWN).code
         for line in code.chars:
             self.play(AddTextLetterByLetter(line))
-        self.wait()
+            self.wait(2)
+        self.wait(5)
 
         # Highlight p[6]
         p.unhighlight()
         p.highlight(6, 6, color=ORANGE, width=5)
         p_mobj.become(p.get_mobject().center().next_to(array_mobj, DOWN))
-        self.wait()
+        self.wait(5)
 
         # Highlight p[8]
         p.unhighlight()
         p.highlight(8, 8, color=ORANGE, width=5)
         p_mobj.become(p.get_mobject().center().next_to(array_mobj, DOWN))
-        self.wait()
+        self.wait(5)
 
         # Circumscribe p
-        self.play(Circumscribe(p_mobj), run_time=3)
+        self.play(Circumscribe(p_mobj), run_time=4)
         self.wait()
 
         # Transition to the next scene
@@ -580,25 +584,25 @@ class AnsweringRangeQueries(Scene):
             spacing=array.spacing, scale_text=array.scale_text, stroke_color=BLACK,
         ).get_mobject().center().next_to(p_mobj, 0.0001 * DOWN)
         self.add(text, indices, array_mobj, array_name, p_mobj, p_name)
-        self.wait()
+        self.wait(4)
 
         # Highlight the range 3 -> 6
         array.unhighlight()
         array.highlight(3, 6, color=ORANGE, width=5)
         array_mobj.become(array.get_mobject().center().move_to(1.2 * UP))
-        self.wait(2)
+        self.wait(4)
 
         # Highlight the range 5 -> 8
         array.unhighlight()
         array.highlight(5, 8, color=GREEN, width=5)
         array_mobj.become(array.get_mobject().center().move_to(1.2 * UP))
-        self.wait(1)
+        self.wait(4)
 
         # Highlight the range 2 -> 7
         array.unhighlight()
         array.highlight(2, 7, color=YELLOW, width=5)
         array_mobj.become(array.get_mobject().center().move_to(1.2 * UP))
-        self.wait(3)
+        self.wait(6)
 
         # Add a text Range [2; 7]
         range_2_7 = MathTex(
@@ -615,13 +619,14 @@ class AnsweringRangeQueries(Scene):
         p_mobj.become(p.get_mobject().center().next_to(array_mobj, DOWN))
         range_7 = MathTex(' = p_7').scale(0.8).center().next_to(range_2_7, RIGHT)
         self.play(Write(range_7))
-        self.wait()
+        self.wait(12)
 
         # Subtract the range 0 -> 1
         array.highlight(0, 1, color=YELLOW_A, width=2)
         p.highlight(1, 1, color=YELLOW_A, width=5)
         array_mobj.become(array.get_mobject().center().move_to(1.2 * UP))
         p_mobj.become(p.get_mobject().center().next_to(array_mobj, DOWN))
+        self.wait(5)
         range_1 = MathTex(f' - p_1 = {p.values[7]} - {p.values[1]} = {p.values[7] - p.values[1]}')\
             .scale(0.8).center().next_to(range_7, RIGHT).shift(0.15 * LEFT)
         self.play(Write(range_1))
@@ -645,7 +650,7 @@ class AnsweringRangeQueries(Scene):
         self.wait()
         zero = MathTex('l = 0?').center().next_to(formula, DOWN)
         self.play(Write(zero))
-        self.wait()
+        self.wait(12)
 
         # Add 0 at the beginning of p
         p.values.insert(0, 0)
@@ -664,7 +669,7 @@ class AnsweringRangeQueries(Scene):
             indices.animate.become(new_indices),
             run_time=2
         )
-        self.wait()
+        self.wait(10)
 
         # Update the formula
         new_formula = MathTex(
@@ -730,7 +735,7 @@ class NewCode(Scene):
         ).next_to(indices, DOWN).code
         for line in code.chars:
             self.play(AddTextLetterByLetter(line))
-        self.wait()
+        self.wait(12)
 
         # The algorithm in action
         array.unhighlight()
@@ -738,7 +743,7 @@ class NewCode(Scene):
         p.unhighlight()
         array_mobj.become(array.get_mobject().center().move_to(1.2 * UP))
         p_mobj.become(p.get_mobject().center().next_to(array_mobj, DOWN).align_to(array_mobj, LEFT))
-        self.wait()
+        self.wait(5)
 
         def highlight_one(x):
             array.unhighlight()
@@ -753,7 +758,7 @@ class NewCode(Scene):
 
         for i in range(1, len(values) + 1):
             highlight_one(i)
-            self.wait()
+            self.wait(1.2)
 
         # Queries
         def highlight_query(l, r, align=None):
@@ -767,14 +772,14 @@ class NewCode(Scene):
             self.wait()
 
             query = MathTex(
-                f'\\mathrm{{Sum}} [{l}, {r}] = p_{r + 1} - p_{r} = {p.values[r + 1] - p.values[l]}'
+                f'\\mathrm{{Sum}} [{l}, {r}] = p_{r + 1} - p_{l} = {p.values[r + 1] - p.values[l]}'
             ).scale(0.7)
             if align is None:
                 query = query.next_to(code, RIGHT).align_to(code, UP).shift(0.5 * RIGHT)
             else:
                 query = query.next_to(align, DOWN).align_to(align, LEFT)
             self.play(Write(query))
-            self.wait()
+            self.wait(2)
             return query
 
         self.play(code.animate.shift(3 * LEFT))
@@ -785,10 +790,11 @@ class NewCode(Scene):
         range_5_8 = highlight_query(5, 8, range_2_4)
         range_0_2 = highlight_query(0, 2, range_5_8)
         range_0_0 = highlight_query(0, 0, range_0_2)
+        self.wait(5)
         self.play(Circumscribe(range_0_0))
         self.play(Circumscribe(range_0_2))
         self.play(Circumscribe(range_5_8))
-        self.wait()
+        self.wait(5)
 
         # Time complexity is O(n + q), Memory complexity is O(n)
         time_complexity = MathTex(
@@ -804,9 +810,9 @@ class NewCode(Scene):
         self.play(Circumscribe(p_mobj))                                                 # O(n) for the prefix sum array
         self.play(Circumscribe(VGroup(range_2_4, range_5_8, range_0_2, range_0_0)))     # O(q) for the queries
         self.play(Write(time_complexity))
-        self.wait()
+        self.wait(10)
 
         # O(n) memory for the prefix sum array
         self.play(Circumscribe(p_mobj))
         self.play(Write(memory_complexity))
-        self.wait()
+        self.wait(10)
