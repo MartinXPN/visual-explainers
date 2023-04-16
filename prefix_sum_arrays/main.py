@@ -29,7 +29,8 @@ class UploadToYoutube(Scene):
         # Add filler to the progress bar
         def get_filler():
             fill = Rectangle(
-                width=max(0, progress.get_value() - 0.25), height=0.25, fill_color=GREEN, fill_opacity=1, stroke_width=0
+                width=max(0., progress.get_value() - 0.25), height=0.25,
+                fill_color=GREEN, fill_opacity=1, stroke_width=0
             ).align_to(bar, DOWN).align_to(bar, LEFT).shift(0.125 * RIGHT)
             left = Circle(
                 radius=0.125, fill_color=GREEN, fill_opacity=1, stroke_width=0
