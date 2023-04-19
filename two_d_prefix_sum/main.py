@@ -51,6 +51,15 @@ class OpeningScene(Scene):
         m_mobj.become(m.get_mobject().center())
         self.wait()
 
+        # Iterate over rows and columns and highlight each element
+        for r in range(2, 5):
+            for c in range(2, 7):
+                m.highlight(r, c, r, c, color=GREEN, width=10)
+                m_mobj.become(m.get_mobject().center())
+                self.wait(0.2)
+                m.highlight(r, c, r, c, color=GREEN, width=5)
+                m_mobj.become(m.get_mobject().center())
+
         # Move m to the left and add an empty p matrix on the right
         pref = Matrix([[None] * len(a[0]) for _ in range(len(a))])
         p_mobj = pref.get_mobject().center().shift(3 * RIGHT)
@@ -179,10 +188,11 @@ class PrefixSumFormula(Scene):
         new_pref.highlight(2, 2, 2, 2, color=RED, width=5)
         new_p_mobj = new_pref.get_mobject().align_to(p_mobj, LEFT).align_to(p_mobj, UP)
         self.play(
-            p_mobj.animate.become(new_p_mobj),
+            p_mobj.animate.align_to(new_p_mobj, DOWN).align_to(new_p_mobj, RIGHT),
             example_equation.animate.shift(0.5 * DOWN),
             formula.animate.shift(0.5 * DOWN),
         )
+        p_mobj.become(new_p_mobj),
         self.wait(2)
 
         def update_formula(new_example_text: str, new_formula_text: str):
