@@ -302,7 +302,7 @@ class PrefixSumCalculation(Scene):
                 for r in range(1, rows + 1):
                     for c in range(1, cols + 1):
                         p[r][c] = p[r - 1][c] + p[r][c - 1] \\
-                                   - p[r - 1][c - 1] + a[r - 1][c - 1]
+                                   - p[r - 1][c - 1] + m[r - 1][c - 1]
             ''').strip(),
             tab_width=4,
             language='Python',
@@ -373,7 +373,7 @@ class Examples(Scene):
                 for r in range(1, rows + 1):
                     for c in range(1, cols + 1):
                         p[r][c] = p[r - 1][c] + p[r][c - 1] \\
-                                   - p[r - 1][c - 1] + a[r - 1][c - 1]
+                                   - p[r - 1][c - 1] + m[r - 1][c - 1]
             ''').strip(),
             tab_width=4,
             language='Python',
