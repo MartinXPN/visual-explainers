@@ -22,3 +22,22 @@ class CreateThumbnail(Scene):
         m.highlight(1, 2, 2, 4)
         m_mobj = m.get_mobject().center().shift(3 * LEFT).shift(1.2 * DOWN)
         self.add(m_mobj)
+
+
+class VerticalThumbnail(Scene):
+    def __init__(self, *args, **kwargs):
+        config.pixel_height, config.pixel_width = config.pixel_width, config.pixel_height
+        config.frame_height = config.frame_height / 0.8
+        config.frame_width = config.frame_height * 9 / 16
+        super().__init__(*args, **kwargs)
+
+    def construct(self):
+        with register_font('font/JetBrainsMono-Bold.ttf'):
+            fast = Text('Fast', color=RED, font='JetBrains Mono Bold', font_size=50).shift(3.5 * UP)
+            submatrix_sum = Text('Submatrix Sum', font='JetBrains Mono Bold', font_size=50).center().next_to(fast, DOWN)
+        self.add(fast, submatrix_sum)
+
+        m = Matrix(a)
+        m.highlight(1, 2, 2, 4)
+        m_mobj = m.get_mobject().center().shift(3 * DOWN).scale(0.8)
+        self.add(m_mobj)
