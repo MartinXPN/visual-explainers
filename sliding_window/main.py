@@ -112,3 +112,53 @@ class OpeningScene(Scene):
         # Move to next scene
         self.play(FadeOut(complexity, arrow, brace, sum_text), run_time=0.1)
         self.wait(0.1)
+
+
+class SlidingWindowDiscovery(Scene):
+    def construct(self):
+        title = Title('Maximum Sum Subarray of Size K', include_underline=False)
+        self.add(title)
+
+        array = Array(a, width=0.8, height=0.8, spacing=0.05, scale_text=0.8)
+        array_mobj = array.get_mobject().center()
+        array_name = Text('a:').scale(0.8).move_to(array_mobj, LEFT).shift(0.7 * LEFT)
+        k_name = Text('K = 5').scale(0.8).center().move_to(title, DOWN).shift(0.7 * DOWN)
+        self.add(array_mobj, array_name, k_name)
+        self.wait(0.1)
+
+        arrow = Arrow(
+            start=UP, end=DOWN, color=RED, buff=0.1,
+            stroke_width=10, max_stroke_width_to_length_ratio=15,
+            max_tip_length_to_length_ratio=0.5, tip_length=0.2,
+        ).scale(0.3).next_to(array_mobj, UP).shift((array.width + array.spacing) * 1 * LEFT)
+        self.play(Create(arrow))
+
+        start = 0
+        brace = Brace(array_mobj, DOWN, stroke_width=2, color=RED).scale(k / len(a)).align_to(array_mobj, LEFT)
+        sum_text = always_redraw(
+            lambda: Tex(sum(a[start: start + k]), color=RED).scale(0.8).next_to(brace, DOWN, buff=0.2)
+        )
+        self.add(brace, sum_text)
+
+        def highlight(new_start, shift):
+            nonlocal start
+            array.unhighlight()
+            array.highlight(new_start, new_start + k - 1, color=RED)
+            array_mobj.become(array.get_mobject(), match_center=True)
+            self.play(brace.animate.shift((array.width + array.spacing) * RIGHT * shift / 2), run_time=0.1)
+            start = new_start
+            self.play(brace.animate.shift((array.width + array.spacing) * RIGHT * shift / 2), run_time=0.1)
+            self.wait(0.2)
+
+        for end in range(k, k + 3):
+            for i in range(end - k, end):
+                array.highlight(i, i, color=YELLOW, width=8.)
+                if i - 1 >= end - k:
+                    array.highlight(i - 1, i - 1, color=RED)
+                array_mobj.become(array.get_mobject(), match_center=True)
+                self.wait(0.1)
+            array.highlight(end - 1, end - 1, color=RED)
+            array_mobj.become(array.get_mobject(), match_center=True)
+
+            self.play(arrow.animate.shift((array.width + array.spacing) * RIGHT), run_time=0.1)
+            highlight(new_start=end - k + 1, shift=1)
