@@ -31,7 +31,7 @@ class OpeningScene(Scene):
         array.highlight(start, start + k - 1, color=RED)
         array_mobj.become(array.get_mobject(), match_center=True)
         self.add(brace, sum_text)
-        self.wait(0.5)
+        self.wait(0.2)
 
         def highlight(new_start, shift):
             nonlocal start
@@ -41,9 +41,74 @@ class OpeningScene(Scene):
             self.play(brace.animate.shift((array.width + array.spacing) * RIGHT * shift / 2), run_time=0.1)
             start = new_start
             self.play(brace.animate.shift((array.width + array.spacing) * RIGHT * shift / 2), run_time=0.1)
-            self.wait(0.5)
+            self.wait(0.2)
 
         highlight(new_start=2, shift=2)     # Take the range [2, 6] as an example
         highlight(new_start=5, shift=3)     # Take the range [5, 9] as an example
         highlight(new_start=4, shift=-1)    # Take the range [4, 8] as an example
 
+        # Add an arrow at location 4 and iterate up to the end
+        highlight(new_start=0, shift=-4)
+        arrow = Arrow(
+            start=UP, end=DOWN, color=RED, buff=0.1,
+            stroke_width=10, max_stroke_width_to_length_ratio=15,
+            max_tip_length_to_length_ratio=0.5, tip_length=0.2,
+        ).scale(0.3).next_to(array_mobj, UP).shift((array.width + array.spacing) * 1 * LEFT)
+        self.play(Create(arrow))
+        for end in range(5, len(array)):
+            self.play(arrow.animate.shift((array.width + array.spacing) * RIGHT), run_time=0.1)
+            highlight(new_start=end - k + 1, shift=1)
+        self.wait(0.2)
+
+        # Move to start
+        self.play(arrow.animate.shift((array.width + array.spacing) * 6 * LEFT), run_time=0.1)
+        highlight(new_start=0, shift=-6)
+        self.wait(0.1)
+
+        # Iterate from 4 to the end and display the sum of each subarray
+        sums = [Text(' - ').next_to(array_mobj, DOWN).align_to(array_mobj, LEFT).shift(0.8 * DOWN)]
+        for end in range(k, len(array)):
+            # Write the formula
+            formula = MathTex(
+                f'{{{{ \\mathrm{{sum}}[{end - k}: {end - 1}] }}}} = '
+                f'{{{{ a[{end - k}] }}}} + {{{{ a[{end - k + 1}] }}}} + {{{{ a[{end - k + 2}] }}}} + '
+                f'{{{{ a[{end - k + 3}] }}}} + {{{{ a[{end - k + 4}] }}}} = {{{{ {sum(a[end - k: end])} }}}}',
+                color=YELLOW,
+            ).scale(0.7).next_to(sums[-1], DOWN, buff=0.2).align_to(sums[-1], LEFT)
+            [formula[i].set_color(BLACK) for i in [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]]
+            if len(sums) <= 4:
+                self.play(Write(formula), run_time=0.1)
+                sums.append(formula)
+            else:
+                formula = None
+
+            for i in range(end - k, end):
+                array.highlight(i, i, color=YELLOW, width=8.)
+                if i - 1 >= end - k:
+                    array.highlight(i - 1, i - 1, color=RED)
+                array_mobj.become(array.get_mobject(), match_center=True)
+                if formula is not None:
+                    self.play(formula[2 + 2 * (i - end + k)].animate.set_color(YELLOW), run_time=0.1)
+                    self.play(formula[3 + 2 * (i - end + k)].animate.set_color(YELLOW), run_time=0.1)
+                self.wait(0.1)
+            array.highlight(end - 1, end - 1, color=RED)
+            array_mobj.become(array.get_mobject(), match_center=True)
+            if formula is not None:
+                self.play(formula[11].animate.set_color(YELLOW), run_time=0.1)
+                self.play(formula[12].animate.set_color(YELLOW), run_time=0.1)
+
+            self.play(arrow.animate.shift((array.width + array.spacing) * RIGHT), run_time=0.1)
+            highlight(new_start=end - k + 1, shift=1)
+
+        self.wait(0.1)
+        self.play(Circumscribe(VGroup(*sums[1:]), run_time=0.3))
+        self.wait(0.1)
+
+        self.play(FadeOut(VGroup(*sums)), run_time=0.1)
+        complexity = Tex('Time Complexity: $\\mathcal{O}(n \\cdot k)$', color=RED).next_to(array_mobj, DOWN, buff=1)
+        self.play(Write(complexity), run_time=0.1)
+        self.wait(0.1)
+
+        # Move to next scene
+        self.play(FadeOut(complexity, arrow, brace, sum_text), run_time=0.1)
+        self.wait(0.1)
