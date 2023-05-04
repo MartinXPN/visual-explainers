@@ -1,3 +1,5 @@
+from textwrap import dedent
+
 from manim import *
 
 from sliding_window.array import Array
@@ -114,6 +116,9 @@ class OpeningScene(Scene):
         self.wait(0.1)
 
 
+REMOVED_COLOR = '#f7dcdd'
+
+
 class SlidingWindowDiscovery(Scene):
     def construct(self):
         title = Title('Maximum Sum Subarray of Size K', include_underline=False)
@@ -143,6 +148,7 @@ class SlidingWindowDiscovery(Scene):
         def highlight(new_start, shift):
             nonlocal start
             array.unhighlight()
+            array.highlight(0, new_start - 1, color=REMOVED_COLOR)
             array.highlight(new_start, new_start + k - 1, color=RED)
             array_mobj.become(array.get_mobject(), match_center=True)
             self.play(brace.animate.shift((array.width + array.spacing) * RIGHT * shift / 2), run_time=0.1)
@@ -162,3 +168,80 @@ class SlidingWindowDiscovery(Scene):
 
             self.play(arrow.animate.shift((array.width + array.spacing) * RIGHT), run_time=0.1)
             highlight(new_start=end - k + 1, shift=1)
+
+        self.play(arrow.animate.shift((array.width + array.spacing) * RIGHT), run_time=0.1)
+
+        # Flicker the next element and the one leaving the window
+        for i in range(5):
+            array.highlight(k + 3, k + 3, color=RED)
+            array.highlight(3, 3, color=REMOVED_COLOR, width=2.)
+            array_mobj.become(array.get_mobject(), match_center=True)
+            self.wait(0.2)
+            array.highlight(k + 3, k + 3, color=WHITE, width=2.)
+            array.highlight(3, 3, color=RED)
+            array_mobj.become(array.get_mobject(), match_center=True)
+            self.wait(0.2)
+
+        highlight(new_start=4, shift=1)
+        self.wait(0.1)
+
+        # Move back to start
+        self.play(arrow.animate.shift((array.width + array.spacing) * LEFT * 4), run_time=0.1)
+        highlight(new_start=0, shift=-4)
+        self.wait(0.1)
+
+        # Write initial window formula
+        formula = MathTex('\\mathrm{sum}_0 = a_0 + a_1 + ... + a_{k-1}', color=RED).scale(0.8)
+        formula.next_to(array_mobj, DOWN, buff=1)
+        self.play(Write(formula), run_time=0.1)
+        self.wait(0.1)
+
+        # Move the window once
+        self.play(arrow.animate.shift((array.width + array.spacing) * RIGHT), run_time=0.1)
+        highlight(new_start=1, shift=1)
+
+        # Formula for any window
+        window = MathTex('\\mathrm{sum}_i = \\mathrm{sum}_{i-1} + a_{r} - a_{r - k}', color=RED).scale(0.8)
+        window.next_to(formula, DOWN, buff=0.5).align_to(formula, LEFT)
+        self.play(Write(window), run_time=0.1)
+        self.wait(0.1)
+
+        self.play(FadeOut(formula, window), run_time=0.1)
+
+        # Code for the sliding window
+        code = Code(
+            code=dedent('''
+                best = cur = sum(a[:k])
+                for r in range(k, len(a)):
+                    cur = cur + a[r] - a[r - k]
+                    best = max(best, cur)
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).next_to(array_mobj, DOWN, buff=1).code
+        for line in code.chars:
+            self.play(AddTextLetterByLetter(line))
+        self.wait(0.1)
+
+        # Move to start
+        self.play(arrow.animate.shift((array.width + array.spacing) * LEFT), run_time=0.1)
+        highlight(new_start=0, shift=-1)
+
+        # Simulate the algorithm and keep the sum at each location (match the sum center)
+        cur = sum_text.copy()
+        self.add(cur)
+        sums = [cur]
+        for end in range(k, len(a)):
+            self.play(arrow.animate.shift((array.width + array.spacing) * RIGHT), run_time=0.1)
+            highlight(new_start=end - k + 1, shift=1)
+            cur = sum_text.copy()
+            self.add(cur)
+            sums.append(cur)
+            self.wait(0.1)
+
+        self.play(FadeOut(arrow, brace, sum_text), run_time=0.1)
+        self.play(Circumscribe(VGroup(*sums)), run_time=0.3)
+        self.wait(0.1)
