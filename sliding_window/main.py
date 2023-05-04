@@ -245,3 +245,9 @@ class SlidingWindowDiscovery(Scene):
         self.play(FadeOut(arrow, brace, sum_text), run_time=0.1)
         self.play(Circumscribe(VGroup(*sums)), run_time=0.3)
         self.wait(0.1)
+
+
+class DynamicSizeSlidingWindow(Scene):
+    def construct(self):
+        title = Title('Longest Subarray With Sum $ < S$', include_underline=False)
+        self.add(title)
