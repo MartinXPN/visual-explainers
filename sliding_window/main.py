@@ -371,7 +371,7 @@ class DynamicSizeSlidingWindow(Scene):
         # Table for the algorithm
         table = [
             ['ID', 'Sum', 'Len'],
-            *[[f'{i}', '-', '-'] for i in range(len(self.a))],
+            *[[f'{i}', '  ', ' '] for i in range(len(self.a))],
         ]
         table_mobj = Table(table).next_to(code, RIGHT).scale(0.45).shift(UP)
         self.play(Create(table_mobj), run_time=0.1)
@@ -392,7 +392,7 @@ class DynamicSizeSlidingWindow(Scene):
 
             table[end_index + 1] = [f'{end_index}', f'{cur}', f'{end_index - start_index}']
             table_mobj.become(Table(table).next_to(code, RIGHT).scale(0.45).shift(UP))
-        self.wait(0.1)
+            self.wait(0.1)
 
         self.play(FadeOut(e, s, e_index, s_index, brace, sum_text), run_time=0.1)
         table_mobj.add(table_mobj.get_cell((5, 0), color=GREEN)),
