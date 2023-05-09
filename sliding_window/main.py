@@ -11,18 +11,15 @@ k = 5
 class OpeningScene(Scene):
     def construct(self):
         title = Title('Maximum Sum Subarray of Size K', include_underline=False)
-        self.add(title)
+        k_name = Text('K = 5').scale(0.8).center().move_to(title, DOWN).shift(0.7 * DOWN)
 
         array = Array(a, width=0.8, height=0.8, spacing=0.05, scale_text=0.8)
         array_mobj = array.get_mobject().center()
         array_name = Text('a:').scale(0.8).move_to(array_mobj, LEFT).shift(0.7 * LEFT)
-        k_name = Text('K = 5').scale(0.8).center().move_to(title, DOWN).shift(0.7 * DOWN)
-        self.play(
-            Create(array_mobj),
-            Write(array_name),
-            Write(k_name),
-        )
-        self.wait(0.1)
+        self.play(Create(array_mobj), Write(array_name), run_time=2)
+        self.wait(2)
+        self.play(Write(title), Write(k_name), run_time=2)
+        self.wait(3)
 
         # Take the range [0, 4] as an example
         start = 0
