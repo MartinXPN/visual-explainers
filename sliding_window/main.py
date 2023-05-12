@@ -287,14 +287,16 @@ class DynamicSizeSlidingWindow(Scene):
 
     def construct(self):
         title = Title('Longest Subarray With Sum $ < S$', include_underline=False)
-        self.add(title)
+        s_name = MathTex('S = 15').scale(0.8).center().next_to(title, RIGHT).shift(0.5 * RIGHT)
+        self.add(title, s_name)
+        self.wait(1)
 
         array = Array(self.a, width=0.8, height=0.8, spacing=0.05, scale_text=0.8)
         array_mobj = array.get_mobject().center()
         array_name = Text('a:').scale(0.8).move_to(array_mobj, LEFT).shift(0.7 * LEFT)
-        s_name = MathTex('S = 15').scale(0.8).center().next_to(title, RIGHT).shift(0.5 * RIGHT)
-        self.add(array_mobj, array_name, s_name)
-        self.wait(0.1)
+        self.play(Create(array_mobj))
+        self.play(Write(array_name))
+        self.wait(4)
 
         # Initial brace with [1: 6]
         brace = Brace(array_mobj, DOWN, stroke_width=2, color=ORANGE)\
@@ -302,8 +304,8 @@ class DynamicSizeSlidingWindow(Scene):
             .align_to(array_mobj, LEFT)\
             .shift((array.width + array.spacing) * RIGHT)
         sum_text = Tex(sum(self.a[1: 7]), color=ORANGE).scale(0.8).next_to(brace, DOWN, buff=0.2)
-        self.play(GrowFromCenter(brace), Write(sum_text), run_time=0.1)
-        self.wait(0.1)
+        self.play(GrowFromCenter(brace), Write(sum_text))
+        self.wait(0.5)
 
         def highlight(start, end):
             self.play(
@@ -318,17 +320,25 @@ class DynamicSizeSlidingWindow(Scene):
                     .align_to(array_mobj, LEFT)
                     .shift((array.width + array.spacing) * RIGHT * (start + (end - start + 0.75) / 2))
                 ),
-                run_time=0.1,
+                run_time=0.3,
             )
-            self.wait(0.1)
+            self.wait(0.5)
 
         highlight(start=3, end=5)
         highlight(start=0, end=4)
         highlight(start=7, end=8)
-        self.wait(0.1)
+        self.wait(1)
+
+        # Unhighlight
+        self.play(
+            brace.animate.set_color(BLACK),
+            sum_text.animate.set_color(BLACK),
+        )
+        brace.shift((array.width + array.spacing) * LEFT * 7)
+        sum_text.shift((array.width + array.spacing) * LEFT * 7)
+        self.wait(1)
 
         highlight(start=0, end=0)
-
         s = Arrow(
             start=UP, end=DOWN, color=RED, buff=0.1,
             stroke_width=10, max_stroke_width_to_length_ratio=15,
@@ -339,13 +349,15 @@ class DynamicSizeSlidingWindow(Scene):
             stroke_width=10, max_stroke_width_to_length_ratio=15,
             max_tip_length_to_length_ratio=0.5, tip_length=0.2,
         ).scale(0.3).next_to(array_mobj, UP).shift((array.width + array.spacing) * 4.5 * LEFT)
-        self.play(Create(s), Create(e), run_time=0.1)
+        self.play(Create(s), Create(e))
+        self.wait(2)
 
         start_index, end_index = -1, 0
         s_index = always_redraw(lambda: MathTex(str(start_index), color=RED).scale(0.6).next_to(s, UP, buff=0.1))
         e_index = always_redraw(lambda: MathTex(str(end_index), color=YELLOW).scale(0.6).next_to(e, UP, buff=0.1))
-        self.play(Write(s_index), Write(e_index), run_time=0.1)
-        self.wait(0.1)
+        self.play(Write(s_index))
+        self.play(Write(e_index))
+        self.wait(6)
 
         # Animate the algorithm
         cur = 0
@@ -359,23 +371,21 @@ class DynamicSizeSlidingWindow(Scene):
                 cur -= self.a[start_index]
                 self.play(s.animate.shift((array.width + array.spacing) * RIGHT), run_time=0.05)
                 highlight(start=start_index + 1, end=end_index)
-            # self.wait(0.1)
-
-        self.wait(0.1)
+            self.wait(0.1)
 
         # Bring to 0
         self.play(
             VGroup(array_mobj, array_name, s, e, brace, sum_text, s_index, e_index).animate.shift(1.5 * UP),
-            run_time=0.1,
+            run_time=0.2,
         )
         self.play(
             s.animate.shift((array.width + array.spacing) * 9 * LEFT),
             e.animate.shift((array.width + array.spacing) * 9 * LEFT),
-            run_time=0.1,
+            run_time=0.3,
         )
         start_index, end_index = -1, 0
         highlight(start=0, end=0)
-        self.wait(0.1)
+        self.wait(1)
 
         # Code for the sliding window
         code = Code(
@@ -394,13 +404,21 @@ class DynamicSizeSlidingWindow(Scene):
             font='Monospace',
             style='monokai',
         ).next_to(array_mobj, DOWN, buff=1).code
-        for line in code.chars:
-            self.play(AddTextLetterByLetter(line), run_time=0.01)
-        self.wait(0.1)
+        self.play(AddTextLetterByLetter(code.chars[0]))
+        self.wait(5)
+        self.play(AddTextLetterByLetter(code.chars[1]))
+        self.wait(2.5)
+        self.play(AddTextLetterByLetter(code.chars[2]))
+        self.wait(0.5)
+        self.play(AddTextLetterByLetter(code.chars[3]))
+        self.play(AddTextLetterByLetter(code.chars[4]))
+        self.play(AddTextLetterByLetter(code.chars[5]))
+        self.wait(2)
+        self.play(AddTextLetterByLetter(code.chars[6]))
+        self.wait(1)
         self.play(
             VGroup(code.chars).animate.shift(2 * LEFT),
             VGroup(array_mobj, array_name, s, e, brace, sum_text, s_index, e_index).animate.shift(1.5 * LEFT),
-            run_time=0.1,
         )
 
         # Table for the algorithm
@@ -409,8 +427,7 @@ class DynamicSizeSlidingWindow(Scene):
             *[[f'{i}', '  ', ' '] for i in range(len(self.a))],
         ]
         table_mobj = Table(table).next_to(code, RIGHT).scale(0.45).shift(UP)
-        self.play(Create(table_mobj), run_time=0.1)
-        self.wait(0.1)
+        self.play(Create(table_mobj))
 
         # Animate the algorithm
         cur = 0
@@ -420,17 +437,20 @@ class DynamicSizeSlidingWindow(Scene):
                 self.play(e.animate.shift((array.width + array.spacing) * RIGHT), run_time=0.05)
             highlight(start=start_index + 1, end=end_index)
             while cur >= 15:
+                self.wait(1)
                 start_index += 1
                 cur -= self.a[start_index]
                 self.play(s.animate.shift((array.width + array.spacing) * RIGHT), run_time=0.05)
                 highlight(start=start_index + 1, end=end_index)
+                self.wait(1.5)
 
             table[end_index + 1] = [f'{end_index}', f'{cur}', f'{end_index - start_index}']
-            table_mobj.become(Table(table).next_to(code, RIGHT).scale(0.45).shift(UP))
-            self.wait(0.1)
+            table_mobj.become(Table(table), match_center=True, match_height=True, match_width=True)
+            self.wait(0.5)
 
-        self.play(FadeOut(e, s, e_index, s_index, brace, sum_text), run_time=0.1)
-        table_mobj.add(table_mobj.get_cell((5, 0), color=GREEN)),
-        table_mobj.add(table_mobj.get_cell((5, 1), color=GREEN)),
-        table_mobj.add(table_mobj.get_cell((5, 2), color=GREEN)),
-        self.wait(0.1)
+        self.wait(5)
+        self.play(FadeOut(e, s, e_index, s_index, brace, sum_text))
+        table_mobj.add(table_mobj.get_cell((6, 0), color=GREEN)),
+        table_mobj.add(table_mobj.get_cell((6, 1), color=GREEN)),
+        table_mobj.add(table_mobj.get_cell((6, 2), color=GREEN)),
+        self.wait(10)
