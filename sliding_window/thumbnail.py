@@ -14,5 +14,5 @@ class CreateThumbnail(Scene):
 
         brace = Brace(array_mobj, DOWN, stroke_width=2, color=RED).scale(k / len(a))\
             .align_to(array_mobj, LEFT).shift((array.width + array.spacing) * 2 * RIGHT)
-        sum_text = Tex(sum(a[0: k]), color=RED).scale(0.8).next_to(brace, DOWN, buff=0.2)
+        sum_text = Tex(sum(a[2: k + 2]), color=RED).scale(0.8).next_to(brace, DOWN, buff=0.2)
         self.add(array_mobj, brace, sum_text)
