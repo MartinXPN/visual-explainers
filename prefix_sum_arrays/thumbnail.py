@@ -5,11 +5,9 @@ from prefix_sum_arrays.array import Array
 
 class CreateThumbnail(Scene):
     def construct(self):
-        with register_font('font/JetBrainsMono-Bold.ttf') as f:
-            print(f)
-            text = Text(
-                'Prefix Sum\nExplained', font='JetBrains Mono Bold', font_size=77
-            ).center().shift(3 * LEFT).shift(2 * UP)
+        text = Text(
+            'Prefix Sum\nExplained', font_size=77
+        ).center().shift(3 * LEFT).shift(2 * UP)
         self.add(text)
 
         array = Array([3, -2, 4, 10, -1, 0, 5], width=0.8, height=0.8, spacing=0.05, scale_text=0.8)
@@ -31,9 +29,8 @@ class VerticalThumbnail(Scene):
         super().__init__(*args, **kwargs)
 
     def construct(self):
-        with register_font('font/JetBrainsMono-Bold.ttf'):
-            psum = Text('Prefix Sum', font='JetBrains Mono Bold', font_size=64).center().shift(3.5 * UP)
-            explained = Text('Explained', font='JetBrains Mono Bold', font_size=64).center().next_to(psum, DOWN)
+        psum = Text('Prefix Sum', font_size=64).center().shift(3.5 * UP)
+        explained = Text('Explained', font_size=64).center().next_to(psum, DOWN)
         self.add(psum, explained)
 
         array = Array([3, -2, 4, 10, -1, 0, 5], width=0.8, height=0.8, spacing=0.05, scale_text=0.8)

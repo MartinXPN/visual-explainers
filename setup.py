@@ -10,7 +10,6 @@ setup(
     packages=find_packages(exclude=('tests',)),
     install_requires=[
         'manim>=0.12.0',
-        'manim-physics>=0.2.4',
         'numpy>=1.21.4',
     ],
     include_package_data=True,

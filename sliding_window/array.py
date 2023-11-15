@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from manim import *
 
@@ -6,11 +6,11 @@ from manim import *
 @dataclass
 class Array:
     values: list[int | None]
-    color: str = WHITE
-    fill_color: str = BLACK
+    color: str = field(default_factory=lambda: WHITE)
+    fill_color: str = field(default_factory=lambda: BLACK)
     fill_opacity: float = 0.5
     stroke_width: float | list[float] = 2.
-    stroke_color: str | list[str] = WHITE
+    stroke_color: str | list[str] = field(default_factory=lambda: WHITE)
     height: float = 0.5
     width: float = 0.5
     spacing: float = 0.1
