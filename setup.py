@@ -9,8 +9,8 @@ setup(
     python_requires='>=3.9',
     packages=find_packages(exclude=('tests',)),
     install_requires=[
-        'manim>=0.12.0',
-        'numpy>=1.21.4',
+        'manim>=0.18.0',
+        'numpy>=1.26.4',
     ],
     include_package_data=True,
     license='MIT',
