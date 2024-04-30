@@ -370,8 +370,6 @@ class SieveOfEratosthenes(Scene):
 
         # Transition to the next scene (replace the grid with 100 numbers instead of 200)
         grid = NumberGrid(100, values_per_row=20)
-        grid.highlight(0, color=DARKER_GREY)
-        grid.highlight(1, color=DARKER_GREY)
         self.add(grid.get_mobject().center().next_to(title, DOWN).shift(0.5 * DOWN))
         self.play(FadeOut(grid_mob), run_time=1)
         self.wait(1)
@@ -386,7 +384,7 @@ class Implementation(Scene):
         grid = NumberGrid(100, values_per_row=20)
         grid_mob = grid.get_mobject().center().next_to(title, DOWN).shift(0.5 * DOWN)
         self.add(grid_mob)
-        self.wait(0.1)
+        self.wait(2)
 
         # Code for the Sieve of Eratosthenes
         code = Code(
@@ -407,8 +405,12 @@ class Implementation(Scene):
         ).scale(0.8).next_to(grid_mob, DOWN, buff=0.3).code
         for line in code.chars:
             if line:
-                self.play(AddTextLetterByLetter(line), run_time=0.08 * len(line))
-        self.wait(0.1)
+                self.play(AddTextLetterByLetter(line), run_time=0.1 * len(line))
+            self.wait(1.5)
+            if 'if' in line:
+                self.wait(1.5)
+        self.play(Circumscribe(code.chars[5]), run_time=1)
+        self.wait(8)
 
         # Arrow to show which part of the code is being executed
         arrow = Arrow(
@@ -416,17 +418,18 @@ class Implementation(Scene):
             stroke_width=10, max_stroke_width_to_length_ratio=15,
             max_tip_length_to_length_ratio=0.5, tip_length=0.2,
         ).scale(0.3).next_to(code, LEFT).shift(0.95 * UP)
-        self.play(Create(arrow), run_time=0.5)
-        self.wait(1)
+        self.play(Create(arrow), run_time=1)
+        self.wait(5)
 
         # Highlight the 2nd line of the code + Make 0 and 1 transparent
         self.play(arrow.animate.shift(0.35 * DOWN))
         grid.highlight(0, color=DARKER_GREY)
         grid.highlight(1, color=DARKER_GREY)
-        self.wait(0.1)
+        self.wait(5)
 
         # Move arrow to `for p...`
         self.play(arrow.animate.shift(0.6 * DOWN))
+        self.wait(4)
 
         # Show the process
         for p in range(2, 18):
@@ -434,14 +437,15 @@ class Implementation(Scene):
             debug_p = Text(
                 f'p = {p}', color=GREEN if p in primes else RED,
             ).scale(0.5).next_to(code, RIGHT, buff=0.3)
-            self.play(Write(debug_p), run_time=0.1)
+            self.play(Write(debug_p), run_time=1)
 
             debug_if = Text(
                 f'prime[{p}] = {True if p in primes else False}'
             ).scale(0.5).next_to(debug_p, DOWN, buff=0).align_to(debug_p, LEFT)
-            self.play(Write(debug_if), arrow.animate.shift(0.35 * DOWN), run_time=0.1)
-            self.wait(0.1)
+            self.play(Write(debug_if), arrow.animate.shift(0.35 * DOWN), run_time=1)
+            self.wait(4 if p < 6 else 0.1)
 
+            debug_for = None
             if p in primes:
                 multiples = [m for m in range(p * p, 100, p)]
                 debug_for = Text(
@@ -449,29 +453,35 @@ class Implementation(Scene):
                               else ', '.join(map(str, multiples)) if multiples
                               else '∅')
                 ).scale(0.5).next_to(debug_if, DOWN, buff=0).align_to(debug_if, LEFT)
-                self.play(Write(debug_for), arrow.animate.shift(0.35 * DOWN), run_time=0.1)
-                self.wait(0.1)
+                self.play(Write(debug_for), arrow.animate.shift(0.35 * DOWN), run_time=1)
 
                 # Highlight multiples with dark grey
                 for m in range(p * p, 100, p):
-                    grid.highlight(m, color=YELLOW)
-                    self.wait(0.05)
+                    if p >= 5:
+                        grid.highlight(m, color=YELLOW)
+                        self.wait(0.07)
                     grid.highlight(m, color=DARKER_GREY)
-                    self.wait(0.05)
+                    self.wait(0.07)
 
                 if p == 17:
-                    self.wait(1)
+                    self.play(Circumscribe(code.chars[5]), run_time=2)
+                    self.wait(3)
 
                 # Move the arrow up
-                self.play(arrow.animate.shift(0.35 * UP), run_time=0.1)
+                self.play(arrow.animate.shift(0.35 * UP), run_time=0.2)
 
             # Move the arrow up
-            self.play(arrow.animate.shift(0.35 * UP), run_time=0.1)
-            self.play(FadeOut(debug_p, debug_if, debug_for), run_time=0.1)
+            self.play(
+                arrow.animate.shift(0.35 * UP),
+                FadeOut(debug_p, debug_if, *([debug_for] if debug_for else [])),
+                run_time=0.2,
+            )
 
         # Highlight the outer loop
+        self.wait(1)
         sqrt_n = MathTex(r'\sqrt{n}').scale(0.5).next_to(arrow, LEFT, buff=0.2)
-        self.play(Write(sqrt_n), run_time=0.1)
+        self.play(Write(sqrt_n), run_time=1)
+        self.wait(3)
 
         # New Code for the Sieve of Eratosthenes
         new_code = Code(
@@ -492,11 +502,13 @@ class Implementation(Scene):
         ).scale(0.8).next_to(grid_mob, DOWN, buff=0.3).code
 
         self.play(RemoveTextLetterByLetter(code.chars[3]), run_time=0.03 * len(code.chars[3]))
-        self.play(AddTextLetterByLetter(new_code.chars[3]), run_time=0.08 * len(new_code.chars[3]))
-        self.wait(1)
+        self.play(AddTextLetterByLetter(new_code.chars[3]), run_time=0.1 * len(new_code.chars[3]))
+        self.wait(7)
 
-        self.play(FadeOut(sqrt_n), FadeOut(arrow), run_time=0.1)
+        self.play(FadeOut(sqrt_n), FadeOut(arrow), run_time=0.5)
+        self.wait(2)
         self.play(Circumscribe(code))
+        self.wait(6)
 
         # Highlight the prime numbers
         for i in range(2, 100):
@@ -504,7 +516,7 @@ class Implementation(Scene):
                 grid.highlight(i, color=YELLOW)
             else:
                 grid.highlight(i, color=DARKER_GREY)
-        self.wait(1)
+        self.wait(3)
 
         # Bring back the colors
         for i in range(2, 100):
@@ -546,28 +558,32 @@ class TimeMemoryComplexity(Scene):
             style='monokai',
         ).scale(0.8).next_to(grid_mob, DOWN, buff=0.3).code
         self.add(code)
-        self.wait(0.1)
+        self.wait(3)
 
-        self.play(VGroup(code.chars).animate.shift(2.5 * LEFT), run_time=0.1)
+        self.play(VGroup(code.chars).animate.shift(2.5 * LEFT), run_time=1)
 
         # Memory complexity
-        self.play(Circumscribe(grid_mob))
+        self.play(Circumscribe(grid_mob, run_time=2))
+        self.wait(2)
         memory_complexity = Tex(
             r'Memory Complexity: $\mathcal{O}(n)$'
         ).scale(0.6).next_to(VGroup(code.chars), RIGHT, buff=0.5).shift(0.2 * UP)
-        self.play(Write(memory_complexity), run_time=0.1)
+        self.play(Write(memory_complexity), run_time=1)
+        self.wait(2)
 
         # Time complexity
         time_complexity = Tex(
             r'Time Complexity: $\mathcal{O}(n \cdot \log(\log(n)))$'
         ).scale(0.6).next_to(memory_complexity, DOWN, buff=0.2).align_to(memory_complexity, LEFT)
-        self.play(Write(time_complexity), run_time=0.1)
-        self.wait(2)
+        self.play(Write(time_complexity), run_time=1)
+        self.wait(15)
 
         # Practice (Remove the code and write it again)
-        self.play(FadeOut(code), run_time=0.1)
+        for line in code.chars[::-1]:
+            if line:
+                self.play(RemoveTextLetterByLetter(line), run_time=0.02 * len(line))
         for line in code.chars:
             if line:
                 self.play(AddTextLetterByLetter(line), run_time=0.08 * len(line))
 
-        self.wait(1)
+        self.wait(7.5)
