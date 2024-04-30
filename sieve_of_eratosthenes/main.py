@@ -211,7 +211,7 @@ class NaiveApproach(Scene):
             Create(grid.get_mobject().center().next_to(new_title, DOWN).shift(0.5 * DOWN)),
             run_time=3,
         )
-        self.wait(1)
+        self.wait(2)
 
 
 class SieveOfEratosthenes(Scene):
