@@ -19,7 +19,9 @@ class Opening(Scene):
 
     def construct(self):
         title = Tex(r'Find All Prime Numbers \textless \, n', font_size=32).center().shift(3.5 * UP)
-        self.add(title)
+        self.wait(1)
+        self.play(Write(title), run_time=2)
+        self.wait(3)
 
         # Definition
         definition = Text('N:', color=GREEN, weight=BOLD, font_size=22).next_to(title, DOWN, buff=1).shift(2 * LEFT)
@@ -29,30 +31,30 @@ class Opening(Scene):
         self.play(Write(definition), run_time=1)
         self.wait(1)
         self.play(Write(definition_divisors), run_time=1)
-        self.wait(1)
+        self.wait(2)
 
         # Draw primes
         primes = MathTex(
             r'5, \, 7, \text{ or } 11: \, \text{Prime}',
             color=GREEN,
         ).scale(0.6).next_to(definition, DOWN, buff=0.5).align_to(definition, LEFT)
-        self.play(Write(primes), run_time=1)
-        self.wait(1)
+        self.play(Write(primes), run_time=2)
+        self.wait(3)
 
         # Draw non-primes
         non_primes = MathTex(
             r'6, \, 8, \text{ or } 12: \, \text{Not Prime}',
             color=RED,
         ).scale(0.6).next_to(primes, DOWN, buff=0.5).align_to(primes, LEFT)
-        self.play(Write(non_primes), run_time=1)
-        self.wait(1)
+        self.play(Write(non_primes), run_time=2)
+        self.wait(5)
 
         # Change the title and fade out the rest
         new_title = Tex(r'Sieve of Eratosthenes', font_size=32).center().shift(3.5 * UP)
         self.play(
             Transform(title, new_title),
             FadeOut(primes), FadeOut(non_primes), FadeOut(definition), FadeOut(definition_divisors),
-            run_time=0.5,
+            run_time=1,
         )
 
         # Draw the number grid
@@ -60,7 +62,7 @@ class Opening(Scene):
         grid.highlight(0, color=DARKER_GREY)
         grid.highlight(1, color=DARKER_GREY)
         grid_mob = grid.get_mobject().center().next_to(title, DOWN).shift(0.2 * DOWN).shift(0.2 * LEFT)
-        self.play(Create(grid_mob), run_time=1)
+        self.play(Create(grid_mob), run_time=3)
         self.wait(1)
 
         # Highlight all the prime numbers
@@ -68,10 +70,10 @@ class Opening(Scene):
             grid.highlight(prime, color=GREEN)
 
         # Make the prime numbers larger
-        self.play(*[grid.labels[prime].animate.scale(1.5) for prime in all_primes])
-        self.play(*[Wiggle(grid.labels[prime]) for prime in all_primes])
-        self.play(*[grid.labels[prime].animate.scale(1 / 1.5) for prime in all_primes])
-        self.wait(1)
+        self.play(*[grid.labels[prime].animate.scale(1.5) for prime in all_primes], run_time=1)
+        self.play(*[Wiggle(grid.labels[prime]) for prime in all_primes], run_time=1)
+        self.play(*[Wiggle(grid.labels[prime]) for prime in all_primes], run_time=1.5)
+        self.play(*[grid.labels[prime].animate.scale(1 / 1.5) for prime in all_primes], run_time=1)
 
 
 class SieveOfEratosthenesImplementation(Scene):
