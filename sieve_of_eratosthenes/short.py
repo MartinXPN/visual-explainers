@@ -103,8 +103,9 @@ class SieveOfEratosthenesImplementation(Scene):
         # Make the prime numbers larger
         self.play(*[grid.labels[prime].animate.scale(1.5) for prime in all_primes])
         self.play(*[Wiggle(grid.labels[prime]) for prime in all_primes])
+        self.play(*[Wiggle(grid.labels[prime]) for prime in all_primes], run_time=1.5)
         self.play(*[grid.labels[prime].animate.scale(1 / 1.5) for prime in all_primes])
-        self.wait(1)
+        self.wait(2)
 
         # Code for the Sieve of Eratosthenes
         code = Code(
@@ -112,7 +113,7 @@ class SieveOfEratosthenesImplementation(Scene):
                 prime = [True] * n
                 prime[0] = prime[1] = False
 
-                for p in range(2, isqrt(n) + 1):
+                for p in range(2, n):
                     if prime[p]:
                         for m in range(p * p, n, p):
                             prime[m] = False
@@ -131,4 +132,15 @@ class SieveOfEratosthenesImplementation(Scene):
                 self.wait(1.5)
             if 'if' in line:
                 self.wait(1.5)
-        self.wait(1)
+
+        # Arrow to show which part of the code is being executed
+        arrow = (Arrow(
+            start=LEFT, end=RIGHT, color=RED, buff=0.1,
+            stroke_width=10, max_stroke_width_to_length_ratio=15,
+            max_tip_length_to_length_ratio=0.5, tip_length=0.2,
+        ).scale(0.3).next_to(code, LEFT).shift(0.55 * DOWN).shift(0.7 * RIGHT))
+        self.play(Create(arrow), run_time=1)
+        self.wait(2)
+
+        self.play(arrow.animate.shift(0.25 * DOWN))
+        self.wait(3)
