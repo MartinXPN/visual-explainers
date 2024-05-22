@@ -462,3 +462,289 @@ class FormalTimeComplexity(Scene):
 
         self.add(array_mobj, a_text, brace, brace_text, linear_search_text, binary_search_text)
 
+        # Search icon goes from first to last
+        search_svg = SVGMobject(
+            'binary_search/search.svg', color=WHITE, fill_color=WHITE, fill_opacity=1,
+        ).scale(0.7).center()
+        self.play(DrawBorderThenFill(search_svg, run_time=1))
+        self.wait(0.1)
+
+        self.play(search_svg.animate.move_to(array.labels[0]).shift(0.16 * DOWN).shift(0.16 * RIGHT), run_time=0.2)
+        for i in range(11):
+            self.play(search_svg.animate.shift((array.width + array.spacing) * RIGHT), run_time=0.1)
+        self.wait(0.1)
+
+        # Write O(n)a
+        linear_search_time_complexity = MathTex(
+            r'\mathcal{O}(n)', color=ORANGE,
+        ).scale(0.8).next_to(linear_search_text, DOWN, buff=0.5)
+        self.play(
+            Write(linear_search_time_complexity),
+            FadeOut(search_svg),
+            run_time=0.5,
+        )
+        self.wait(0.1)
+
+        # Add n/2, n/4, n/8, ... below n
+        divisors = [Tex(f'n / {i}').scale(0.7) for i in [2, 4, 8]] + [Tex('...').scale(0.7)]
+        divisors[0].next_to(brace_text, DOWN, buff=0.2)
+        self.play(Write(divisors[0]), run_time=0.2)
+        for i in range(1, len(divisors)):
+            divisors[i].next_to(divisors[i - 1], DOWN, buff=0.2)
+            self.play(Write(divisors[i]), run_time=0.2)
+
+        # Add O(log n) below binary search
+        binary_search_time_complexity = MathTex(
+            r'\mathcal{O}(\log{n})', color=ORANGE,
+        ).scale(0.8).next_to(binary_search_text, DOWN, buff=0.5)
+        self.play(Write(binary_search_time_complexity), run_time=0.5)
+        self.wait(0.1)
+
+        # Transition to the next scene
+        self.play(
+            FadeOut(brace),
+            FadeOut(brace_text),
+            FadeOut(linear_search_time_complexity),
+            FadeOut(binary_search_time_complexity),
+            *[FadeOut(divisor) for divisor in divisors],
+            run_time=0.2,
+        )
+        new_arr = Array(a).get_mobject().center().shift(2 * UP)
+        self.play(
+            ReplacementTransform(title, Title('Binary Search', include_underline=False)),
+            ReplacementTransform(array_mobj, new_arr),
+            ReplacementTransform(a_text, Tex('a:').scale(0.8).next_to(new_arr, LEFT)),
+            FadeOut(linear_search_text),
+            FadeOut(binary_search_text),
+        )
+
+        self.wait(0.1)
+
+
+class Implementation(Scene):
+    def construct(self):
+        title = Title('Binary Search', include_underline=False)
+        self.add(title)
+
+        array = Array(a)
+        array_mobj = array.get_mobject().center().shift(2 * UP)
+        a_text = Tex('a:').scale(0.8).next_to(array_mobj, LEFT)
+        self.add(array_mobj, a_text)
+
+        left = Tex('l', color=ORANGE).scale(0.8).next_to(array.rectangles[1], UP).shift(0.1 * DOWN)
+        right = Tex('r', color=ORANGE).scale(0.8).next_to(array.rectangles[5], UP).shift(0.1 * DOWN)
+        self.play(Write(left), Write(right), run_time=0.2)
+
+        self.play(
+            left.animate.next_to(array.rectangles[0], UP).shift(0.1 * DOWN),
+            right.animate.next_to(array.rectangles[-1], UP).shift(0.1 * DOWN),
+            run_time=0.2,
+        )
+        l_inclusive = Tex('[', color=ORANGE).scale(0.8).next_to(left, LEFT, buff=0.05)
+        r_exclusive = Tex(')', color=ORANGE).scale(0.8).next_to(right, RIGHT, buff=0.05)
+        self.play(Write(l_inclusive), run_time=0.2)
+        self.play(Write(r_exclusive), run_time=0.2)
+        left = VGroup(l_inclusive, left)
+        right = VGroup(right, r_exclusive)
+
+        # Circumscribe l and the first element of the array
+        self.play(Circumscribe(VGroup(left, array.rectangles[0]), run_time=0.5))
+        self.play(right.animate.set_color(DARKER_GREY), run_time=0.3)
+        self.wait(0.2)
+        self.play(right.animate.set_color(ORANGE), run_time=0.1)
+
+        # Move r one element to the right
+        self.play(right.animate.shift((array.width + array.spacing) * RIGHT), run_time=0.2)
+
+        code = Code(
+            code=dedent('''
+                l, r = 0, len(h)
+                while r - l > 1:
+                    mid = (l + r) // 2
+                    if a[mid] > q:
+                        r = mid
+                    else:
+                        l = mid
+                
+                print(l if a[l] == q else -1)
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).next_to(array_mobj, DOWN).code
+
+        # Type the first line of the code
+        self.play(AddTextLetterByLetter(code.chars[0], run_time=0.1 * len(code.chars[0])))
+        self.wait(0.1)
+        self.play(AddTextLetterByLetter(code.chars[1], run_time=0.1 * len(code.chars[1])))
+        self.wait(0.1)
+        # Type 3rd line and add mid
+        self.play(AddTextLetterByLetter(code.chars[2], run_time=0.1 * len(code.chars[2])))
+        mid = Tex('mid', color=YELLOW).scale(0.8).next_to(array.rectangles[4], UP).shift(0.1 * DOWN)
+        self.play(Write(mid), run_time=0.2)
+        self.wait(0.1)
+
+        def highlight(l, r, col):
+            return [
+                *[FadeToColor(label, col) for label in array.labels[l:r]],
+                *[rect.animate.set_stroke(col) for rect in array.rectangles[l:r]],
+            ]
+
+        # Type 4th line and 5th lines
+        self.play(AddTextLetterByLetter(code.chars[3], run_time=0.1 * len(code.chars[3])))
+        # Bring r to mid and fade out mid
+        self.play(
+            right.animate.next_to(array.rectangles[4], UP).shift(0.1 * DOWN),
+            FadeOut(mid),
+            *highlight(4, len(array), DARKER_GREY),
+            run_time=0.2,
+        )
+        self.play(AddTextLetterByLetter(code.chars[4], run_time=0.1 * len(code.chars[4])))
+        self.wait(0.1)
+
+        # Add info about the other approach
+        another_code = Code(
+            code=dedent('''
+                l, r = 0, len(h)
+                while r - l > 1:
+                    mid = (l + r) // 2
+                    if a[mid] > q:
+                        r = mid - 1
+                    elif a[mid] < q:
+                        l = mid + 1
+                    else:
+                        print(mid)
+
+                print(l if a[l] == q else -1)
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).next_to(array_mobj, DOWN).code
+        self.play(TransformMatchingShapes(code.chars[4], another_code.chars[4]), run_time=0.2)
+        self.wait(0.1)
+
+        # Move r to the end of the array
+        mid = Tex('mid', color=YELLOW).scale(0.8).next_to(array.rectangles[4], UP).shift(0.1 * DOWN)
+        self.play(
+            TransformMatchingShapes(another_code.chars[4], code.chars[4]),
+            right.animate.next_to(array.rectangles[-1], UP).shift(0.1 * DOWN).shift((array.width + array.spacing) * RIGHT),
+            Write(mid),
+            *highlight(4, len(array), WHITE),
+            run_time=0.2,
+        )
+        self.wait(0.1)
+
+        # Write the 6th line
+        self.play(AddTextLetterByLetter(code.chars[5], run_time=0.1 * len(code.chars[5])))
+        self.wait(0.1)
+
+        # Bring l to mid and fade out mid
+        self.play(
+            left.animate.next_to(array.rectangles[4], UP).shift(0.1 * DOWN),
+            FadeOut(mid),
+            *highlight(0, 4, DARKER_GREY),
+            run_time=0.2,
+        )
+        self.wait(0.1)
+
+        self.play(AddTextLetterByLetter(code.chars[6], run_time=0.1 * len(code.chars[6])))
+        self.wait(0.1)
+
+        # Bring l one element to the right
+        self.play(
+            left.animate.shift((array.width + array.spacing) * RIGHT),
+            RemoveTextLetterByLetter(code.chars[6]),
+            *highlight(4, 5, DARKER_GREY),
+            run_time=1,
+        )
+        self.play(RemoveTextLetterByLetter(code.chars[5]), run_time=0.1)
+        self.play(AddTextLetterByLetter(another_code.chars[5], run_time=0.1 * len(another_code.chars[5])))
+        self.play(AddTextLetterByLetter(another_code.chars[6], run_time=0.1 * len(another_code.chars[6])))
+        self.play(AddTextLetterByLetter(another_code.chars[7], run_time=0.1 * len(another_code.chars[7])))
+        self.play(AddTextLetterByLetter(another_code.chars[8], run_time=0.1 * len(another_code.chars[8])))
+        self.wait(1)
+
+        # Bring l back
+        self.play(
+            left.animate.shift((array.width + array.spacing) * LEFT),
+            RemoveTextLetterByLetter(another_code.chars[8]),
+            *highlight(4, 5, WHITE),
+            run_time=1,
+        )
+        self.play(RemoveTextLetterByLetter(another_code.chars[7]), run_time=0.1)
+        self.play(RemoveTextLetterByLetter(another_code.chars[6]), run_time=0.1)
+        self.play(RemoveTextLetterByLetter(another_code.chars[5]), run_time=0.1)
+        self.play(AddTextLetterByLetter(code.chars[5], run_time=0.1 * len(code.chars[5])))
+        self.play(AddTextLetterByLetter(code.chars[6], run_time=0.1 * len(code.chars[6])))
+        self.wait(1)
+
+        # Bring l to 49 and r to 52
+        self.play(
+            left.animate.next_to(array.rectangles[5], UP).shift(0.1 * DOWN),
+            right.animate.next_to(array.rectangles[6], UP).shift(0.1 * DOWN),
+            *highlight(0, 5, DARKER_GREY),
+            *highlight(5, 6, WHITE),
+            *highlight(6, len(array), DARKER_GREY),
+            run_time=0.2,
+        )
+
+        # Write the last line of the code
+        self.play(AddTextLetterByLetter(code.chars[-1], run_time=0.1 * len(code.chars[-1])))
+        self.wait(0.1)
+
+        # Transition to the next scene
+        self.play(
+            left.animate.next_to(array.rectangles[0], UP).shift(0.1 * DOWN),
+            right.animate.next_to(array.rectangles[-1], UP).shift(0.1 * DOWN).shift((array.width + array.spacing) * RIGHT),
+            *highlight(0, len(array), WHITE),
+            run_time=0.5,
+        )
+
+
+class SimulatingNormalCase(Scene):
+    def construct(self):
+        title = Title('Binary Search', include_underline=False)
+        self.add(title)
+
+        array = Array(a)
+        array_mobj = array.get_mobject().center().shift(2 * UP)
+        a_text = Tex('a:').scale(0.8).next_to(array_mobj, LEFT)
+        self.add(array_mobj, a_text)
+
+        left = Tex('l', color=ORANGE).scale(0.8)
+        right = Tex('r', color=ORANGE).scale(0.8)
+        l_inclusive = Tex('[', color=ORANGE).scale(0.8).next_to(left, LEFT, buff=0.05)
+        r_exclusive = Tex(')', color=ORANGE).scale(0.8).next_to(right, RIGHT, buff=0.05)
+        left = VGroup(l_inclusive, left).next_to(array.rectangles[0], UP).shift(0.1 * DOWN)
+        right = VGroup(right, r_exclusive).next_to(array.rectangles[-1], UP).shift(0.1 * DOWN).shift((array.width + array.spacing) * RIGHT)
+        self.add(left, right)
+
+        code = Code(
+            code=dedent('''
+                l, r = 0, len(h)
+                while r - l > 1:
+                    mid = (l + r) // 2
+                    if a[mid] > q:
+                        r = mid
+                    else:
+                        l = mid
+
+                print(l if a[l] == q else -1)
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).next_to(array_mobj, DOWN).code
+        self.add(code.chars)
+        self.wait(0.1)
+
+        q = Tex(r'q: 49', color=ORANGE).scale(0.8).next_to(code.chars, RIGHT).align_to(code.chars, UP)
+        self.play(Write(q, run_time=0.5))
+        self.wait(0.1)
