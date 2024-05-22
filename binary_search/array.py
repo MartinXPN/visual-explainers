@@ -1,0 +1,75 @@
+from dataclasses import dataclass, field
+from itertools import chain
+
+from manim import *
+
+
+@dataclass
+class Array:
+    values: list[int | None]
+    color: str = field(default_factory=lambda: WHITE)
+    fill_color: str = field(default_factory=lambda: BLACK)
+    fill_opacity: float = 0.5
+    stroke_width: float | list[float] = 2.
+    stroke_color: str | list[str] = field(default_factory=lambda: WHITE)
+    height: float = 0.6
+    width: float = 0.6
+    spacing: float = 0.1
+    scale_text: float = 0.6
+
+    rectangles: list[Rectangle] = field(default_factory=lambda: [])
+    labels: list[VMobject] = field(default_factory=lambda: [])
+
+    def __post_init__(self):
+        self.stroke_color: list[str] = [self.stroke_color] * len(self.values) \
+            if isinstance(self.stroke_color, ManimColor) \
+            else self.stroke_color
+        self.stroke_width: list[float] = [self.stroke_width] * len(self.values) \
+            if isinstance(self.stroke_width, (float, int)) \
+            else self.stroke_width
+
+    def get_rectangles(self):
+        self.rectangles = []
+        for i, value in enumerate(self.values):
+            rectangle = Rectangle(
+                height=self.height,
+                width=self.width,
+                fill_color=self.fill_color,
+                fill_opacity=self.fill_opacity,
+                stroke_width=self.stroke_width[i],
+                stroke_color=self.stroke_color[i],
+            )
+            rectangle.shift(i * (self.width + self.spacing) * RIGHT)
+            self.rectangles.append(rectangle)
+        return self.rectangles
+
+    def get_labels(self):
+        rectangles = self.get_rectangles() if not self.rectangles else self.rectangles
+        self.labels = []
+        for i, value in enumerate(self.values):
+            label = Tex(str(value) if value is not None else '', color=self.color)
+            label.scale(self.scale_text)
+            label.move_to(rectangles[i])
+            self.labels.append(label)
+        return self.labels
+
+    def get_mobjects(self):
+        if not self.rectangles:
+            self.get_rectangles()
+        if not self.labels:
+            self.get_labels()
+        return chain.from_iterable(zip(self.rectangles, self.labels))
+
+    def get_mobject(self):
+        return VGroup(*self.get_mobjects())
+
+    def highlight(self, start: int, end: int, color=RED, width=5.):
+        self.stroke_color = [color if start <= i <= end else self.stroke_color[i] for i in range(len(self.values))]
+        self.stroke_width = [width if start <= i <= end else self.stroke_width[i] for i in range(len(self.values))]
+
+    def unhighlight(self):
+        self.stroke_color = [WHITE] * len(self.values)
+        self.stroke_width = [2.] * len(self.values)
+
+    def __len__(self):
+        return len(self.values)
