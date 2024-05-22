@@ -748,3 +748,14 @@ class SimulatingNormalCase(Scene):
         q = Tex(r'q: 49', color=ORANGE).scale(0.8).next_to(code.chars, RIGHT).align_to(code.chars, UP)
         self.play(Write(q, run_time=0.5))
         self.wait(0.1)
+
+        # Arrow to show which part of the code is being executed
+        arrow = Arrow(
+            start=LEFT, end=RIGHT, color=RED, buff=0.1,
+            stroke_width=10, max_stroke_width_to_length_ratio=15,
+            max_tip_length_to_length_ratio=0.5, tip_length=0.2,
+        ).scale(0.3).next_to(code, LEFT).align_to(code, UP).shift(0.08 * DOWN)
+        self.play(Create(arrow), run_time=0.1)
+        self.wait(0.1)
+
+        self.play(arrow.animate.shift(0.35 * DOWN))
