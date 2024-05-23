@@ -1187,3 +1187,41 @@ class OverflowIssue(Scene):
         self.play(FadeOut(search_icon), run_time=0.1)
         self.wait(0.1)
 
+
+class LinearVSBinary(Scene):
+    def construct(self):
+        title = Title('Linear Search VS Binary Search', include_underline=False)
+        self.add(title)
+
+        array = Array(a)
+        array_mobj = array.get_mobject().center().shift(2.2 * UP)
+        a_text = Tex('a:').scale(0.8).next_to(array_mobj, LEFT)
+        indices = Array(
+            [i for i in range(len(array) + 1)],
+            width=array.width, height=array.height,
+            spacing=array.spacing, scale_text=array.scale_text, stroke_color=BLACK,
+        )
+        indices_mobj = indices.get_mobject().center().next_to(array_mobj, 0.1 * DOWN).align_to(array_mobj, LEFT)
+        indices.labels[-1].set_color(BLACK)
+        self.add(array_mobj, a_text, indices_mobj)
+
+        linear_code = Code(
+            code=dedent('''
+                for i, x in enumerate(a):
+                    if x == q:
+                        print(i)
+                        break
+                else:
+                    print(-1)
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).scale(0.8).shift(2 * UP).next_to(indices_mobj, DOWN, buff=0.5).to_edge(LEFT, buff=1).code
+
+        for line in linear_code.chars:
+            if line:
+                self.play(AddTextLetterByLetter(line), run_time=0.01 * len(line))
+        self.wait(0.1)
