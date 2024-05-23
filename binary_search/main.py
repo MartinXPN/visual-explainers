@@ -510,9 +510,17 @@ class FormalTimeComplexity(Scene):
             run_time=0.2,
         )
         new_arr = Array(a).get_mobject().center().shift(2 * UP)
+        indices = Array(
+            [i for i in range(len(a))],
+            width=array.width, height=array.height,
+            spacing=array.spacing, scale_text=array.scale_text, stroke_color=BLACK,
+        )
+        indices_mobj = indices.get_mobject().center().next_to(new_arr, 0.1 * DOWN)
+
         self.play(
             ReplacementTransform(title, Title('Binary Search', include_underline=False)),
             ReplacementTransform(array_mobj, new_arr),
+            Create(indices_mobj),
             ReplacementTransform(a_text, Tex('a:').scale(0.8).next_to(new_arr, LEFT)),
             FadeOut(linear_search_text),
             FadeOut(binary_search_text),
@@ -529,7 +537,13 @@ class Implementation(Scene):
         array = Array(a)
         array_mobj = array.get_mobject().center().shift(2 * UP)
         a_text = Tex('a:').scale(0.8).next_to(array_mobj, LEFT)
-        self.add(array_mobj, a_text)
+        indices = Array(
+            [i for i in range(len(array))],
+            width=array.width, height=array.height,
+            spacing=array.spacing, scale_text=array.scale_text, stroke_color=BLACK,
+        )
+        indices_mobj = indices.get_mobject().center().next_to(array_mobj, 0.1 * DOWN)
+        self.add(array_mobj, a_text, indices_mobj)
 
         left = Tex('l', color=ORANGE).scale(0.8).next_to(array.rectangles[1], UP).shift(0.1 * DOWN)
         right = Tex('r', color=ORANGE).scale(0.8).next_to(array.rectangles[5], UP).shift(0.1 * DOWN)
@@ -548,7 +562,7 @@ class Implementation(Scene):
         right = VGroup(right, r_exclusive)
 
         # Circumscribe l and the first element of the array
-        self.play(Circumscribe(VGroup(left, array.rectangles[0]), run_time=0.5))
+        self.play(Circumscribe(VGroup(left, array.rectangles[0], indices.rectangles[0]), run_time=0.5))
         self.play(right.animate.set_color(DARKER_GREY), run_time=0.3)
         self.wait(0.2)
         self.play(right.animate.set_color(ORANGE), run_time=0.1)
@@ -573,7 +587,7 @@ class Implementation(Scene):
             line_spacing=0.6,
             font='Monospace',
             style='monokai',
-        ).next_to(array_mobj, DOWN).code
+        ).next_to(indices_mobj, DOWN).code
 
         # Type the first line of the code
         self.play(AddTextLetterByLetter(code.chars[0], run_time=0.1 * len(code.chars[0])))
@@ -590,6 +604,7 @@ class Implementation(Scene):
             return [
                 *[FadeToColor(label, col) for label in array.labels[l:r]],
                 *[rect.animate.set_stroke(col) for rect in array.rectangles[l:r]],
+                *[FadeToColor(label, col) for label in indices.labels[l:r]],
             ]
 
         # Type 4th line and 5th lines
@@ -624,7 +639,7 @@ class Implementation(Scene):
             line_spacing=0.6,
             font='Monospace',
             style='monokai',
-        ).next_to(array_mobj, DOWN).code
+        ).next_to(indices_mobj, DOWN).code
         self.play(TransformMatchingShapes(code.chars[4], another_code.chars[4]), run_time=0.2)
         self.wait(0.1)
 
@@ -714,7 +729,14 @@ class SimulatingNormalCase(Scene):
         array = Array(a)
         array_mobj = array.get_mobject().center().shift(2 * UP)
         a_text = Tex('a:').scale(0.8).next_to(array_mobj, LEFT)
-        self.add(array_mobj, a_text)
+        indices = Array(
+            [i for i in range(len(array) + 1)],
+            width=array.width, height=array.height,
+            spacing=array.spacing, scale_text=array.scale_text, stroke_color=BLACK,
+        )
+        indices_mobj = indices.get_mobject().center().next_to(array_mobj, 0.1 * DOWN).align_to(array_mobj, LEFT)
+        indices.labels[-1].set_color(BLACK)
+        self.add(array_mobj, a_text, indices_mobj)
 
         left = Tex('l', color=ORANGE).scale(0.8)
         right = Tex('r', color=ORANGE).scale(0.8)
@@ -723,6 +745,13 @@ class SimulatingNormalCase(Scene):
         left = VGroup(l_inclusive, left).next_to(array.rectangles[0], UP).shift(0.1 * DOWN)
         right = VGroup(right, r_exclusive).next_to(array.rectangles[-1], UP).shift(0.1 * DOWN).shift((array.width + array.spacing) * RIGHT)
         self.add(left, right)
+
+        def highlight(l, r, col):
+            return [
+                *[FadeToColor(label, col) for label in array.labels[l:r]],
+                *[rect.animate.set_stroke(col) for rect in array.rectangles[l:r]],
+                *[FadeToColor(label, col) for label in indices.labels[l:r]],
+            ]
 
         code = Code(
             code=dedent('''
@@ -741,7 +770,7 @@ class SimulatingNormalCase(Scene):
             line_spacing=0.6,
             font='Monospace',
             style='monokai',
-        ).next_to(array_mobj, DOWN).code
+        ).next_to(indices_mobj, DOWN).code
         self.add(code.chars)
         self.wait(0.1)
 
@@ -758,4 +787,259 @@ class SimulatingNormalCase(Scene):
         self.play(Create(arrow), run_time=0.1)
         self.wait(0.1)
 
-        self.play(arrow.animate.shift(0.35 * DOWN))
+        self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
+        self.wait(0.1)
+
+        # Calculate mid
+        self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.3)
+        self.play(
+            Circumscribe(VGroup(left, indices.rectangles[0]), run_time=0.5),
+            Circumscribe(VGroup(right, indices.rectangles[-1]), run_time=0.5),
+        )
+        self.wait(0.3)
+        mid = Tex('mid', color=YELLOW).scale(0.8).next_to(array.rectangles[4], UP).shift(0.1 * DOWN)
+        self.play(Write(mid), run_time=0.2)
+        self.wait(0.1)
+
+        # Move the arrow to l = mid, bring l to mid and fade out mid
+        self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
+        self.wait(0.1)
+        self.play(arrow.animate.shift(1.2 * DOWN), run_time=0.2)
+        self.wait(0.1)
+        self.play(left.animate.next_to(array.rectangles[4], UP).shift(0.1 * DOWN), FadeOut(mid), run_time=0.5)
+        self.wait(0.1)
+        self.play(*highlight(0, 4, DARKER_GREY), run_time=0.2)
+        self.wait(0.1)
+
+        # Move the arrow to the start of the while loop
+        self.play(arrow.animate.shift(2 * UP), run_time=0.2)
+        self.wait(0.1)
+        self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
+        self.wait(0.1)
+        self.play(
+            Circumscribe(VGroup(left, indices.rectangles[4]), run_time=0.5),
+            Circumscribe(VGroup(right, indices.rectangles[-1]), run_time=0.5),
+        )
+        self.wait(0.1)
+
+        self.play(Write(mid.next_to(array.rectangles[6], UP).shift(0.1 * DOWN)), run_time=0.2)
+        self.wait(0.1)
+
+        self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
+        self.wait(0.1)
+        self.play(
+            arrow.animate.shift(0.4 * DOWN),
+            right.animate.next_to(array.rectangles[6], UP).shift(0.1 * DOWN),
+            FadeOut(mid),
+            run_time=0.2,
+        )
+        self.wait(0.1)
+        self.play(*highlight(6, len(array), DARKER_GREY), run_time=0.2)
+        self.wait(0.1)
+
+        # Move the arrow to the start of the while loop
+        self.play(arrow.animate.shift(1.2 * UP), run_time=0.2)
+        self.wait(0.1)
+        self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
+        self.wait(0.1)
+        self.play(Write(mid.next_to(array.rectangles[5], UP).shift(0.1 * DOWN)), run_time=0.2)
+        self.wait(0.1)
+
+        self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
+        self.wait(0.5)
+        self.play(
+            arrow.animate.shift(1.2 * DOWN),
+            left.animate.next_to(array.rectangles[5], UP).shift(0.1 * DOWN),
+            FadeOut(mid),
+            run_time=0.2,
+        )
+        self.wait(0.1)
+        self.play(*highlight(4, 5, DARKER_GREY), run_time=0.2)
+        self.wait(0.1)
+
+        self.play(Circumscribe(VGroup(left, array.rectangles[5], indices.rectangles[5]), run_time=0.5))
+        self.wait(0.1)
+        self.play(arrow.animate.shift(0.8 * DOWN), run_time=0.2)
+        self.wait(0.1)
+
+        # Transition to the next scene
+        self.play(FadeOut(arrow), run_time=0.2)
+        self.play(ReplacementTransform(q, Tex(r'q: 57', color=ORANGE).scale(0.8).next_to(code.chars, RIGHT).align_to(code.chars, UP)))
+        self.wait(0.1)
+
+        # Move l and r to start and end of the array
+        self.play(
+            left.animate.next_to(array.rectangles[0], UP).shift(0.1 * DOWN),
+            right.animate.next_to(array.rectangles[-1], UP).shift(0.1 * DOWN).shift((array.width + array.spacing) * RIGHT),
+            *highlight(0, len(array), WHITE),
+            run_time=0.5,
+        )
+
+
+class SimulatingEdgeCase(Scene):
+    def construct(self):
+        title = Title('Binary Search', include_underline=False)
+        self.add(title)
+
+        array = Array(a)
+        array_mobj = array.get_mobject().center().shift(2 * UP)
+        a_text = Tex('a:').scale(0.8).next_to(array_mobj, LEFT)
+        indices = Array(
+            [i for i in range(len(array) + 1)],
+            width=array.width, height=array.height,
+            spacing=array.spacing, scale_text=array.scale_text, stroke_color=BLACK,
+        )
+        indices_mobj = indices.get_mobject().center().next_to(array_mobj, 0.1 * DOWN).align_to(array_mobj, LEFT)
+        indices.labels[-1].set_color(BLACK)
+        self.add(array_mobj, a_text, indices_mobj)
+
+        left = Tex('l', color=ORANGE).scale(0.8)
+        right = Tex('r', color=ORANGE).scale(0.8)
+        l_inclusive = Tex('[', color=ORANGE).scale(0.8).next_to(left, LEFT, buff=0.05)
+        r_exclusive = Tex(')', color=ORANGE).scale(0.8).next_to(right, RIGHT, buff=0.05)
+        left = VGroup(l_inclusive, left).next_to(array.rectangles[0], UP).shift(0.1 * DOWN)
+        right = VGroup(right, r_exclusive).next_to(array.rectangles[-1], UP).shift(0.1 * DOWN).shift((array.width + array.spacing) * RIGHT)
+        self.add(left, right)
+
+        def highlight(l, r, col):
+            return [
+                *[FadeToColor(label, col) for label in array.labels[l:r]],
+                *[rect.animate.set_stroke(col) for rect in array.rectangles[l:r]],
+                *[FadeToColor(label, col) for label in indices.labels[l:r]],
+            ]
+
+        code = Code(
+            code=dedent('''
+                l, r = 0, len(h)
+                while r - l > 1:
+                    mid = (l + r) // 2
+                    if a[mid] > q:
+                        r = mid
+                    else:
+                        l = mid
+
+                print(l if a[l] == q else -1)
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).next_to(indices_mobj, DOWN).code
+        self.add(code.chars)
+
+        q = Tex(r'q: 57', color=ORANGE).scale(0.8).next_to(code.chars, RIGHT).align_to(code.chars, UP)
+        self.add(q)
+
+        # Arrow to show which part of the code is being executed
+        arrow = Arrow(
+            start=LEFT, end=RIGHT, color=RED, buff=0.1,
+            stroke_width=10, max_stroke_width_to_length_ratio=15,
+            max_tip_length_to_length_ratio=0.5, tip_length=0.2,
+        ).scale(0.3).next_to(code, LEFT).align_to(code, UP).shift(0.08 * DOWN)
+        self.play(Create(arrow), run_time=0.1)
+        self.wait(0.1)
+
+        self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
+        self.wait(0.1)
+
+        # Calculate mid
+        self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.3)
+        mid = Tex('mid', color=YELLOW).scale(0.8).next_to(array.rectangles[4], UP).shift(0.1 * DOWN)
+        self.play(Write(mid), run_time=0.2)
+        self.wait(0.1)
+
+        self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
+        self.wait(0.3)
+
+        self.play(arrow.animate.shift(1.2 * DOWN), run_time=0.2)
+        self.wait(0.1)
+        self.play(left.animate.next_to(array.rectangles[4], UP).shift(0.1 * DOWN), FadeOut(mid), run_time=0.5)
+        self.wait(0.1)
+        self.play(*highlight(0, 4, DARKER_GREY), run_time=0.2)
+        self.wait(0.1)
+
+        # Move the arrow to the start of the while loop
+        self.play(arrow.animate.shift(2 * UP), run_time=0.2)
+        self.wait(0.1)
+        self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
+        self.wait(0.1)
+
+        self.play(Write(mid.next_to(array.rectangles[6], UP).shift(0.1 * DOWN)), run_time=0.2)
+        self.wait(0.1)
+
+        self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
+        self.wait(0.1)
+        self.play(arrow.animate.shift(1.2 * DOWN), run_time=0.2)
+        self.wait(0.1)
+        self.play(
+            left.animate.next_to(array.rectangles[6], UP).shift(0.1 * DOWN),
+            FadeOut(mid),
+            *highlight(4, 6, DARKER_GREY),
+            run_time=0.5,
+        )
+        self.wait(0.1)
+
+        # Move the arrow to the start of the while loop
+        self.play(arrow.animate.shift(2 * UP), run_time=0.2)
+        self.wait(0.1)
+        self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
+        self.wait(0.1)
+
+        self.play(Write(mid.next_to(array.rectangles[7], UP).shift(0.1 * DOWN)), run_time=0.2)
+        self.wait(0.1)
+
+        self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
+        self.wait(0.1)
+        self.play(arrow.animate.shift(1.2 * DOWN), run_time=0.2)
+        self.wait(0.1)
+        self.play(
+            left.animate.next_to(array.rectangles[7], UP).shift(0.1 * DOWN),
+            FadeOut(mid),
+            *highlight(6, 7, DARKER_GREY),
+            run_time=0.5,
+        )
+        self.wait(0.1)
+
+        # Move the arrow to the start of the while loop
+        self.play(arrow.animate.shift(2 * UP), run_time=0.2)
+        self.wait(0.1)
+        self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
+        self.wait(0.1)
+
+        self.play(Write(mid.next_to(array.rectangles[8], UP).shift(0.1 * DOWN)), run_time=0.2)
+        self.wait(0.1)
+
+        self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
+        self.wait(0.1)
+        self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
+        self.wait(0.1)
+        self.play(
+            right.animate.next_to(array.rectangles[8], UP).shift(0.1 * DOWN),
+            FadeOut(mid),
+            *highlight(8, len(array), DARKER_GREY),
+            run_time=0.5,
+        )
+        self.wait(0.1)
+
+        # Move the arrow to the start of the while loop
+        self.play(arrow.animate.shift(1.2 * UP), run_time=0.2)
+        self.wait(0.1)
+        self.play(arrow.animate.shift(2.8 * DOWN), run_time=0.2)
+        self.wait(0.1)
+        self.play(Circumscribe(VGroup(left, array.rectangles[7], indices.rectangles[7]), run_time=0.5))
+        self.wait(0.1)
+
+        # Finish the scene
+        self.play(FadeOut(arrow), run_time=0.2)
+        self.play(ReplacementTransform(title, Title('Practice', include_underline=False)))
+        self.play(ReplacementTransform(q, Tex(r'q: 20, 23, 100', color=ORANGE).scale(0.8).next_to(code.chars, RIGHT).align_to(code.chars, UP)))
+        self.wait(0.1)
+        self.play(Wiggle(code, rotation_angle=0.005 * TAU, run_time=1))
+        self.wait(0.1)
+
+
+class OverflowIssue(Scene):
+    def construct(self):
+        pass
+
