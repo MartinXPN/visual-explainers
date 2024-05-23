@@ -572,7 +572,7 @@ class Implementation(Scene):
 
         code = Code(
             code=dedent('''
-                l, r = 0, len(h)
+                l, r = 0, len(a)
                 while r - l > 1:
                     mid = (l + r) // 2
                     if a[mid] > q:
@@ -622,8 +622,8 @@ class Implementation(Scene):
         # Add info about the other approach
         another_code = Code(
             code=dedent('''
-                l, r = 0, len(h)
-                while r - l > 1:
+                l, r = 0, len(a)
+                while r >= l:
                     mid = (l + r) // 2
                     if a[mid] > q:
                         r = mid - 1
@@ -682,6 +682,8 @@ class Implementation(Scene):
         self.play(AddTextLetterByLetter(another_code.chars[6], run_time=0.1 * len(another_code.chars[6])))
         self.play(AddTextLetterByLetter(another_code.chars[7], run_time=0.1 * len(another_code.chars[7])))
         self.play(AddTextLetterByLetter(another_code.chars[8], run_time=0.1 * len(another_code.chars[8])))
+        self.play(RemoveTextLetterByLetter(code.chars[1]), run_time=0.1)
+        self.play(AddTextLetterByLetter(another_code.chars[1], run_time=0.1 * len(another_code.chars[2])))
         self.wait(1)
 
         # Bring l back
@@ -691,6 +693,8 @@ class Implementation(Scene):
             *highlight(4, 5, WHITE),
             run_time=1,
         )
+        self.play(RemoveTextLetterByLetter(another_code.chars[1]), run_time=0.1)
+        self.play(AddTextLetterByLetter(code.chars[1], run_time=0.1 * len(code.chars[2])))
         self.play(RemoveTextLetterByLetter(another_code.chars[7]), run_time=0.1)
         self.play(RemoveTextLetterByLetter(another_code.chars[6]), run_time=0.1)
         self.play(RemoveTextLetterByLetter(another_code.chars[5]), run_time=0.1)
@@ -755,7 +759,7 @@ class SimulatingNormalCase(Scene):
 
         code = Code(
             code=dedent('''
-                l, r = 0, len(h)
+                l, r = 0, len(a)
                 while r - l > 1:
                     mid = (l + r) // 2
                     if a[mid] > q:
@@ -910,7 +914,7 @@ class SimulatingEdgeCase(Scene):
 
         code = Code(
             code=dedent('''
-                l, r = 0, len(h)
+                l, r = 0, len(a)
                 while r - l > 1:
                     mid = (l + r) // 2
                     if a[mid] > q:
@@ -1041,5 +1045,145 @@ class SimulatingEdgeCase(Scene):
 
 class OverflowIssue(Scene):
     def construct(self):
-        pass
+        title = Title('Binary Search', include_underline=False)
+        self.add(title)
+
+        array = Array(a)
+        array_mobj = array.get_mobject().center().shift(2 * UP)
+        a_text = Tex('a:').scale(0.8).next_to(array_mobj, LEFT)
+        indices = Array(
+            [i for i in range(len(array) + 1)],
+            width=array.width, height=array.height,
+            spacing=array.spacing, scale_text=array.scale_text, stroke_color=BLACK,
+        )
+        indices_mobj = indices.get_mobject().center().next_to(array_mobj, 0.1 * DOWN).align_to(array_mobj, LEFT)
+        indices.labels[-1].set_color(BLACK)
+        self.add(array_mobj, a_text, indices_mobj)
+
+        left = Tex('l', color=ORANGE).scale(0.8)
+        right = Tex('r', color=ORANGE).scale(0.8)
+        l_inclusive = Tex('[', color=ORANGE).scale(0.8).next_to(left, LEFT, buff=0.05)
+        r_exclusive = Tex(')', color=ORANGE).scale(0.8).next_to(right, RIGHT, buff=0.05)
+        left = VGroup(l_inclusive, left).next_to(array.rectangles[0], UP).shift(0.1 * DOWN)
+        right = VGroup(right, r_exclusive).next_to(array.rectangles[-1], UP).shift(0.1 * DOWN).shift((array.width + array.spacing) * RIGHT)
+        self.add(left, right)
+
+        code = Code(
+            code=dedent('''
+                l, r = 0, len(a)
+                while r - l > 1:
+                    mid = (l + r) // 2
+                    if a[mid] > q:
+                        r = mid
+                    else:
+                        l = mid
+
+                print(l if a[l] == q else -1)
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).next_to(indices_mobj, DOWN).code
+        for line in code.chars:
+            if line:
+                self.play(AddTextLetterByLetter(line), run_time=0.01 * len(line))
+
+        self.play(
+            FadeOut(left),
+            FadeOut(right),
+            FadeOut(array_mobj),
+            FadeOut(a_text),
+            FadeOut(indices_mobj),
+            run_time=0.2,
+        )
+        self.wait(0.1)
+
+        # Add a segment with two sides: -2,147,483,648 on the left side and 2,147,483,647 on the right side
+        segment = Line(start=5 * LEFT, end=5 * RIGHT, color=WHITE).center().shift(2 * UP)
+        minimum = Integer(0).set_color(ORANGE).scale(0.7)     # -2_147_483_648
+        maximum = Integer(0).set_color(ORANGE).scale(0.7)     # 2_147_483_647
+        minimum.add_updater(lambda m: m.next_to(segment, UP).align_to(segment, LEFT).shift(LEFT))
+        maximum.add_updater(lambda m: m.next_to(segment, UP).align_to(segment, RIGHT).shift(RIGHT))
+
+        # Draw segment endpoints
+        left_endpoint = Line(start=0.1 * DOWN, end=0.1 * UP, color=WHITE)
+        right_endpoint = Line(start=0.1 * DOWN, end=0.1 * UP, color=WHITE)
+        left_endpoint.add_updater(lambda m: m.next_to(segment, UP, buff=-0.1).align_to(segment, LEFT).shift(0.01 * LEFT))
+        right_endpoint.add_updater(lambda m: m.next_to(segment, UP, buff=-0.1).align_to(segment, RIGHT).shift(0.01 * RIGHT))
+        self.add(left_endpoint, right_endpoint)
+
+        self.play(
+            GrowFromCenter(segment),
+            ChangeDecimalToValue(minimum, -2_147_483_648),
+            ChangeDecimalToValue(maximum, 2_147_483_647),
+            run_time=1,
+            rate_func=linear,
+        )
+        self.wait(0.1)
+
+        # Indicate the `mid = (l + r) // 2` line
+        self.play(Indicate(code.chars[2]), run_time=0.5)
+        self.wait(0.1)
+
+        # Add l (arrow) at the 1.5 billion point and r (arrow) at 1.7 billion point of the segment
+        l_arrow = Arrow(start=DOWN, end=UP, tip_length=0.2, color=YELLOW).scale(0.5).next_to(segment, DOWN).align_to(segment, RIGHT).shift(1.2 * LEFT)
+        r_arrow = Arrow(start=DOWN, end=UP, tip_length=0.2, color=YELLOW).scale(0.5).next_to(segment, DOWN).align_to(segment, RIGHT).shift(0.5 * LEFT)
+        l_label = Text('l', color=YELLOW).scale(0.5).next_to(l_arrow, DOWN)
+        r_label = Text('r', color=YELLOW).scale(0.6).next_to(r_arrow, DOWN)
+        self.play(Write(l_arrow), Write(l_label), run_time=0.5)
+        self.play(Write(r_arrow), Write(r_label), run_time=0.5)
+        self.wait(0.1)
+
+        sum_arrow = Arrow(start=DOWN, end=UP, tip_length=0.2, color=RED).scale(0.5).next_to(segment, DOWN).align_to(segment, RIGHT).shift(RIGHT)
+        sum_label = Text('l + r', color=RED).scale(0.5).next_to(sum_arrow, DOWN)
+        self.play(Write(sum_arrow), Write(sum_label), run_time=0.5)
+        self.wait(0.1)
+
+        # Move l + r to the start of the segment
+        self.play(VGroup(sum_arrow, sum_label).animate.next_to(segment, DOWN).align_to(segment, LEFT).shift(1.2 * RIGHT), run_time=0.5)
+        self.wait(0.1)
+
+        self.play(FadeOut(sum_arrow), FadeOut(sum_label), run_time=0.2)
+        self.wait(0.1)
+
+        new_code = Code(
+            code=dedent('''
+                l, r = 0, len(a)
+                while r - l > 1:
+                    mid = l + (r - l) // 2
+                    if a[mid] > q:
+                        r = mid
+                    else:
+                        l = mid
+
+                print(l if a[l] == q else -1)
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).next_to(indices_mobj, DOWN).code
+
+        # Brace between l and r
+        brace = Brace(VGroup(l_label, r_label), buff=0.05, direction=DOWN, color=YELLOW, sharpness=3)
+        brace_label = brace.get_text(r'$\frac{r - l}{2}$').shift(0.1 * UP)
+        self.play(Write(brace), Write(brace_label), run_time=0.5)
+        self.wait(0.1)
+
+        # Remove the mid calculation and add the new one
+        self.play(RemoveTextLetterByLetter(code.chars[2]), run_time=0.1)
+        self.play(AddTextLetterByLetter(new_code.chars[2], run_time=0.1 * len(new_code.chars[2])))
+        self.wait(0.1)
+
+        # Add a search icon and move it from start of mid calculation to the end
+        search_icon = SVGMobject(
+            'binary_search/search.svg', color=WHITE, fill_color=WHITE, fill_opacity=1,
+        ).scale(0.5).align_to(new_code.chars[3], LEFT).align_to(new_code.chars[3], DOWN).shift(0.5 * LEFT)
+        self.play(DrawBorderThenFill(search_icon), run_time=0.2)
+        self.play(search_icon.animate.next_to(new_code.chars[3], RIGHT).align_to(new_code.chars[3], DOWN).shift(0.5 * LEFT), run_time=1)
+        self.play(FadeOut(search_icon), run_time=0.1)
+        self.wait(0.1)
 
