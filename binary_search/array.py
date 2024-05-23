@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from itertools import chain
 
 from manim import *
+from manim.animation.transform_matching_parts import TransformMatchingAbstractBase
 
 
 @dataclass
@@ -73,3 +74,34 @@ class Array:
 
     def __len__(self):
         return len(self.values)
+
+
+class TransformMatchingCells(TransformMatchingAbstractBase):
+    """ Similar to TransformMatchingShapes but transforms the matching cells (label + rectangle) of an Array. """
+    def __init__(
+        self,
+        mobject: Mobject,
+        target_mobject: Mobject,
+        transform_mismatches: bool = False,
+        fade_transform_mismatches: bool = False,
+        key_map: dict | None = None,
+        **kwargs,
+    ):
+        super().__init__(
+            mobject,
+            target_mobject,
+            transform_mismatches=transform_mismatches,
+            fade_transform_mismatches=fade_transform_mismatches,
+            key_map=key_map,
+            **kwargs,
+        )
+
+    @staticmethod
+    def get_mobject_parts(mobject: Mobject) -> list[Mobject]:
+        # Group the list of submobjects into pairs of (rectangle, label)
+        res = [VGroup(*mobject.submobjects[i:i + 2]) for i in range(0, len(mobject.submobjects), 2)]
+        return res
+
+    @staticmethod
+    def get_mobject_key(mobject: list[tuple[Rectangle, Tex]]) -> int:
+        return hash(mobject[1].tex_string)

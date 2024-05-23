@@ -1,8 +1,9 @@
+import random
 from textwrap import dedent
 
 from manim import *
 
-from binary_search.array import Array
+from binary_search.array import Array, TransformMatchingCells
 from binary_search.clock import Clock
 
 a = [20, 22, 23, 23, 34, 49, 52, 55, 58]
@@ -1219,9 +1220,204 @@ class LinearVSBinary(Scene):
             line_spacing=0.6,
             font='Monospace',
             style='monokai',
-        ).scale(0.8).shift(2 * UP).next_to(indices_mobj, DOWN, buff=0.5).to_edge(LEFT, buff=1).code
+        ).scale(0.8).next_to(indices_mobj, DOWN, buff=0.5).to_edge(LEFT, buff=1).code
 
         for line in linear_code.chars:
             if line:
                 self.play(AddTextLetterByLetter(line), run_time=0.01 * len(line))
         self.wait(0.1)
+
+        code = Code(
+            code=dedent('''
+                l, r = 0, len(a)
+                while r - l > 1:
+                    mid = (l + r) // 2
+                    if a[mid] > q:
+                        r = mid
+                    else:
+                        l = mid
+
+                print(l if a[l] == q else -1)
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).scale(0.8).next_to(indices_mobj, DOWN, buff=0.5).to_edge(RIGHT, buff=1).code
+        for line in code.chars:
+            if line:
+                self.play(AddTextLetterByLetter(line), run_time=0.01 * len(line))
+        self.wait(0.1)
+
+        # Create a yellow rectangle that highlights the first 4 elements of the array
+        memory_chunk = Rectangle(
+            width=4 * array.width + 5 * array.spacing,
+            height=array.height + 2 * array.spacing,
+            stroke_color=YELLOW, stroke_width=6,
+        ).align_to(array_mobj, DOWN).align_to(array_mobj, LEFT).shift(0.1 * DOWN).shift(0.1 * LEFT)
+        self.play(Create(memory_chunk), run_time=0.2)
+        self.wait(0.1)
+
+        self.play(memory_chunk.animate.shift((4 * array.width + 4 * array.spacing) * RIGHT), run_time=0.5)
+        self.wait(0.1)
+        self.play(memory_chunk.animate.shift((4 * array.width + 4 * array.spacing) * RIGHT), run_time=0.5)
+        self.wait(0.1)
+        self.play(FadeOut(memory_chunk), run_time=0.2)
+
+        # Add arc arrows from for to if and from if to for
+        for_to_if = CurvedArrow(linear_code.chars[0].get_left(), linear_code.chars[0].get_left() + 0.4 * DOWN, color=WHITE, angle=TAU / 3, tip_length=0.1)
+        if_to_for = CurvedArrow(linear_code.chars[0].get_right() + 0.4 * DOWN + 0.1 * RIGHT, linear_code.chars[0].get_right() + 0.1 * RIGHT, color=WHITE, angle=TAU / 3, tip_length=0.1)
+        self.play(Create(for_to_if), run_time=0.2)
+        self.play(Create(if_to_for), run_time=0.2)
+        self.wait(0.2)
+
+        # Add lightning icon to the right of if to for
+        lightning_icon = SVGMobject(
+            'binary_search/lightning.svg', color=YELLOW, fill_color=YELLOW, fill_opacity=1,
+        ).scale(0.3).next_to(if_to_for, RIGHT)
+        self.add(lightning_icon)
+        self.play(
+            Wiggle(lightning_icon, run_time=2),
+            ShowPassingFlash(for_to_if.copy().set_color(YELLOW), time_width=0.5, run_time=1),
+            ShowPassingFlash(if_to_for.copy().set_color(YELLOW), time_width=0.5, run_time=2),
+        )
+        self.wait(0.1)
+
+        self.play(FadeOut(lightning_icon), FadeOut(for_to_if), FadeOut(if_to_for), run_time=0.2)
+        self.wait(0.1)
+
+        # Shuffle the array
+        random.seed(42)
+        shuffled_array = a.copy()
+        random.shuffle(shuffled_array)
+        shuffled_array = Array(shuffled_array)
+        shuffled_array_mobj = shuffled_array.get_mobject().center().shift(2.2 * UP)
+
+        self.play(TransformMatchingCells(array_mobj, shuffled_array_mobj, path_arc=PI/2), run_time=2)
+        self.wait(0.1)
+
+        q = Tex(r'q: 20, 23, 50, 100, ...', color=ORANGE).scale(0.8).next_to(linear_code, DOWN, buff=0.5).align_to(linear_code, LEFT)
+        self.play(Write(q), run_time=0.5)
+        self.wait(0.1)
+
+        # Write "Sort: O(n log(n))"
+        sort = MathTex(
+            r'\mathrm{Sort:} \, \mathcal{O}(n \cdot \log{n})', color=WHITE,
+        ).scale(0.8).next_to(q, DOWN).align_to(q, LEFT)
+        self.play(Write(sort), run_time=0.5)
+
+        # Replace q with "q: 20"
+        new_q = Tex(r'q: 20', color=ORANGE).scale(0.8).next_to(linear_code, DOWN, buff=0.5).align_to(linear_code, LEFT)
+        self.play(ReplacementTransform(q, new_q), run_time=0.5)
+        self.wait(0.1)
+
+        # Replace q with "q: 20, 23, 50, 100, ..."
+        q = Tex(r'q: 20, 23, 50, 100, ...', color=ORANGE).scale(0.8).next_to(linear_code, DOWN, buff=0.5).align_to(linear_code, LEFT)
+        self.play(ReplacementTransform(new_q, q))
+        self.wait(0.1)
+
+        self.play(TransformMatchingCells(shuffled_array_mobj, array_mobj, path_arc=PI/2), run_time=2)
+        self.wait(0.1)
+
+        # Transition to the next scene
+        self.play(
+            ReplacementTransform(title, Title('Binary Search', include_underline=False)),
+            FadeOut(linear_code), FadeOut(q), FadeOut(sort),
+            code.animate.center().next_to(indices_mobj, DOWN, buff=0.5),
+            run_time=0.5,
+        )
+        self.wait(0.1)
+
+
+class BinarySearchAsGenericIdea(Scene):
+    def construct(self):
+        title = Title('Binary Search', include_underline=False)
+        self.add(title)
+
+        array = Array(a)
+        array_mobj = array.get_mobject().center().shift(2.2 * UP)
+        a_text = Tex('a:').scale(0.8).next_to(array_mobj, LEFT)
+        indices = Array(
+            [i for i in range(len(array) + 1)],
+            width=array.width, height=array.height,
+            spacing=array.spacing, scale_text=array.scale_text, stroke_color=BLACK,
+        )
+        indices_mobj = indices.get_mobject().center().next_to(array_mobj, 0.1 * DOWN).align_to(array_mobj, LEFT)
+        indices.labels[-1].set_color(BLACK)
+        self.add(array_mobj, a_text, indices_mobj)
+
+        code = Code(
+            code=dedent('''
+                l, r = 0, len(a)
+                while r - l > 1:
+                    mid = (l + r) // 2
+                    if a[mid] > q:
+                        r = mid
+                    else:
+                        l = mid
+
+                print(l if a[l] == q else -1)
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).scale(0.8).center().next_to(indices_mobj, DOWN, buff=0.5).code
+        self.add(code)
+        self.wait(0.1)
+
+        self.play(Indicate(code, run_time=0.5))
+        self.wait(0.1)
+
+        def highlight(l, r, col):
+            return [
+                *[FadeToColor(label, col) for label in array.labels[l:r]],
+                *[rect.animate.set_stroke(col) for rect in array.rectangles[l:r]],
+                *[FadeToColor(label, col) for label in indices.labels[l:r]],
+            ]
+
+        self.play(*highlight(0, 4, DARKER_GREY), run_time=0.5)
+        self.wait(0.1)
+
+        self.play(Circumscribe(code, run_time=0.5))
+        new_title = Title('Binary Search Variations', include_underline=False)
+        self.play(
+            ReplacementTransform(title, new_title),
+            run_time=0.5,
+        )
+        self.wait(0.1)
+        self.play(FadeOut(array_mobj), FadeOut(indices_mobj), FadeOut(a_text), run_time=0.2)
+        self.wait(0.5)
+
+        # sqrt
+        sqrt = MathTex(
+            r'\sqrt{7}: [0, 7] \rightarrow [0, 3.5] \rightarrow [1.75, 3.5] \rightarrow [2.625, 3.5] \rightarrow ...'
+        ).scale(0.8).next_to(title, DOWN)
+        self.play(Write(sqrt), run_time=0.5)
+        self.wait(0.1)
+
+        self.play(FadeOut(sqrt), run_time=0.2)
+        self.wait(0.1)
+
+        self.play(*highlight(0, 4, WHITE), run_time=0.00001)
+        self.play(FadeIn(array_mobj), FadeIn(indices_mobj), FadeIn(a_text), run_time=0.1)
+        self.play(VGroup(array_mobj, indices_mobj, a_text).animate.shift(0.5 * DOWN), run_time=0.1)
+        self.wait(0.1)
+
+        # Add (l and r] at the top of the array
+        left = Tex('(l', color=ORANGE).scale(0.8).next_to(array.rectangles[2], UP)
+        right = Tex('r]', color=ORANGE).scale(0.8).next_to(array.rectangles[7], UP)
+        self.play(Write(left), Write(right), *highlight(0, 3, DARKER_GREY), *highlight(8, len(array), DARKER_GREY), run_time=0.5)
+        self.wait(0.1)
+
+        self.play(
+            FadeOut(left, right),
+            *highlight(0, len(array), WHITE),
+            ReplacementTransform(new_title, Title('Binary Search', include_underline=False)),
+            run_time=0.5,
+        )
+
+        self.play(ApplyWave(code, run_time=2))
+        self.wait(1)
