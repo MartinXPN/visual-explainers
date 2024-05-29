@@ -550,31 +550,36 @@ class Implementation(Scene):
         )
         indices_mobj = indices.get_mobject().center().next_to(array_mobj, 0.1 * DOWN)
         self.add(array_mobj, a_text, indices_mobj)
+        self.wait(6)
 
         left = Tex('l', color=ORANGE).scale(0.8).next_to(array.rectangles[1], UP).shift(0.1 * DOWN)
         right = Tex('r', color=ORANGE).scale(0.8).next_to(array.rectangles[5], UP).shift(0.1 * DOWN)
-        self.play(Write(left), Write(right), run_time=0.2)
+        self.play(Write(left), Write(right), run_time=0.5)
+        self.wait(8)
 
-        self.play(
-            left.animate.next_to(array.rectangles[0], UP).shift(0.1 * DOWN),
-            right.animate.next_to(array.rectangles[-1], UP).shift(0.1 * DOWN),
-            run_time=0.2,
-        )
+        self.play(left.animate.next_to(array.rectangles[0], UP).shift(0.1 * DOWN), run_time=1)
+        self.wait(1)
+        self.play(right.animate.next_to(array.rectangles[-1], UP).shift(0.1 * DOWN), run_time=1.5)
+        self.wait(7)
         l_inclusive = Tex('[', color=ORANGE).scale(0.8).next_to(left, LEFT, buff=0.05)
         r_exclusive = Tex(')', color=ORANGE).scale(0.8).next_to(right, RIGHT, buff=0.05)
-        self.play(Write(l_inclusive), run_time=0.2)
-        self.play(Write(r_exclusive), run_time=0.2)
+        self.play(Write(l_inclusive), run_time=0.5)
+        self.wait(1)
+        self.play(Write(r_exclusive), run_time=0.5)
+        self.wait(2)
         left = VGroup(l_inclusive, left)
         right = VGroup(right, r_exclusive)
 
         # Circumscribe l and the first element of the array
-        self.play(Circumscribe(VGroup(left, array.rectangles[0], indices.rectangles[0]), run_time=0.5))
-        self.play(right.animate.set_color(DARKER_GREY), run_time=0.3)
-        self.wait(0.2)
-        self.play(right.animate.set_color(ORANGE), run_time=0.1)
-
+        self.play(Circumscribe(VGroup(left, array.rectangles[0], indices.rectangles[0]), run_time=1))
+        self.wait(1.5)
+        self.play(right.animate.set_color(DARKER_GREY), run_time=0.5)
+        self.wait(8)
         # Move r one element to the right
-        self.play(right.animate.shift((array.width + array.spacing) * RIGHT), run_time=0.2)
+        self.play(
+            right.animate.shift((array.width + array.spacing) * RIGHT).set_color(ORANGE),
+            run_time=0.5,
+        )
 
         code = Code(
             code=dedent('''
@@ -597,14 +602,14 @@ class Implementation(Scene):
 
         # Type the first line of the code
         self.play(AddTextLetterByLetter(code.chars[0], run_time=0.1 * len(code.chars[0])))
-        self.wait(0.1)
+        self.wait(6)
         self.play(AddTextLetterByLetter(code.chars[1], run_time=0.1 * len(code.chars[1])))
-        self.wait(0.1)
+        self.wait(3)
         # Type 3rd line and add mid
         self.play(AddTextLetterByLetter(code.chars[2], run_time=0.1 * len(code.chars[2])))
         mid = Tex('mid', color=YELLOW).scale(0.8).next_to(array.rectangles[4], UP).shift(0.1 * DOWN)
-        self.play(Write(mid), run_time=0.2)
-        self.wait(0.1)
+        self.play(Write(mid), run_time=0.5)
+        self.wait(3)
 
         def highlight(l, r, col):
             return [
@@ -615,15 +620,17 @@ class Implementation(Scene):
 
         # Type 4th line and 5th lines
         self.play(AddTextLetterByLetter(code.chars[3], run_time=0.1 * len(code.chars[3])))
+        self.wait(3)
         # Bring r to mid and fade out mid
         self.play(
             right.animate.next_to(array.rectangles[4], UP).shift(0.1 * DOWN),
             FadeOut(mid),
             *highlight(4, len(array), DARKER_GREY),
-            run_time=0.2,
+            run_time=0.5,
         )
+        self.wait(2)
         self.play(AddTextLetterByLetter(code.chars[4], run_time=0.1 * len(code.chars[4])))
-        self.wait(0.1)
+        self.wait(15)
 
         # Add info about the other approach
         another_code = Code(
@@ -646,64 +653,69 @@ class Implementation(Scene):
             font='Monospace',
             style='monokai',
         ).next_to(indices_mobj, DOWN).code
-        self.play(TransformMatchingShapes(code.chars[4], another_code.chars[4]), run_time=0.2)
-        self.wait(0.1)
+        self.play(TransformMatchingShapes(code.chars[4], another_code.chars[4]), run_time=0.5)
+        self.wait(0.5)
+        self.play(TransformMatchingShapes(another_code.chars[4], code.chars[4]), run_time=0.5)
 
         # Move r to the end of the array
         mid = Tex('mid', color=YELLOW).scale(0.8).next_to(array.rectangles[4], UP).shift(0.1 * DOWN)
         self.play(
-            TransformMatchingShapes(another_code.chars[4], code.chars[4]),
             right.animate.next_to(array.rectangles[-1], UP).shift(0.1 * DOWN).shift((array.width + array.spacing) * RIGHT),
             Write(mid),
             *highlight(4, len(array), WHITE),
-            run_time=0.2,
+            run_time=0.5,
         )
-        self.wait(0.1)
 
         # Write the 6th line
         self.play(AddTextLetterByLetter(code.chars[5], run_time=0.1 * len(code.chars[5])))
-        self.wait(0.1)
+        self.wait(2.5)
 
         # Bring l to mid and fade out mid
         self.play(
             left.animate.next_to(array.rectangles[4], UP).shift(0.1 * DOWN),
             FadeOut(mid),
             *highlight(0, 4, DARKER_GREY),
-            run_time=0.2,
+            run_time=0.5,
         )
-        self.wait(0.1)
+        self.wait(1)
 
         self.play(AddTextLetterByLetter(code.chars[6], run_time=0.1 * len(code.chars[6])))
-        self.wait(0.1)
+        self.wait(4)
 
         # Bring l one element to the right
         self.play(
             left.animate.shift((array.width + array.spacing) * RIGHT),
-            RemoveTextLetterByLetter(code.chars[6]),
             *highlight(4, 5, DARKER_GREY),
             run_time=1,
         )
-        self.play(RemoveTextLetterByLetter(code.chars[5]), run_time=0.1)
+        self.play(RemoveTextLetterByLetter(code.chars[6], run_time=0.1))
+        self.play(RemoveTextLetterByLetter(code.chars[5], run_time=0.1))
+        self.play(RemoveTextLetterByLetter(code.chars[4], run_time=0.1))
+        self.play(AddTextLetterByLetter(another_code.chars[4], run_time=0.1 * len(another_code.chars[4])))
         self.play(AddTextLetterByLetter(another_code.chars[5], run_time=0.1 * len(another_code.chars[5])))
         self.play(AddTextLetterByLetter(another_code.chars[6], run_time=0.1 * len(another_code.chars[6])))
         self.play(AddTextLetterByLetter(another_code.chars[7], run_time=0.1 * len(another_code.chars[7])))
         self.play(AddTextLetterByLetter(another_code.chars[8], run_time=0.1 * len(another_code.chars[8])))
+        self.wait(2)
         self.play(RemoveTextLetterByLetter(code.chars[1]), run_time=0.1)
         self.play(AddTextLetterByLetter(another_code.chars[1], run_time=0.1 * len(another_code.chars[2])))
-        self.wait(1)
+        self.wait(4)
 
         # Bring l back
         self.play(
             left.animate.shift((array.width + array.spacing) * LEFT),
-            RemoveTextLetterByLetter(another_code.chars[8]),
             *highlight(4, 5, WHITE),
             run_time=1,
         )
-        self.play(RemoveTextLetterByLetter(another_code.chars[1]), run_time=0.1)
+        self.wait(1)
+        self.play(RemoveTextLetterByLetter(another_code.chars[1], run_time=0.1))
         self.play(AddTextLetterByLetter(code.chars[1], run_time=0.1 * len(code.chars[2])))
-        self.play(RemoveTextLetterByLetter(another_code.chars[7]), run_time=0.1)
-        self.play(RemoveTextLetterByLetter(another_code.chars[6]), run_time=0.1)
-        self.play(RemoveTextLetterByLetter(another_code.chars[5]), run_time=0.1)
+        self.play(RemoveTextLetterByLetter(another_code.chars[8], run_time=0.1))
+        self.play(RemoveTextLetterByLetter(another_code.chars[7], run_time=0.1))
+        self.play(RemoveTextLetterByLetter(another_code.chars[6], run_time=0.1))
+        self.play(RemoveTextLetterByLetter(another_code.chars[5], run_time=0.1))
+        self.play(RemoveTextLetterByLetter(another_code.chars[4], run_time=0.1))
+        self.play(AddTextLetterByLetter(code.chars[4], run_time=0.1 * len(code.chars[4])))
         self.play(AddTextLetterByLetter(code.chars[5], run_time=0.1 * len(code.chars[5])))
         self.play(AddTextLetterByLetter(code.chars[6], run_time=0.1 * len(code.chars[6])))
         self.wait(1)
@@ -715,12 +727,13 @@ class Implementation(Scene):
             *highlight(0, 5, DARKER_GREY),
             *highlight(5, 6, WHITE),
             *highlight(6, len(array), DARKER_GREY),
-            run_time=0.2,
+            run_time=0.5,
         )
 
         # Write the last line of the code
-        self.play(AddTextLetterByLetter(code.chars[-1], run_time=0.1 * len(code.chars[-1])))
-        self.wait(0.1)
+        self.wait(2)
+        self.play(AddTextLetterByLetter(code.chars[-1], run_time=0.15 * len(code.chars[-1])))
+        self.wait(6)
 
         # Transition to the next scene
         self.play(
@@ -729,6 +742,7 @@ class Implementation(Scene):
             *highlight(0, len(array), WHITE),
             run_time=0.5,
         )
+        self.wait(1)
 
 
 class SimulatingNormalCase(Scene):
