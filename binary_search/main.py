@@ -1119,17 +1119,18 @@ class OverflowIssue(Scene):
         ).next_to(indices_mobj, DOWN).code
         for line in code.chars:
             if line:
-                self.play(AddTextLetterByLetter(line), run_time=0.01 * len(line))
+                self.play(AddTextLetterByLetter(line), run_time=0.02 * len(line))
 
+        self.wait(1)
         self.play(
             FadeOut(left),
             FadeOut(right),
             FadeOut(array_mobj),
             FadeOut(a_text),
             FadeOut(indices_mobj),
-            run_time=0.2,
+            run_time=0.5,
         )
-        self.wait(0.1)
+        self.wait(0.5)
 
         # Add a segment with two sides: -2,147,483,648 on the left side and 2,147,483,647 on the right side
         segment = Line(start=5 * LEFT, end=5 * RIGHT, color=WHITE).center().shift(2 * UP)
@@ -1149,14 +1150,14 @@ class OverflowIssue(Scene):
             GrowFromCenter(segment),
             ChangeDecimalToValue(minimum, -2_147_483_648),
             ChangeDecimalToValue(maximum, 2_147_483_647),
-            run_time=1,
+            run_time=4,
             rate_func=linear,
         )
-        self.wait(0.1)
+        self.wait(6)
 
         # Indicate the `mid = (l + r) // 2` line
-        self.play(Indicate(code.chars[2]), run_time=0.5)
-        self.wait(0.1)
+        self.play(Indicate(code.chars[2]), run_time=2)
+        self.wait(4)
 
         # Add l (arrow) at the 1.5 billion point and r (arrow) at 1.7 billion point of the segment
         l_arrow = Arrow(start=DOWN, end=UP, tip_length=0.2, color=YELLOW).scale(0.5).next_to(segment, DOWN).align_to(segment, RIGHT).shift(1.2 * LEFT)
@@ -1164,20 +1165,22 @@ class OverflowIssue(Scene):
         l_label = Text('l', color=YELLOW).scale(0.5).next_to(l_arrow, DOWN)
         r_label = Text('r', color=YELLOW).scale(0.6).next_to(r_arrow, DOWN)
         self.play(Write(l_arrow), Write(l_label), run_time=0.5)
+        self.wait(0.5)
         self.play(Write(r_arrow), Write(r_label), run_time=0.5)
-        self.wait(0.1)
+        self.wait(6)
 
         sum_arrow = Arrow(start=DOWN, end=UP, tip_length=0.2, color=RED).scale(0.5).next_to(segment, DOWN).align_to(segment, RIGHT).shift(RIGHT)
         sum_label = Text('l + r', color=RED).scale(0.5).next_to(sum_arrow, DOWN)
-        self.play(Write(sum_arrow), Write(sum_label), run_time=0.5)
-        self.wait(0.1)
+        self.play(Write(sum_label), run_time=0.5)
+        self.wait(1)
+        self.play(Write(sum_arrow), run_time=0.5)
+        self.wait(6)
 
         # Move l + r to the start of the segment
-        self.play(VGroup(sum_arrow, sum_label).animate.next_to(segment, DOWN).align_to(segment, LEFT).shift(1.2 * RIGHT), run_time=0.5)
-        self.wait(0.1)
+        self.play(VGroup(sum_arrow, sum_label).animate.next_to(segment, DOWN).align_to(segment, LEFT).shift(1.2 * RIGHT), run_time=2)
+        self.wait(3)
 
-        self.play(FadeOut(sum_arrow), FadeOut(sum_label), run_time=0.2)
-        self.wait(0.1)
+        self.play(FadeOut(sum_arrow), FadeOut(sum_label), run_time=0.4)
 
         new_code = Code(
             code=dedent('''
@@ -1202,21 +1205,20 @@ class OverflowIssue(Scene):
         brace = Brace(VGroup(l_label, r_label), buff=0.05, direction=DOWN, color=YELLOW, sharpness=3)
         brace_label = brace.get_text(r'$\frac{r - l}{2}$').shift(0.1 * UP)
         self.play(Write(brace), Write(brace_label), run_time=0.5)
-        self.wait(0.1)
+        self.wait(4)
 
         # Remove the mid calculation and add the new one
         self.play(RemoveTextLetterByLetter(code.chars[2]), run_time=0.1)
         self.play(AddTextLetterByLetter(new_code.chars[2], run_time=0.1 * len(new_code.chars[2])))
-        self.wait(0.1)
+        self.wait(18)
 
         # Add a search icon and move it from start of mid calculation to the end
         search_icon = SVGMobject(
             'binary_search/search.svg', color=WHITE, fill_color=WHITE, fill_opacity=1,
         ).scale(0.5).align_to(new_code.chars[3], LEFT).align_to(new_code.chars[3], DOWN).shift(0.5 * LEFT)
         self.play(DrawBorderThenFill(search_icon), run_time=0.2)
-        self.play(search_icon.animate.next_to(new_code.chars[3], RIGHT).align_to(new_code.chars[3], DOWN).shift(0.5 * LEFT), run_time=1)
-        self.play(FadeOut(search_icon), run_time=0.1)
-        self.wait(0.1)
+        self.play(search_icon.animate.next_to(new_code.chars[3], RIGHT).align_to(new_code.chars[3], DOWN).shift(0.5 * LEFT), run_time=2)
+        self.play(FadeOut(search_icon), run_time=0.4)
 
 
 class LinearVSBinary(Scene):
