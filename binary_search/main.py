@@ -889,15 +889,20 @@ class SimulatingNormalCase(Scene):
         self.wait(3)
 
         # Transition to the next scene
-        self.play(FadeOut(arrow), run_time=0.2)
-        self.play(ReplacementTransform(q, Tex(r'q: 57', color=ORANGE).scale(0.8).next_to(code.chars, RIGHT).align_to(code.chars, UP)))
-        self.wait(1)
+        self.play(FadeOut(arrow), run_time=0.5)
+        self.wait(3)
 
         # Move l and r to start and end of the array
         self.play(
             left.animate.next_to(array.rectangles[0], UP).shift(0.1 * DOWN),
             right.animate.next_to(array.rectangles[-1], UP).shift(0.1 * DOWN).shift((array.width + array.spacing) * RIGHT),
             *highlight(0, len(array), WHITE),
+            run_time=1,
+        )
+        self.wait(1)
+
+        self.play(
+            ReplacementTransform(q, Tex(r'q: 57', color=ORANGE).scale(0.8).next_to(code.chars, RIGHT).align_to(code.chars, UP)),
             run_time=0.5,
         )
         self.wait(1)
@@ -952,7 +957,7 @@ class SimulatingEdgeCase(Scene):
             line_spacing=0.6,
             font='Monospace',
             style='monokai',
-        ).next_to(indices_mobj, DOWN).code
+        ).next_to(array_mobj, DOWN).shift((indices_mobj.height + 0.02) * DOWN).code
         self.add(code.chars)
 
         q = Tex(r'q: 57', color=ORANGE).scale(0.8).next_to(code.chars, RIGHT).align_to(code.chars, UP)
