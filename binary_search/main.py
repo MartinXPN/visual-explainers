@@ -262,22 +262,22 @@ class TimeComplexity(Scene):
             Write(brace_text),
             run_time=0.5,
         )
+        self.wait(2)
 
         search_svg = SVGMobject(
-            'binary_search/search.svg', color=WHITE, fill_color=WHITE, fill_opacity=1,
+            'binary_search/search.svg', color=ORANGE, fill_color=ORANGE, fill_opacity=0.9,
         ).scale(0.7).center()
-        self.play(DrawBorderThenFill(search_svg, run_time=1))
-        self.wait(0.1)
+        self.play(DrawBorderThenFill(search_svg, run_time=0.5))
 
         # Animate the search icon moving from left to right on the long array
         self.play(search_svg.animate.move_to(array.labels[0]).shift(0.16 * DOWN).shift(0.16 * RIGHT), run_time=0.5)
         for i in range(11):
             self.play(search_svg.animate.shift((array.width + array.spacing) * RIGHT), run_time=0.1)
-        self.wait(0.1)
+            self.wait(0.2)
 
         # Indicate the brace text
-        self.play(Indicate(brace_text, run_time=0.5))
-        self.wait(0.1)
+        self.play(Indicate(brace_text))
+        self.wait(0.5)
         self.play(FadeOut(search_svg, run_time=0.5))
 
         # Split the screen in 2 parts
@@ -287,48 +287,50 @@ class TimeComplexity(Scene):
 
         self.play(
             Write(linear_search_text),
-            Write(binary_search_text),
             Write(linear_search_nb_operations),
-            run_time=0.5,
+            run_time=1,
         )
-        self.wait(0.1)
+        self.play(
+            Write(binary_search_text),
+            run_time=1,
+        )
+        self.wait(5)
 
         # Write another 10 billion under binary search with white
         bin_search_operations = [
             Text('10,000,000,000', color=WHITE).scale(0.5).next_to(binary_search_text, DOWN, buff=0.5),
         ]
-        self.play(Write(bin_search_operations[-1], run_time=0.2))
-        self.wait(0.1)
+        self.play(Write(bin_search_operations[-1], run_time=0.5))
+        self.wait(1)
 
         bin_search_operations.append(
             Text('5,000,000,000', color=WHITE).scale(0.5).next_to(bin_search_operations[-1], DOWN, buff=0.2),
         )
-        self.play(Write(bin_search_operations[-1], run_time=0.2))
-        self.wait(0.1)
+        self.play(Write(bin_search_operations[-1], run_time=0.5))
+        self.wait(3)
 
         bin_search_operations.append(
             Text('2,500,000,000', color=WHITE).scale(0.5).next_to(bin_search_operations[-1], DOWN, buff=0.2),
         )
-        self.play(Write(bin_search_operations[-1], run_time=0.2))
-        self.wait(0.1)
+        self.play(Write(bin_search_operations[-1], run_time=0.5))
+        self.wait(0.5)
 
         bin_search_operations.append(
             Text('1,250,000,000', color=WHITE).scale(0.5).next_to(bin_search_operations[-1], DOWN, buff=0.2),
         )
-        self.play(Write(bin_search_operations[-1], run_time=0.2))
-        self.wait(0.1)
+        self.play(Write(bin_search_operations[-1], run_time=0.5))
+        self.wait(0.5)
 
         bin_search_operations.append(
             Text('...', color=WHITE).scale(0.5).next_to(bin_search_operations[-1], DOWN, buff=0.3),
         )
-        self.play(Write(bin_search_operations[-1], run_time=0.2))
-        self.wait(0.1)
+        self.play(Write(bin_search_operations[-1], run_time=0.5))
 
         bin_search_operations.append(
             Text('1', color=WHITE).scale(0.5).next_to(bin_search_operations[-1], DOWN, buff=0.3),
         )
-        self.play(Write(bin_search_operations[-1], run_time=0.2))
-        self.wait(0.1)
+        self.play(Write(bin_search_operations[-1], run_time=0.5))
+        self.wait(1)
 
         bin_search_operations_brace = Brace(
             VGroup(bin_search_operations[0], bin_search_operations[-1]),
@@ -336,25 +338,18 @@ class TimeComplexity(Scene):
             direction=RIGHT,
         )
         bin_search_operations_brace_text = bin_search_operations_brace.get_text('32').scale(0.7).shift(0.15 * LEFT).set_color(ORANGE)
-        self.play(
-            GrowFromCenter(bin_search_operations_brace),
-            Write(bin_search_operations_brace_text),
-            run_time=0.5,
-        )
-        self.wait(0.1)
+        self.play(GrowFromCenter(bin_search_operations_brace), run_time=1)
+        self.wait(0.5)
+        self.play(Write(bin_search_operations_brace_text), run_time=0.5)
+        self.wait(3)
 
         # Draw a clock
         clock = Clock(hh=3, mh=30).scale(0.2).shift(2 * DOWN)
         self.play(DrawBorderThenFill(clock, run_time=0.5))
-        self.wait(0.1)
+        self.wait(3)
 
         clock.add_updaters()
-        self.play(
-            clock.ht.animate.set_value(10),
-            run_time=2,
-            rate_func=linear,
-        )
-        self.wait(0.1)
+        self.play(clock.ht.animate.set_value(10), run_time=5, rate_func=linear)
 
         skeleton = ImageMobject('binary_search/skeleton.webp').scale(0.3).next_to(linear_search_nb_operations, DOWN, buff=0.2)
         linear_search_nb_yars = Text('317 Years', color=WHITE, weight=BOLD).scale(0.5).next_to(skeleton, DOWN, buff=-0.2)
@@ -362,22 +357,19 @@ class TimeComplexity(Scene):
             clock.ht.animate.set_value(15),
             FadeIn(skeleton),
             Write(linear_search_nb_yars),
-            run_time=1,
+            run_time=2,
             rate_func=linear,
         )
-        self.wait(0.1)
-
+        self.play(clock.ht.animate.set_value(30), run_time=3, rate_func=linear)
         self.play(FadeOut(clock), run_time=0.5)
-        self.wait(0.1)
 
         # Remove all the numbers for the binary search and move 32 to the top (below the binary search title)
         self.play(
             *[FadeOut(operation) for operation in bin_search_operations],
             FadeOut(bin_search_operations_brace),
             bin_search_operations_brace_text.animate.next_to(binary_search_text, DOWN, buff=0.5),
-            run_time=0.2,
+            run_time=0.5,
         )
-        self.wait(0.1)
 
         fast = ImageMobject('binary_search/fast.webp').scale(0.3).next_to(bin_search_operations_brace_text, DOWN, buff=0.2)
         bin_search_nb_seconds = Text('32 Seconds', color=WHITE, weight=BOLD).scale(0.5).next_to(fast, DOWN, buff=-0.2)
@@ -386,7 +378,7 @@ class TimeComplexity(Scene):
             Write(bin_search_nb_seconds),
             run_time=0.5,
         )
-        self.wait(0.1)
+        self.wait(3)
 
         # Clear the images and bring back the binary search operations
         self.play(
@@ -399,23 +391,24 @@ class TimeComplexity(Scene):
             FadeIn(bin_search_operations_brace),
             run_time=0.5,
         )
-        self.wait(0.1)
+        self.wait(2)
 
         # Replace 10 billion with 20 billion
-        self.play(
-            Transform(brace_text, brace.get_text('20,000,000,000').scale(0.7).shift(0.15 * UP)),
-            run_time=0.2,
-        )
-        self.wait(0.1)
+        self.play(Indicate(brace_text))
+        new_brace_text = brace.get_text('20,000,000,000').scale(0.7).shift(0.15 * UP)
+        self.play(ReplacementTransform(brace_text, new_brace_text), run_time=0.5)
+        self.play(Indicate(new_brace_text))
+        self.wait(3)
 
         # Remove char-by-char 10 billion of linear search and replace it with 20 billion
         self.play(RemoveTextLetterByLetter(linear_search_nb_operations, keep_final_state=True, run_time=0.5))
         linear_search_nb_operations = Text('20,000,000,000', color=ORANGE).scale(0.5).next_to(linear_search_text, DOWN, buff=0.5)
-        self.play(AddTextLetterByLetter(linear_search_nb_operations, run_time=0.5))
+        self.play(AddTextLetterByLetter(linear_search_nb_operations, run_time=1))
 
         # Add 634 years under the linear search
         linear_search_nb_yars = Text('634 Years', color=WHITE, weight=BOLD).scale(0.5).next_to(linear_search_nb_operations, DOWN, buff=0.5)
         self.play(Write(linear_search_nb_yars), run_time=0.5)
+        self.wait(2.5)
 
         # Shift all the binary search operations down and add 20 billion at the top
         self.play(
@@ -424,10 +417,11 @@ class TimeComplexity(Scene):
             bin_search_operations_brace.animate.shift(0.5 * DOWN),
             run_time=0.5,
         )
-        self.wait(0.1)
+        self.wait(0.2)
 
         bin_search_operations.insert(0, Text('20,000,000,000', color=WHITE).scale(0.5).next_to(binary_search_text, DOWN, buff=0.5))
         self.play(Write(bin_search_operations[0]), run_time=0.2)
+        self.wait(3)
         # The brace should include the 20 billion and 1
         new_bin_search_operations_brace = Brace(
             VGroup(bin_search_operations[0], bin_search_operations[-1]),
@@ -440,20 +434,19 @@ class TimeComplexity(Scene):
             ReplacementTransform(bin_search_operations_brace_text, new_bin_search_operations_brace_text),
             run_time=0.5,
         )
-        self.wait(0.1)
+        self.wait(3)
 
         # Transition to the next scene
+        self.play(ReplacementTransform(new_brace_text, brace.get_text('n').scale(0.7).shift(0.15 * UP)), run_time=0.5)
         self.play(
-            FadeOut(linear_search_nb_operations),
-            FadeOut(linear_search_nb_yars),
-            ReplacementTransform(brace_text, brace.get_text('n').scale(0.7).shift(0.15 * UP)),
-            ReplacementTransform(title, Title('Time Complexity', include_underline=False)),
-            *[FadeOut(op) for op in bin_search_operations],
-            FadeOut(new_bin_search_operations_brace),
-            FadeOut(new_bin_search_operations_brace_text),
+            FadeOut(linear_search_nb_operations, linear_search_nb_yars),
+            FadeOut(*bin_search_operations),
+            FadeOut(new_bin_search_operations_brace, new_bin_search_operations_brace_text),
             run_time=0.5,
         )
-        self.wait(0.1)
+
+        self.play(ReplacementTransform(title, Title('Time Complexity', include_underline=False)), run_time=0.5)
+        self.wait(1)
 
 
 class FormalTimeComplexity(Scene):
@@ -475,54 +468,54 @@ class FormalTimeComplexity(Scene):
         binary_search_text = Text('Binary Search', color=WHITE).scale(0.8).next_to(brace, DOWN, buff=1).shift(4 * RIGHT)
 
         self.add(array_mobj, a_text, brace, brace_text, linear_search_text, binary_search_text)
+        self.wait(3.5)
 
         # Search icon goes from first to last
         search_svg = SVGMobject(
-            'binary_search/search.svg', color=WHITE, fill_color=WHITE, fill_opacity=1,
+            'binary_search/search.svg', color=ORANGE, fill_color=ORANGE, fill_opacity=0.9,
         ).scale(0.7).center()
         self.play(DrawBorderThenFill(search_svg, run_time=1))
-        self.wait(0.1)
 
         self.play(search_svg.animate.move_to(array.labels[0]).shift(0.16 * DOWN).shift(0.16 * RIGHT), run_time=0.2)
         for i in range(11):
             self.play(search_svg.animate.shift((array.width + array.spacing) * RIGHT), run_time=0.1)
-        self.wait(0.1)
+            self.wait(0.1)
 
         # Write O(n)a
         linear_search_time_complexity = MathTex(
             r'\mathcal{O}(n)', color=ORANGE,
         ).scale(0.8).next_to(linear_search_text, DOWN, buff=0.5)
-        self.play(
-            Write(linear_search_time_complexity),
-            FadeOut(search_svg),
-            run_time=0.5,
-        )
-        self.wait(0.1)
+        self.play(FadeOut(search_svg, run_time=0.5))
+        self.play(Write(linear_search_time_complexity, run_time=1))
+        self.wait(3)
 
         # Add n/2, n/4, n/8, ... below n
-        divisors = [Tex(f'n / {i}').scale(0.7) for i in [2, 4, 8]] + [Tex('...').scale(0.7)]
+        divisors = [Tex(f'n / {i}').scale(0.7).set_color(YELLOW) for i in [2, 4, 8]] + [Tex('...').scale(0.7).set_color(YELLOW)]
         divisors[0].next_to(brace_text, DOWN, buff=0.2)
-        self.play(Write(divisors[0]), run_time=0.2)
+        self.play(brace_text.animate.set_color(YELLOW), run_time=0.5)
+        self.wait(0.6)
+        self.play(Write(divisors[0]), run_time=0.5)
+        self.wait(0.6)
         for i in range(1, len(divisors)):
             divisors[i].next_to(divisors[i - 1], DOWN, buff=0.2)
-            self.play(Write(divisors[i]), run_time=0.2)
+            self.play(Write(divisors[i]), run_time=0.5)
+            self.wait(0.6)
 
         # Add O(log n) below binary search
         binary_search_time_complexity = MathTex(
             r'\mathcal{O}(\log{n})', color=ORANGE,
         ).scale(0.8).next_to(binary_search_text, DOWN, buff=0.5)
-        self.play(Write(binary_search_time_complexity), run_time=0.5)
-        self.wait(0.1)
+        self.play(Write(binary_search_time_complexity), run_time=1)
+        self.wait(2)
 
         # Transition to the next scene
         self.play(
-            FadeOut(brace),
-            FadeOut(brace_text),
-            FadeOut(linear_search_time_complexity),
-            FadeOut(binary_search_time_complexity),
-            *[FadeOut(divisor) for divisor in divisors],
-            run_time=0.2,
+            FadeOut(brace, brace_text),
+            FadeOut(linear_search_time_complexity, binary_search_time_complexity),
+            FadeOut(*divisors),
+            run_time=0.5,
         )
+        self.wait(1)
         new_arr = Array(a).get_mobject().center().shift(2 * UP)
         indices = Array(
             [i for i in range(len(a))],
@@ -539,8 +532,7 @@ class FormalTimeComplexity(Scene):
             FadeOut(linear_search_text),
             FadeOut(binary_search_text),
         )
-
-        self.wait(0.1)
+        self.wait(1)
 
 
 class Implementation(Scene):
