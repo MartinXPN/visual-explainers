@@ -13,8 +13,6 @@ ORANGE = ManimColor('#fa541c')
 class ProblemStatement(Scene):
     def construct(self):
         title = Title('Find the Position of a Given Number', include_underline=False)
-        self.play(Write(title, run_time=0.2))
-        self.wait(0.1)
 
         array = Array(a, color=BLACK)
         array_mobj = array.get_mobject().center().shift(1.5 * UP)
@@ -27,25 +25,25 @@ class ProblemStatement(Scene):
         )
         indices_mobj = indices.get_mobject().center().next_to(array_mobj, 0.1 * UP)
 
-        self.play(
-            Create(array_mobj, run_time=0.5),
-            Create(indices_mobj, run_time=0.5),
-        )
         self.add(a_text)
-        self.wait(0.1)
+        self.play(
+            Create(array_mobj, run_time=2),
+            Create(indices_mobj, run_time=2),
+        )
+        self.wait(3)
 
         q = Tex(r'q: 49', color=ORANGE).scale(0.8).next_to(array_mobj, 2 * DOWN).shift(DOWN)
-        self.play(Write(q, run_time=0.5))
+        self.play(Write(q, run_time=1))
 
+        self.play(Write(title, run_time=0.5))
         search_svg = SVGMobject(
-            'binary_search/search.svg', color=WHITE, fill_color=WHITE, fill_opacity=1,
+            'binary_search/search.svg', color=ORANGE, fill_color=ORANGE, fill_opacity=0.9,
         ).scale(0.7).move_to(q).shift(0.15 * DOWN).shift(0.45 * RIGHT)
         self.play(DrawBorderThenFill(search_svg, run_time=1))
-        self.wait(0.1)
 
         # Loop from start to the index of 49 and move the search icon from element to element
         self.play(search_svg.animate.move_to(array.labels[0]).shift(0.16 * DOWN).shift(0.16 * RIGHT), run_time=0.5)
-        self.play(array.labels[0].animate.set_color(WHITE), run_time=0.2)
+        self.play(array.labels[0].animate.set_color(WHITE), run_time=0.1)
         for i in range(5):
             self.play(
                 search_svg.animate.shift((array.width + array.spacing) * RIGHT),
@@ -53,10 +51,12 @@ class ProblemStatement(Scene):
                 array.labels[i].animate.set_color(BLACK),
                 run_time=0.1,
             )
+            self.wait(0.06)
 
         # Hide search and circumscribe 49
         self.play(FadeOut(search_svg, run_time=0.5))
         self.play(Circumscribe(VGroup(array.rectangles[5], indices.rectangles[5]), run_time=0.5))
+        self.wait(1)
 
         # **** Linear Search ****
         # Move search to the start of the array
@@ -71,18 +71,20 @@ class ProblemStatement(Scene):
                 search_svg.animate.shift((array.width + array.spacing) * RIGHT),
                 array.labels[i + 1].animate.set_color(WHITE),
                 array.labels[i].animate.set_color(BLACK),
-                run_time=0.1,
+                run_time=0.2,
             )
+            self.wait(0.1)
 
         self.play(FadeOut(search_svg, run_time=0.5))
-        self.wait(0.1)
+        self.play(Indicate(indices.labels[5], run_time=1))
+        self.wait(2)
 
         # Add a green tick to the left of the array
         tick = SVGMobject(
             'binary_search/tick.svg', color=GREEN, fill_color=GREEN, fill_opacity=1,
         ).scale(0.2).next_to(a_text, LEFT)
         self.play(DrawBorderThenFill(tick, run_time=0.5))
-        self.wait(0.1)
+        self.wait(1.5)
 
         # Add another long array
         long = Array([-7, -1, 3, 4, 6, 7, 10, 11, 15, 28, '...', 97], color=BLACK)
@@ -90,7 +92,7 @@ class ProblemStatement(Scene):
         long.rectangles[-2].set_color(BLACK)
         long.labels[-2].set_color(WHITE)
         self.play(Create(long_mobj, run_time=0.5))
-        self.wait(0.1)
+        self.wait(0.5)
 
         # Animate the search icon moving from left to right on the long array
         search_svg.move_to(long.labels[0]).shift(0.16 * DOWN).shift(0.16 * RIGHT)
@@ -101,22 +103,22 @@ class ProblemStatement(Scene):
                 search_svg.animate.shift((long.width + long.spacing) * RIGHT),
                 long.labels[i + 1].animate.set_color(WHITE),
                 long.labels[i].animate.set_color(BLACK),
-                run_time=0.1,
+                run_time=0.06,
             )
+            self.wait(0.1)
 
         # Add a red cross near the long array
         cross = SVGMobject(
             'binary_search/cross.svg', color=RED, fill_color=RED, fill_opacity=1,
         ).scale(0.2).next_to(long_mobj, LEFT).align_to(tick, LEFT)
-        self.play(DrawBorderThenFill(cross, run_time=0.5))
-        self.play(FadeOut(search_svg, run_time=0.5))
-        self.wait(0.1)
+        self.play(DrawBorderThenFill(cross, run_time=0.5), FadeOut(search_svg, run_time=0.5))
+        self.wait(1)
 
         self.play(
             FadeOut(tick),
             FadeOut(cross),
             FadeOut(long_mobj),
-            run_time=0.5,
+            run_time=0.2,
         )
 
         # Change the title to Binary search and make all the labels of the array WHITE
@@ -124,8 +126,8 @@ class ProblemStatement(Scene):
             Transform(title, Title('Binary Search', include_underline=False)),
             *[label.animate.set_color(WHITE) for label in array.labels],
             run_time=0.5,
-        ),
-        self.wait(0.1)
+        )
+        self.wait(0.2)
 
 
 class BinarySearch(Scene):
@@ -146,13 +148,14 @@ class BinarySearch(Scene):
         q = Tex(r'q: 49', color=ORANGE).scale(0.8).next_to(array_mobj, 2 * DOWN).shift(DOWN)
 
         self.add(array_mobj, indices_mobj, a_text, q)
-        self.wait(0.1)
+        self.wait(2)
 
         # Circumscribe 2 halves of the array
         self.play(
-            Circumscribe(VGroup(*array.rectangles[0:5]), color=RED, run_time=0.5),
-            Circumscribe(VGroup(*array.rectangles[5:]), run_time=0.5),
+            Circumscribe(VGroup(*array.rectangles[0:5]), color=RED, run_time=2),
+            Circumscribe(VGroup(*array.rectangles[5:]), run_time=2),
         )
+        self.wait(1)
 
         def highlight(left, right, color, run_time=0.3):
             self.play(
@@ -163,51 +166,61 @@ class BinarySearch(Scene):
             )
 
         highlight(0, 5, DARKER_GREY)
-        self.wait(0.1)
+        self.wait(2)
         highlight(0, 5, WHITE)
-        self.wait(0.1)
+        self.wait(1)
 
         # Highlight the middle element (index = 4)
         highlight(4, 5, ORANGE)
-        self.play(Circumscribe(VGroup(array.rectangles[4], indices.rectangles[4]), run_time=0.2))
-        self.wait(0.1)
+        self.play(Circumscribe(VGroup(array.rectangles[4], indices.rectangles[4]), run_time=0.5))
+        self.wait(1)
+        self.play(Indicate(q))
+        self.wait(4)
 
-        highlight(0, 5, DARKER_GREY)
-        self.wait(0.1)
+        highlight(0, 5, DARKER_GREY, run_time=0.5)
+        self.wait(2.5)
+
+        self.play(Indicate(q))
+        self.wait(4)
 
         # Highlight the current middle element (52 at index 6)
         highlight(6, 7, ORANGE)
-        self.play(Circumscribe(VGroup(array.rectangles[6], indices.rectangles[6]), run_time=0.2))
-        self.wait(0.1)
+        self.play(Circumscribe(VGroup(array.rectangles[6], indices.rectangles[6]), run_time=1))
+        self.wait(2)
 
-        highlight(6, 9, DARKER_GREY)
-        self.wait(0.1)
+        self.play(Indicate(q))
+        self.wait(2)
+
+        highlight(6, 9, DARKER_GREY, run_time=0.5)
+        self.wait(6)
 
         # Highlight the middle element (index = 5)
         highlight(5, 6, ORANGE)
-        self.play(Circumscribe(VGroup(array.rectangles[5], indices.rectangles[5]), run_time=0.2))
-        self.wait(0.1)
+        self.play(Circumscribe(VGroup(array.rectangles[5], indices.rectangles[5]), run_time=1))
+        self.wait(2.5)
 
         self.play(Flash(
-            array.rectangles[5], num_lines=15, flash_radius=0.7, line_length=0.3, run_time=0.2, rate_func=rush_from,
+            array.rectangles[5], num_lines=15, flash_radius=0.7, line_length=0.3, run_time=1, rate_func=rush_from,
         ))
-        self.wait(0.1)
+        self.wait(5)
 
         # undim the whole array
-        self.play(FadeOut(q), run_time=0.2)
+        self.play(FadeOut(q), run_time=0.5)
         highlight(0, 9, WHITE)
-        self.wait(0.1)
+        self.wait(2)
 
-        self.play(Circumscribe(VGroup(*array.rectangles[0:5]), run_time=0.5))
-        self.play(Circumscribe(VGroup(*array.rectangles[5:]), run_time=0.5))
+        self.play(Circumscribe(VGroup(*array.rectangles[0:5]), run_time=1))
+        self.play(Circumscribe(VGroup(*array.rectangles[5:]), run_time=1))
+        self.wait(1)
 
-        highlight(0, 5, DARKER_GREY)
-        self.wait(0.1)
-        self.play(Circumscribe(VGroup(*array.rectangles[5:7]), run_time=0.5))
-        self.play(Circumscribe(VGroup(*array.rectangles[7:]), run_time=0.5))
-        self.wait(0.1)
+        highlight(0, 5, DARKER_GREY, run_time=0.5)
+        self.wait(0.5)
+        self.play(Circumscribe(VGroup(*array.rectangles[5:7]), run_time=1))
+        self.play(Circumscribe(VGroup(*array.rectangles[7:]), run_time=1))
+        self.wait(1)
 
-        highlight(7, 9, DARKER_GREY)
+        highlight(7, 9, DARKER_GREY, run_time=0.5)
+        self.wait(2)
 
         # Transition to the next scene
         long = Array([-7, -1, 3, 4, 6, 7, 10, 11, 15, 28, 33, '...'])
@@ -225,9 +238,9 @@ class BinarySearch(Scene):
         self.play(
             long_mobj.animate.align_to(another_arr, LEFT).align_to(another_arr, UP),
             a_text.animate.next_to(another_arr, LEFT),
-            run_time=0.5,
+            run_time=1,
         )
-        self.wait(0.1)
+        self.wait(0.2)
 
 
 class TimeComplexity(Scene):
