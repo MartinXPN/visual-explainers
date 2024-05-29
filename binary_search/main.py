@@ -1399,10 +1399,10 @@ class BinarySearchAsGenericIdea(Scene):
             style='monokai',
         ).scale(0.8).center().next_to(indices_mobj, DOWN, buff=0.5).code
         self.add(code)
-        self.wait(0.1)
+        self.wait(2)
 
-        self.play(Indicate(code, run_time=0.5))
-        self.wait(0.1)
+        self.play(Indicate(code, run_time=2))
+        self.wait(2)
 
         def highlight(l, r, col):
             return [
@@ -1412,38 +1412,38 @@ class BinarySearchAsGenericIdea(Scene):
             ]
 
         self.play(*highlight(0, 4, DARKER_GREY), run_time=0.5)
-        self.wait(0.1)
+        self.wait(6)
 
-        self.play(Circumscribe(code, run_time=0.5))
+        self.play(Circumscribe(code, run_time=1))
+        self.wait(3)
         new_title = Title('Binary Search Variations', include_underline=False)
         self.play(
             ReplacementTransform(title, new_title),
             run_time=0.5,
         )
-        self.wait(0.1)
-        self.play(FadeOut(array_mobj), FadeOut(indices_mobj), FadeOut(a_text), run_time=0.2)
-        self.wait(0.5)
+        self.wait(3)
+        self.play(FadeOut(array_mobj), FadeOut(indices_mobj), FadeOut(a_text), run_time=0.4)
+        self.wait(1)
 
         # sqrt
         sqrt = MathTex(
             r'\sqrt{7}: [0, 7] \rightarrow [0, 3.5] \rightarrow [1.75, 3.5] \rightarrow [2.625, 3.5] \rightarrow ...'
         ).scale(0.8).next_to(title, DOWN)
-        self.play(Write(sqrt), run_time=0.5)
-        self.wait(0.1)
+        self.play(Write(sqrt), run_time=6)
+        self.wait(1)
 
-        self.play(FadeOut(sqrt), run_time=0.2)
-        self.wait(0.1)
+        self.play(FadeOut(sqrt), run_time=0.4)
 
         self.play(*highlight(0, 4, WHITE), run_time=0.00001)
-        self.play(FadeIn(array_mobj), FadeIn(indices_mobj), FadeIn(a_text), run_time=0.1)
-        self.play(VGroup(array_mobj, indices_mobj, a_text).animate.shift(0.5 * DOWN), run_time=0.1)
-        self.wait(0.1)
+        self.play(FadeIn(array_mobj), FadeIn(indices_mobj), FadeIn(a_text), run_time=0.2)
+        self.play(VGroup(array_mobj, indices_mobj, a_text).animate.shift(0.5 * DOWN), run_time=0.2)
+        self.wait(0.5)
 
         # Add (l and r] at the top of the array
         left = Tex('(l', color=ORANGE).scale(0.8).next_to(array.rectangles[2], UP)
         right = Tex('r]', color=ORANGE).scale(0.8).next_to(array.rectangles[7], UP)
         self.play(Write(left), Write(right), *highlight(0, 3, DARKER_GREY), *highlight(8, len(array), DARKER_GREY), run_time=0.5)
-        self.wait(0.1)
+        self.wait(4)
 
         self.play(
             FadeOut(left, right),
@@ -1452,5 +1452,6 @@ class BinarySearchAsGenericIdea(Scene):
             run_time=0.5,
         )
 
+        self.wait(2)
         self.play(ApplyWave(code, run_time=2))
-        self.wait(1)
+        self.wait(8)
