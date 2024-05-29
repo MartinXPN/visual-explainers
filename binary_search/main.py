@@ -962,6 +962,7 @@ class SimulatingEdgeCase(Scene):
 
         q = Tex(r'q: 57', color=ORANGE).scale(0.8).next_to(code.chars, RIGHT).align_to(code.chars, UP)
         self.add(q)
+        self.wait(1)
 
         # Arrow to show which part of the code is being executed
         arrow = Arrow(
@@ -969,106 +970,108 @@ class SimulatingEdgeCase(Scene):
             stroke_width=10, max_stroke_width_to_length_ratio=15,
             max_tip_length_to_length_ratio=0.5, tip_length=0.2,
         ).scale(0.3).next_to(code, LEFT).align_to(code, UP).shift(0.08 * DOWN)
-        self.play(Create(arrow), run_time=0.1)
-        self.wait(0.1)
+        self.play(Create(arrow), run_time=1)
+        self.wait(3)
 
-        self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
-        self.wait(0.1)
+        self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.3)
+        self.wait(1)
 
         # Calculate mid
         self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.3)
+        self.wait(3)
         mid = Tex('mid', color=YELLOW).scale(0.8).next_to(array.rectangles[4], UP).shift(0.1 * DOWN)
-        self.play(Write(mid), run_time=0.2)
-        self.wait(0.1)
+        self.play(Write(mid), run_time=0.3)
+        self.wait(2)
 
-        self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
-        self.wait(0.3)
+        self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.3)
+        self.wait(3)
 
-        self.play(arrow.animate.shift(1.2 * DOWN), run_time=0.2)
-        self.wait(0.1)
+        self.play(arrow.animate.shift(1.2 * DOWN), run_time=0.3)
+        self.wait(1)
         self.play(left.animate.next_to(array.rectangles[4], UP).shift(0.1 * DOWN), FadeOut(mid), run_time=0.5)
-        self.wait(0.1)
-        self.play(*highlight(0, 4, DARKER_GREY), run_time=0.2)
-        self.wait(0.1)
+        self.wait(0.5)
+        self.play(*highlight(0, 4, DARKER_GREY), run_time=0.3)
+        self.wait(3)
 
         # Move the arrow to the start of the while loop
-        self.play(arrow.animate.shift(2 * UP), run_time=0.2)
-        self.wait(0.1)
-        self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
-        self.wait(0.1)
+        self.play(arrow.animate.shift(2 * UP), run_time=0.5)
+        self.wait(0.5)
+        self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.3)
+        self.wait(2)
 
-        self.play(Write(mid.next_to(array.rectangles[6], UP).shift(0.1 * DOWN)), run_time=0.2)
-        self.wait(0.1)
+        self.play(Write(mid.next_to(array.rectangles[6], UP).shift(0.1 * DOWN)), run_time=0.3)
+        self.wait(2)
 
-        self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
-        self.wait(0.1)
-        self.play(arrow.animate.shift(1.2 * DOWN), run_time=0.2)
-        self.wait(0.1)
+        self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.3)
+        self.wait(4)
+        self.play(arrow.animate.shift(1.2 * DOWN), run_time=0.5)
+        self.wait(1)
         self.play(
             left.animate.next_to(array.rectangles[6], UP).shift(0.1 * DOWN),
             FadeOut(mid),
             *highlight(4, 6, DARKER_GREY),
             run_time=0.5,
         )
-        self.wait(0.1)
+        self.wait(2)
 
         # Move the arrow to the start of the while loop
-        self.play(arrow.animate.shift(2 * UP), run_time=0.2)
-        self.wait(0.1)
-        self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
-        self.wait(0.1)
+        self.play(arrow.animate.shift(2 * UP), run_time=0.3)
+        self.wait(0.5)
+        self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.3)
+        self.wait(1)
 
-        self.play(Write(mid.next_to(array.rectangles[7], UP).shift(0.1 * DOWN)), run_time=0.2)
-        self.wait(0.1)
+        self.play(Write(mid.next_to(array.rectangles[7], UP).shift(0.1 * DOWN)), run_time=0.5)
+        self.wait(2.5)
 
         self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
-        self.wait(0.1)
+        self.wait(4)
         self.play(arrow.animate.shift(1.2 * DOWN), run_time=0.2)
-        self.wait(0.1)
+        self.wait(1)
         self.play(
             left.animate.next_to(array.rectangles[7], UP).shift(0.1 * DOWN),
             FadeOut(mid),
             *highlight(6, 7, DARKER_GREY),
             run_time=0.5,
         )
-        self.wait(0.1)
+        self.wait(2)
 
         # Move the arrow to the start of the while loop
-        self.play(arrow.animate.shift(2 * UP), run_time=0.2)
-        self.wait(0.1)
-        self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
-        self.wait(0.1)
+        self.play(arrow.animate.shift(2 * UP), run_time=0.5)
+        self.wait(0.5)
+        self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.3)
+        self.wait(0.5)
 
-        self.play(Write(mid.next_to(array.rectangles[8], UP).shift(0.1 * DOWN)), run_time=0.2)
-        self.wait(0.1)
+        self.play(Write(mid.next_to(array.rectangles[8], UP).shift(0.1 * DOWN)), run_time=0.3)
+        self.wait(4)
 
-        self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
-        self.wait(0.1)
-        self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
-        self.wait(0.1)
+        self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.3)
+        self.wait(4)
+        self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.3)
+        self.wait(1)
         self.play(
             right.animate.next_to(array.rectangles[8], UP).shift(0.1 * DOWN),
             FadeOut(mid),
             *highlight(8, len(array), DARKER_GREY),
             run_time=0.5,
         )
-        self.wait(0.1)
+        self.wait(1)
 
         # Move the arrow to the start of the while loop
-        self.play(arrow.animate.shift(1.2 * UP), run_time=0.2)
-        self.wait(0.1)
-        self.play(arrow.animate.shift(2.8 * DOWN), run_time=0.2)
-        self.wait(0.1)
-        self.play(Circumscribe(VGroup(left, array.rectangles[7], indices.rectangles[7]), run_time=0.5))
-        self.wait(0.1)
+        self.play(arrow.animate.shift(1.2 * UP), run_time=0.5)
+        self.wait(4)
+        self.play(arrow.animate.shift(2.8 * DOWN), run_time=0.5)
+        self.wait(0.5)
+        self.play(Circumscribe(VGroup(left, array.rectangles[7], indices.rectangles[7]), run_time=1))
+        self.wait(6)
 
         # Finish the scene
-        self.play(FadeOut(arrow), run_time=0.2)
+        self.play(FadeOut(arrow), run_time=0.5)
         self.play(ReplacementTransform(title, Title('Practice', include_underline=False)))
+        self.wait(4)
         self.play(ReplacementTransform(q, Tex(r'q: 20, 23, 100', color=ORANGE).scale(0.8).next_to(code.chars, RIGHT).align_to(code.chars, UP)))
-        self.wait(0.1)
+        self.wait(4)
         self.play(Wiggle(code, rotation_angle=0.005 * TAU, run_time=1))
-        self.wait(0.1)
+        self.wait(2)
 
 
 class OverflowIssue(Scene):
