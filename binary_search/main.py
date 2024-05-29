@@ -1256,8 +1256,8 @@ class LinearVSBinary(Scene):
 
         for line in linear_code.chars:
             if line:
-                self.play(AddTextLetterByLetter(line), run_time=0.01 * len(line))
-        self.wait(0.1)
+                self.play(AddTextLetterByLetter(line), run_time=0.012 * len(line))
+        self.wait(0.5)
 
         code = Code(
             code=dedent('''
@@ -1279,8 +1279,8 @@ class LinearVSBinary(Scene):
         ).scale(0.8).next_to(indices_mobj, DOWN, buff=0.5).to_edge(RIGHT, buff=1).code
         for line in code.chars:
             if line:
-                self.play(AddTextLetterByLetter(line), run_time=0.01 * len(line))
-        self.wait(0.1)
+                self.play(AddTextLetterByLetter(line), run_time=0.012 * len(line))
+        self.wait(0.2)
 
         # Create a yellow rectangle that highlights the first 4 elements of the array
         memory_chunk = Rectangle(
@@ -1288,14 +1288,14 @@ class LinearVSBinary(Scene):
             height=array.height + 2 * array.spacing,
             stroke_color=YELLOW, stroke_width=6,
         ).align_to(array_mobj, DOWN).align_to(array_mobj, LEFT).shift(0.1 * DOWN).shift(0.1 * LEFT)
-        self.play(Create(memory_chunk), run_time=0.2)
-        self.wait(0.1)
+        self.play(Create(memory_chunk), run_time=0.3)
+        self.wait(0.5)
 
-        self.play(memory_chunk.animate.shift((4 * array.width + 4 * array.spacing) * RIGHT), run_time=0.5)
-        self.wait(0.1)
-        self.play(memory_chunk.animate.shift((4 * array.width + 4 * array.spacing) * RIGHT), run_time=0.5)
-        self.wait(0.1)
-        self.play(FadeOut(memory_chunk), run_time=0.2)
+        self.play(memory_chunk.animate.shift((4 * array.width + 4 * array.spacing) * RIGHT), run_time=0.2)
+        self.wait(0.5)
+        self.play(memory_chunk.animate.shift((4 * array.width + 4 * array.spacing) * RIGHT), run_time=0.2)
+        self.wait(0.5)
+        self.play(FadeOut(memory_chunk), run_time=0.4)
 
         # Add arc arrows from for to if and from if to for
         for_to_if = CurvedArrow(linear_code.chars[0].get_left(), linear_code.chars[0].get_left() + 0.4 * DOWN, color=WHITE, angle=TAU / 3, tip_length=0.1)
@@ -1314,10 +1314,10 @@ class LinearVSBinary(Scene):
             ShowPassingFlash(for_to_if.copy().set_color(YELLOW), time_width=0.5, run_time=1),
             ShowPassingFlash(if_to_for.copy().set_color(YELLOW), time_width=0.5, run_time=2),
         )
-        self.wait(0.1)
+        self.wait(1)
 
-        self.play(FadeOut(lightning_icon), FadeOut(for_to_if), FadeOut(if_to_for), run_time=0.2)
-        self.wait(0.1)
+        self.play(FadeOut(lightning_icon), FadeOut(for_to_if), FadeOut(if_to_for), run_time=0.4)
+        self.wait(1)
 
         # Shuffle the array
         random.seed(42)
@@ -1327,39 +1327,40 @@ class LinearVSBinary(Scene):
         shuffled_array_mobj = shuffled_array.get_mobject().center().shift(2.2 * UP)
 
         self.play(TransformMatchingCells(array_mobj, shuffled_array_mobj, path_arc=PI/2), run_time=2)
-        self.wait(0.1)
+        self.wait(5)
 
         q = Tex(r'q: 20, 23, 50, 100, ...', color=ORANGE).scale(0.8).next_to(linear_code, DOWN, buff=0.5).align_to(linear_code, LEFT)
-        self.play(Write(q), run_time=0.5)
-        self.wait(0.1)
+        self.play(Write(q), run_time=2)
+        self.wait(5)
 
         # Write "Sort: O(n log(n))"
         sort = MathTex(
             r'\mathrm{Sort:} \, \mathcal{O}(n \cdot \log{n})', color=WHITE,
         ).scale(0.8).next_to(q, DOWN).align_to(q, LEFT)
-        self.play(Write(sort), run_time=0.5)
+        self.play(Write(sort), run_time=1)
+        self.wait(5)
 
         # Replace q with "q: 20"
         new_q = Tex(r'q: 20', color=ORANGE).scale(0.8).next_to(linear_code, DOWN, buff=0.5).align_to(linear_code, LEFT)
         self.play(ReplacementTransform(q, new_q), run_time=0.5)
-        self.wait(0.1)
+        self.wait(5)
 
         # Replace q with "q: 20, 23, 50, 100, ..."
         q = Tex(r'q: 20, 23, 50, 100, ...', color=ORANGE).scale(0.8).next_to(linear_code, DOWN, buff=0.5).align_to(linear_code, LEFT)
         self.play(ReplacementTransform(new_q, q))
-        self.wait(0.1)
+        self.wait(2)
 
         self.play(TransformMatchingCells(shuffled_array_mobj, array_mobj, path_arc=PI/2), run_time=2)
-        self.wait(0.1)
+        self.wait(2)
 
         # Transition to the next scene
         self.play(
             ReplacementTransform(title, Title('Binary Search', include_underline=False)),
-            FadeOut(linear_code), FadeOut(q), FadeOut(sort),
+            FadeOut(linear_code, q, sort),
             code.animate.center().next_to(indices_mobj, DOWN, buff=0.5),
-            run_time=0.5,
+            run_time=1,
         )
-        self.wait(0.1)
+        self.wait(1)
 
 
 class BinarySearchAsGenericIdea(Scene):
