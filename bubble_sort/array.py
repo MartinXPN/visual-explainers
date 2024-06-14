@@ -13,12 +13,12 @@ class Array:
     fill_opacity: float = 0.5
     stroke_width: float | list[float] = 2.
     stroke_color: str | list[str] = field(default_factory=lambda: WHITE)
-    height: float = 0.6
-    width: float = 0.6
+    height: float = 0.7
+    width: float = 0.7
     spacing: float = 0.1
-    scale_text: float = 0.6
+    scale_text: float = 0.7
 
-    rectangles: list[Rectangle] = field(default_factory=lambda: [])
+    cells: list[Rectangle] = field(default_factory=lambda: [])
     labels: list[VMobject] = field(default_factory=lambda: [])
 
     def __post_init__(self):
@@ -29,8 +29,8 @@ class Array:
             if isinstance(self.stroke_width, (float, int)) \
             else self.stroke_width
 
-    def get_rectangles(self):
-        self.rectangles = []
+    def get_cells(self):
+        self.cells = []
         for i, value in enumerate(self.values):
             rectangle = Rectangle(
                 height=self.height,
@@ -41,11 +41,11 @@ class Array:
                 stroke_color=self.stroke_color[i],
             )
             rectangle.shift(i * (self.width + self.spacing) * RIGHT)
-            self.rectangles.append(rectangle)
-        return self.rectangles
+            self.cells.append(rectangle)
+        return self.cells
 
     def get_labels(self):
-        rectangles = self.get_rectangles() if not self.rectangles else self.rectangles
+        rectangles = self.get_cells() if not self.cells else self.cells
         self.labels = []
         for i, value in enumerate(self.values):
             label = Tex(str(value) if value is not None else '', color=self.color)
@@ -55,11 +55,11 @@ class Array:
         return self.labels
 
     def get_mobjects(self):
-        if not self.rectangles:
-            self.get_rectangles()
+        if not self.cells:
+            self.get_cells()
         if not self.labels:
             self.get_labels()
-        return chain.from_iterable(zip(self.rectangles, self.labels))
+        return chain.from_iterable(zip(self.cells, self.labels))
 
     def get_mobject(self):
         return VGroup(*self.get_mobjects())
