@@ -831,15 +831,15 @@ class Simulation(Scene):
 
         code = Code(
             code=dedent('''
-                        for u in range(len(a) - 1, 0, -1):
-                            changed = False
-                            for i in range(u):
-                                if a[i] > a[i + 1]:
-                                    a[i], a[i + 1] = a[i + 1], a[i]
-                                    changed = True
-                            if not changed:
-                                break
-                    ''').strip(),
+                for u in range(len(a) - 1, 0, -1):
+                    changed = False
+                    for i in range(u):
+                        if a[i] > a[i + 1]:
+                            a[i], a[i + 1] = a[i + 1], a[i]
+                            changed = True
+                    if not changed:
+                        break
+            ''').strip(),
             tab_width=4,
             language='Python',
             line_spacing=0.6,
@@ -851,3 +851,95 @@ class Simulation(Scene):
         self.play(VGroup(*code.chars).animate.shift(1.5 * LEFT))
         self.wait(0.1)
 
+        # Arrow to show which part of the code is being executed
+        arrow = Arrow(
+            start=LEFT, end=RIGHT, color=RED, buff=0.1,
+            stroke_width=10, max_stroke_width_to_length_ratio=15,
+            max_tip_length_to_length_ratio=0.5, tip_length=0.2,
+        ).scale(0.3).next_to(code, LEFT).align_to(code, UP).shift(0.08 * DOWN)
+        self.play(Create(arrow), run_time=0.5)
+
+        # show real-time values to better understand the code
+        def get_debug(u, changed, i):
+            res = Code(
+                code=dedent(f'''
+                # {u}
+                # {changed}
+                # {i}
+                ''').strip(),
+                tab_width=4,
+                language='Python',
+                line_spacing=0.6,
+                font='Monospace',
+                style='monokai',
+            ).next_to(code, RIGHT).align_to(code, UP).shift(0.25 * UP).code
+            return res
+
+        debug = get_debug(6, False, 0)
+        self.play(AddTextLetterByLetter(debug.chars[0], run_time=0.05 * len(debug.chars[0])))
+        self.wait(0.1)
+
+        self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
+        self.wait(0.1)
+        self.play(AddTextLetterByLetter(debug.chars[1], run_time=0.05 * len(debug.chars[1])))
+        self.wait(0.1)
+
+        # Move the arrow to the inner loop
+        self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
+
+        # Run bubble-sort animation for 1 sweep
+        def sweep(run_times: list):
+            nonlocal array, array_mobj, debug
+            debugs = [debug]
+            changed = False
+            for i, time in enumerate(run_times):
+                # Add the debug value for the current iteration
+                debug = get_debug(6, changed, i)
+                debugs.append(debug)
+                self.play(ReplacementTransform(debugs[-2].chars[2], debugs[-1].chars[2]), run_time=time)
+                self.wait(time)
+
+                self.play(arrow.animate.shift(0.4 * DOWN), run_time=time)
+                self.play(*highlight(array, i, i + 2, ORANGE, 5), run_time=time)
+                self.wait(2 * time)
+                entered_if = False
+                if array.values[i] > array.values[i + 1]:
+                    entered_if = True
+                    self.play(arrow.animate.shift(0.4 * DOWN), run_time=time)
+                    new_array, new_array_mobj = swap(array, array_mobj, i, i + 1, aligned_edge=RIGHT if i == 0 else LEFT)
+                    self.play(TransformMatchingCells(array_mobj, new_array_mobj, path_arc=PI/3), run_time=time * 7)
+                    self.play(arrow.animate.shift(0.4 * DOWN), run_time=time)
+                    if not changed:
+                        self.play(*[RemoveTextLetterByLetter(d.chars[1], run_time=0.01 * len(d.chars[1])) for d in debugs])
+                        changed = True
+                        debug = get_debug(6, changed, i)
+                        debugs.append(debug)
+                        self.play(AddTextLetterByLetter(debug.chars[1], run_time=0.05 * len(debug.chars[1])))
+                    self.wait(time)
+                    array, array_mobj = new_array, new_array_mobj
+                else:
+                    self.wait(2 * time)
+
+                # Move to the start of the inner loop
+                if i != len(run_times) - 1:
+                    self.remove(*[d.chars[2] for d in debugs[:-1]])
+                    self.play(
+                        arrow.animate.shift(1.2 * UP if entered_if else 0.4 * UP),
+                        run_time=time,
+                    )
+
+                self.play(*highlight(array, i, i + 1, BLUE_BACKGROUND, 0), run_time=time / 10)
+            self.play(*highlight(array, 0, len(run_times) + 1, BLUE_BACKGROUND, 0), run_time=0.1)
+            self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
+            if not changed:
+                self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
+            else:
+                self.play(arrow.animate.shift(2.4 * UP), run_time=0.2)
+            self.wait(0.1)
+            self.remove(*[d.chars for d in debugs[:-1]])
+            self.play(RemoveTextLetterByLetter(debugs[-1].chars[2], run_time=0.01 * len(debugs[-1].chars[2])))
+            self.play(RemoveTextLetterByLetter(debugs[-1].chars[1], run_time=0.01 * len(debugs[-1].chars[1])))
+            debug = debugs[-1]
+
+        sweep([0.08, 0.08, 0.08, 0.08, 0.08, 0.08])
+        self.wait(1)
