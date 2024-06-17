@@ -597,3 +597,97 @@ class Implementation(Scene):
         # Circumscribe the code
         self.play(Circumscribe(code), run_time=0.5)
         self.wait(0.1)
+
+
+class Optimization1(Scene):
+    def construct(self):
+        title = Title('Bubble Sort Implementation', include_underline=False)
+        self.add(title)
+
+        array = Array(a, color=BLACK, cell_type='bubble')
+        array_mobj = array.get_mobject().center().shift(1.5 * UP)
+        a_text = Tex('a:').scale(0.9).next_to(array_mobj, LEFT)
+
+        indices = Array(
+            [i for i in range(len(array))],
+            width=array.width, height=array.height,
+            spacing=array.spacing, scale_text=array.scale_text, stroke_color=BLACK,
+        )
+        indices_mobj = indices.get_mobject().center().next_to(array_mobj, 0.1 * UP)
+        self.add(a_text, array_mobj, indices_mobj)
+
+        code = Code(
+            code=dedent('''
+                for _ in range(len(a) - 1):
+                    for i in range(len(a) - 1):
+                        if a[i] > a[i + 1]:
+                            a[i], a[i + 1] = a[i + 1], a[i]
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).next_to(array_mobj, DOWN).shift(0.5 * RIGHT).code
+        self.add(code)
+
+        self.play(Indicate(code.chars[1], run_time=0.5))
+        self.play(Indicate(code.chars[-1], run_time=0.5))
+        self.wait(0.1)
+
+        # Run bubble-sort animation for 1 sweep
+        def sweep(run_times: list):
+            nonlocal array, array_mobj
+            for i, time in enumerate(run_times):
+                self.play(*highlight(array, i, i + 2, ORANGE, 5), run_time=time)
+                self.wait(time)
+                if array.values[i] > array.values[i + 1]:
+                    new_array, new_array_mobj = swap(array, array_mobj, i, i + 1, aligned_edge=RIGHT if i == 0 else LEFT)
+                    self.play(TransformMatchingCells(array_mobj, new_array_mobj, path_arc=PI/3), run_time=time * 7)
+                    self.wait(time)
+                    array, array_mobj = new_array, new_array_mobj
+                else:
+                    self.wait(2 * time)
+
+                self.play(*highlight(array, i, i + 1, BLUE_BACKGROUND, 0), run_time=time / 10)
+            self.play(*highlight(array, 0, len(run_times) + 1, BLUE_BACKGROUND, 0), run_time=0.1)
+
+        sweep([0.04, 0.04, 0.04, 0.04, 0.04, 0.04])
+        self.play(*highlight(array, 6, 7, GREEN, 5), run_time=0.1)
+        self.wait(0.1)
+
+        sweep([0.04, 0.04, 0.04, 0.04, 0.04])
+        self.play(*highlight(array, 5, 6, GREEN, 5), run_time=0.1)
+        self.wait(0.1)
+
+        self.play(Circumscribe(VGroup(*array.cells[:-2]), run_time=0.5))
+        self.play(Indicate(code.chars[0], run_time=0.5))
+
+        optimized_code = Code(
+            code=dedent('''
+                for u in range(len(a) - 1, 0, -1):
+                    for i in range(u):
+                        if a[i] > a[i + 1]:
+                            a[i], a[i + 1] = a[i + 1], a[i]
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).next_to(array_mobj, DOWN).shift(0.3 * RIGHT).code
+
+        self.play(Indicate(array.cells[-1], run_time=0.5))
+        self.play(Indicate(array.cells[-2], run_time=0.5))
+        self.play(Indicate(array.cells[-3], run_time=0.5))
+        self.wait(0.1)
+
+        self.play(RemoveTextLetterByLetter(code.chars[0], run_time=0.05 * len(code.chars[0])))
+        self.play(AddTextLetterByLetter(optimized_code.chars[0], run_time=0.05 * len(optimized_code.chars[0])))
+
+        self.play(RemoveTextLetterByLetter(code.chars[-1], run_time=0.05 * len(code.chars[1])))
+        self.play(AddTextLetterByLetter(optimized_code.chars[-1], run_time=0.05 * len(optimized_code.chars[-1])))
+
+        code.become(optimized_code)
+        self.play(ApplyWave(code, run_time=0.5))
+
