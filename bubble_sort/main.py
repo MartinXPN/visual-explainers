@@ -7,6 +7,7 @@ from bubble_sort.clock import Clock
 
 a = [12, 3, 5, 9, 4, 1, 7]
 ORANGE = ManimColor('#fa541c')
+BLUE_BACKGROUND = ManimColor('#ADD8E6')
 
 
 class Introduction(Scene):
@@ -72,7 +73,7 @@ class IntroductionClock(Scene):
         self.play(clock.ht.animate.set_value(20), FadeOut(clock), run_time=2, rate_func=linear)
 
 
-def swap(array: Array, array_mobj: VGroup, i: int, j: int):
+def swap(array: Array, array_mobj: VGroup, i: int, j: int, aligned_edge=ORIGIN):
     new_values = array.values.copy()
     new_values[i], new_values[j] = new_values[j], new_values[i]
     new_array = Array(
@@ -86,22 +87,34 @@ def swap(array: Array, array_mobj: VGroup, i: int, j: int):
         width=array.width,
         spacing=array.spacing,
         scale_text=array.scale_text,
+        cell_type=array.cell_type,
     )
 
-    new_array_mobj = new_array.get_mobject().move_to(array_mobj)
+    new_array_mobj = new_array.get_mobject().move_to(array_mobj, aligned_edge=aligned_edge)
     for i in range(len(array.labels)):
-        new_array.cells[i].set_stroke(
-            color=array.cells[i].get_stroke_color(),
-            width=array.cells[i].get_stroke_width(),
-        )
+        if array.cell_type == 'rectangle':
+            new_array.cells[i].set_stroke(
+                color=array.cells[i].get_stroke_color(),
+                width=array.cells[i].get_stroke_width(),
+            )
+        else:
+            for j in range(len(new_array.cells[i])):
+                new_array.cells[i][j].set_fill(color=array.cells[i][j].get_fill_color())
 
     return new_array, new_array_mobj
 
 
-def highlight(array: Array, start: int, end: int, color, width=5.):
-    return [
-        *[rect.animate.set_stroke(color=color, width=width) for rect in array.cells[start: end]],
-    ]
+def highlight(array: Array, start: int, end: int, color: ManimColor, width=5.):
+    if array.cell_type == 'rectangle':
+        return [
+            *[rect.animate.set_stroke(color=color, width=width) for rect in array.cells[start: end]],
+        ]
+    else:    # SVG => change the background color (id="background")
+        darker = interpolate_color(color, BLACK, 0.1)
+        return [
+            *[rect[1].animate.set_fill(color=color) for rect in array.cells[start: end]],
+            *[rect[3].animate.set_fill(color=darker) for rect in array.cells[start: end]],
+        ]
 
 
 class Intuition(Scene):
@@ -183,5 +196,285 @@ class Intuition(Scene):
 
         # Bring the array to the initial state
         self.play(FadeOut(left_arrow, right_arrow), run_time=0.5)
-        self.play(TransformMatchingCells(new_swapped_mobj, array_mobj, path_arc=PI/2), run_time=0.5)
-        self.wait(0.5)
+        self.play(TransformMatchingCells(new_swapped_mobj, array_mobj, path_arc=PI/3), run_time=0.5)
+        self.wait(0.1)
+
+        # Run bubble-sort animation for 1 sweep
+        def sweep(run_times: list):
+            nonlocal array, array_mobj
+            for i, time in enumerate(run_times):
+                self.play(*highlight(array, i, i + 2, ORANGE, 5), run_time=time)
+                self.wait(time)
+                if array.values[i] > array.values[i + 1]:
+                    new_array, new_array_mobj = swap(array, array_mobj, i, i + 1)
+                    self.play(TransformMatchingCells(array_mobj, new_array_mobj, path_arc=PI/3), run_time=time * 7)
+                    self.wait(time)
+                    array, array_mobj = new_array, new_array_mobj
+                else:
+                    self.play(Indicate(array.labels[i]), run_time=3 * time)
+                    self.play(Indicate(array.labels[i + 1]), run_time=3 * time)
+
+                self.play(*highlight(array, i, i + 1, WHITE, 2), run_time=time / 10)
+            self.play(*highlight(array, 0, len(array), WHITE, 2), run_time=0.1)
+
+        sweep([0.1, 0.1, 0.07, 0.07, 0.07, 0.07])
+        self.wait(0.1)
+        sweep([0.1, 0.1, 0.07, 0.07, 0.07])
+        self.wait(0.1)
+
+        # Circumscribe the last 2 elements
+        self.play(Circumscribe(array.labels[-1], Circle), run_time=0.5)
+        self.play(Circumscribe(array.labels[-2], Circle), run_time=0.5)
+        self.wait(0.1)
+
+        self.play(ReplacementTransform(title, Title('Bubble Sort', include_underline=False)), run_time=0.5)
+        initial_array = Array(a)
+        initial_array_mobj = initial_array.get_mobject().center().shift(1.5 * UP)
+        self.play(TransformMatchingCells(array_mobj, initial_array_mobj, path_arc=PI/3), run_time=0.5)
+        self.wait(1)
+
+
+class IntuitionBehindNaming(Scene):
+    def construct(self):
+        title = Title('Bubble Sort', include_underline=False)
+        self.add(title)
+
+        array = Array(a)
+        array_mobj = array.get_mobject().center().shift(1.5 * UP)
+        a_text = Tex('a:').scale(0.9).next_to(array_mobj, LEFT)
+
+        indices = Array(
+            [i for i in range(len(array))],
+            width=array.width, height=array.height,
+            spacing=array.spacing, scale_text=array.scale_text, stroke_color=BLACK,
+        )
+        indices_mobj = indices.get_mobject().center().next_to(array_mobj, 0.1 * UP)
+        self.add(a_text, array_mobj, indices_mobj)
+        self.wait(0.1)
+
+        # Turn all the cell rectangles into bubbles
+        array_mobj.z_index = 1
+        for i, cell in enumerate(array.cells):
+            bubble = SVGMobject(
+                'bubble_sort/bubble.svg',
+            ).scale(0.25 + (0.03 * array.values[i])).move_to(cell.get_center())
+            self.play(
+                ReplacementTransform(cell, bubble),
+                array.labels[i].animate.set_color(BLACK),
+                run_time=0.06,
+            )
+            array.cells[i] = bubble
+            self.wait(0.1)
+
+        array.cell_type = 'bubble'
+        array.color = BLACK
+
+        # Run bubble-sort animation for 1 sweep
+        def sweep(run_times: list):
+            nonlocal array, array_mobj
+            for i, time in enumerate(run_times):
+                self.play(*highlight(array, i, i + 2, ORANGE, 5), run_time=time)
+                self.wait(time)
+                if array.values[i] > array.values[i + 1]:
+                    new_array, new_array_mobj = swap(array, array_mobj, i, i + 1, aligned_edge=RIGHT if i == 0 else LEFT)
+                    self.play(TransformMatchingCells(array_mobj, new_array_mobj, path_arc=PI/3), run_time=time * 7)
+                    self.wait(time)
+                    array, array_mobj = new_array, new_array_mobj
+                else:
+                    self.wait(2 * time)
+
+                self.play(*highlight(array, i, i + 1, BLUE_BACKGROUND, 0), run_time=time / 10)
+            self.play(*highlight(array, 0, len(array), BLUE_BACKGROUND, 0), run_time=0.1)
+
+        # Sweep + Highlight 12 at the end
+        sweep([0.07, 0.06, 0.05, 0.05, 0.06, 0.06])
+        self.play(Indicate(array.labels[-1], scale_factor=2, color=ORANGE), run_time=0.5)
+        self.wait(0.1)
+
+        # Sweep + Highlight 9 at the end
+        sweep([0.07, 0.06, 0.05, 0.06, 0.06])
+        self.play(Indicate(array.labels[-2], scale_factor=2, color=ORANGE), run_time=0.5)
+        self.wait(0.1)
+
+        sweep([0.05, 0.05, 0.05, 0.05])
+        sweep([0.05, 0.05, 0.05])
+        sweep([0.05, 0.05])
+        sweep([0.05])
+
+        for i in range(len(array)):
+            self.play(*highlight(array, i, i + 1, ORANGE, 5), run_time=0.1)
+            self.play(*highlight(array, i, i + 1, BLUE_BACKGROUND, 0), run_time=0.01)
+        self.wait(0.1)
+
+        # Change the bubbles back to rectangles
+        rectangles = [
+            Rectangle(
+                height=array.height,
+                width=array.width,
+                fill_color=array.fill_color,
+                fill_opacity=array.fill_opacity,
+                stroke_width=array.stroke_width[i],
+                stroke_color=array.stroke_color[i],
+            ).move_to(cell.get_center())
+            for i, cell in enumerate(array.cells)
+        ]
+        self.play(*[
+            ReplacementTransform(cell, rectangle)
+            for cell, rectangle in zip(array.cells, rectangles)
+        ], *[
+            array.labels[i].animate.set_color(WHITE)
+            for i in range(len(array.labels))
+        ], run_time=2)
+        array.cells = rectangles
+        self.wait(0.1)
+
+        # Bring back the bubbles
+        bubbles = [
+            SVGMobject(
+                'bubble_sort/bubble.svg',
+            ).scale(0.25 + (0.03 * array.values[i])).move_to(cell.get_center())
+            for i, cell in enumerate(array.cells)
+        ]
+        self.play(*[
+            ReplacementTransform(cell, bubble)
+            for cell, bubble in zip(array.cells, bubbles)
+        ], *[
+            array.labels[i].animate.set_color(BLACK)
+            for i in range(len(array.labels))
+        ], run_time=2)
+        array.cells = bubbles
+        self.wait(0.1)
+
+        # Bring the array to the initial state
+        initial_array = Array(a, color=BLACK, cell_type='bubble')
+        initial_array_mobj = initial_array.get_mobject().center().shift(1.5 * UP)
+        self.play(TransformMatchingCells(array_mobj, initial_array_mobj, path_arc=PI/3), run_time=0.5)
+        self.wait(1)
+
+
+class IntuitionDetails(Scene):
+    def construct(self):
+        title = Title('Bubble Sort', include_underline=False)
+        self.add(title)
+
+        array = Array(a, color=BLACK, cell_type='bubble')
+        array_mobj = array.get_mobject().center().shift(1.5 * UP)
+        a_text = Tex('a:').scale(0.9).next_to(array_mobj, LEFT)
+
+        indices = Array(
+            [i for i in range(len(array))],
+            width=array.width, height=array.height,
+            spacing=array.spacing, scale_text=array.scale_text, stroke_color=BLACK,
+        )
+        indices_mobj = indices.get_mobject().center().next_to(array_mobj, 0.1 * UP)
+        self.add(a_text, array_mobj, indices_mobj)
+        self.wait(0.1)
+
+        # Run bubble-sort animation for 1 sweep
+        def sweep(run_times: list):
+            nonlocal array, array_mobj
+            for i, time in enumerate(run_times):
+                self.play(*highlight(array, i, i + 2, ORANGE, 5), run_time=time)
+                self.wait(time)
+                if array.values[i] > array.values[i + 1]:
+                    new_array, new_array_mobj = swap(array, array_mobj, i, i + 1, aligned_edge=RIGHT if i == 0 else LEFT)
+                    self.play(TransformMatchingCells(array_mobj, new_array_mobj, path_arc=PI/3), run_time=time * 7)
+                    self.wait(time)
+                    array, array_mobj = new_array, new_array_mobj
+                else:
+                    self.wait(2 * time)
+
+                self.play(*highlight(array, i, i + 1, BLUE_BACKGROUND, 0), run_time=time / 10)
+            self.play(*highlight(array, 0, len(run_times) + 1, BLUE_BACKGROUND, 0), run_time=0.1)
+
+        sweep([0.08, 0.07, 0.05, 0.05, 0.05, 0.05])
+        self.play(Indicate(array.labels[-1], scale_factor=2, color=ORANGE), run_time=0.5)
+        self.play(*highlight(array, 6, 7, GREEN, 5), run_time=0.1)
+        self.wait(0.1)
+
+        sweep([0.09, 0.07, 0.05, 0.05, 0.05])
+        self.play(Indicate(array.labels[-2], scale_factor=2, color=ORANGE), run_time=0.5)
+        self.play(*highlight(array, 5, 6, GREEN, 5), run_time=0.1)
+        self.wait(0.1)
+
+        self.play(Indicate(array.labels[-2], scale_factor=2, color=ORANGE), run_time=0.5)
+        self.play(Indicate(array.labels[-1], scale_factor=2, color=ORANGE), run_time=0.5)
+        self.wait(0.1)
+
+        sweep([0.05, 0.05, 0.05, 0.05])
+        self.play(Indicate(array.labels[-3], scale_factor=2, color=ORANGE), run_time=0.5)
+        self.play(*highlight(array, 4, 5, GREEN, 5), run_time=0.1)
+        self.wait(0.1)
+
+        self.play(Indicate(array.labels[-4], scale_factor=2, color=ORANGE), run_time=0.5)
+        self.wait(0.1)
+
+        sweep([0.05, 0.05, 0.05])
+        self.play(*highlight(array, 3, 4, GREEN, 5), run_time=0.1)
+        self.wait(0.1)
+
+        # Indicate one by one 4, 5, 7, 9, 12
+        for label in array.labels[2:]:
+            self.play(Indicate(label, scale_factor=2, color=ORANGE), run_time=0.3)
+            self.wait(0.1)
+
+        sweep([0.05, 0.05])
+        self.play(*highlight(array, 2, 3, GREEN, 5), run_time=0.1)
+        self.wait(0.1)
+
+        # Indicate one by one all the elements from left to right
+        for label in array.labels:
+            self.play(Indicate(label, scale_factor=2, color=ORANGE), run_time=0.3)
+            self.wait(0.1)
+
+        sweep([0.05])
+        self.play(*highlight(array, 1, 2, GREEN, 5), run_time=0.1)
+        self.wait(0.1)
+        self.play(*highlight(array, 0, 1, GREEN, 5), run_time=0.1)
+        self.wait(0.1)
+
+        # Highlight with BLUE_BACKGROUND one by one from right to left
+        for i in range(len(array) - 1, -1, -1):
+            self.play(*highlight(array, i, i + 1, ORANGE, 0), run_time=0.2)
+            self.play(*highlight(array, i, i + 1, BLUE_BACKGROUND, 0), run_time=0.1)
+            self.wait(0.1)
+
+        # Brace for all the elements with n at the bottom
+        brace = Brace(indices_mobj, DOWN, color=ORANGE).move_to(array_mobj, DOWN).shift(0.4 * DOWN)
+        n = brace.get_text('n', buff=0.1).set_color(ORANGE)
+        self.play(Create(brace), Create(n), run_time=0.2)
+        self.wait(0.1)
+
+        # Bring the array to the initial state
+        initial_array = Array(a, color=BLACK, cell_type='bubble')
+        initial_array_mobj = initial_array.get_mobject().center().shift(1.5 * UP)
+        self.play(TransformMatchingCells(array_mobj, initial_array_mobj, path_arc=PI/3), run_time=0.5)
+        self.wait(0.1)
+
+
+class IntuitionBehindN1Loops(Scene):
+    def construct(self):
+        title = Title('Bubble Sort', include_underline=False)
+        self.add(title)
+
+        array = Array(a, color=BLACK, cell_type='bubble')
+        array_mobj = array.get_mobject().center().shift(1.5 * UP)
+        a_text = Tex('a:').scale(0.9).next_to(array_mobj, LEFT)
+
+        indices = Array(
+            [i for i in range(len(array))],
+            width=array.width, height=array.height,
+            spacing=array.spacing, scale_text=array.scale_text, stroke_color=BLACK,
+        )
+        indices_mobj = indices.get_mobject().center().next_to(array_mobj, 0.1 * UP)
+        self.add(a_text, array_mobj, indices_mobj)
+
+        brace = Brace(indices_mobj, DOWN, color=ORANGE).move_to(array_mobj, DOWN).shift(0.4 * DOWN)
+        n = brace.get_text('n', buff=0.1).set_color(ORANGE)
+        self.add(brace, n)
+        self.wait(0.1)
+
+        # Add counter = 0
+        counter = Variable(0, Text('Counter').scale(0.9), var_type=Integer, color=ORANGE).next_to(n, DOWN)
+        self.play(Write(counter), run_time=0.5)
+        self.wait(0.1)

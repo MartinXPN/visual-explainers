@@ -18,7 +18,8 @@ class Array:
     spacing: float = 0.1
     scale_text: float = 0.7
 
-    cells: list[Rectangle] = field(default_factory=lambda: [])
+    cell_type: str = 'rectangle'  # 'rectangle' or 'bubble'
+    cells: list[Rectangle | SVGMobject] = field(default_factory=lambda: [])
     labels: list[VMobject] = field(default_factory=lambda: [])
 
     def __post_init__(self):
@@ -41,16 +42,24 @@ class Array:
                 stroke_color=self.stroke_color[i],
             )
             rectangle.shift(i * (self.width + self.spacing) * RIGHT)
-            self.cells.append(rectangle)
+            if self.cell_type == 'rectangle':
+                self.cells.append(rectangle)
+            elif self.cell_type == 'bubble':
+                bubble = SVGMobject('bubble_sort/bubble.svg')
+                bubble.scale(0.25 + (0.03 * self.values[i]))
+                bubble.move_to(rectangle.get_center())
+                self.cells.append(bubble)
+            else:
+                raise ValueError(f'Invalid cell type: {self.cell_type}')
         return self.cells
 
     def get_labels(self):
-        rectangles = self.get_cells() if not self.cells else self.cells
+        cells = self.get_cells() if not self.cells else self.cells
         self.labels = []
         for i, value in enumerate(self.values):
             label = Tex(str(value) if value is not None else '', color=self.color)
             label.scale(self.scale_text)
-            label.move_to(rectangles[i])
+            label.move_to(cells[i])
             self.labels.append(label)
         return self.labels
 
