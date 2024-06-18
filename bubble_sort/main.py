@@ -1300,7 +1300,7 @@ class TimeComplexity(Scene):
         ).next_to(array_mobj, DOWN).shift(0.15 * DOWN).shift(0.25 * RIGHT).code
         self.add(code)
         self.wait(0.1)
-        self.play(VGroup(*code.chars).animate.shift(1.5 * LEFT))
+        self.play(VGroup(*code.chars).animate.shift(1.5 * LEFT).shift(0.6 * DOWN), run_time=0.5)
 
         # Arrow to show which part of the code is being executed
         arrow = Arrow(
@@ -1410,12 +1410,12 @@ class TimeComplexity(Scene):
         self.wait(0.1)
 
         # Write “Best Case: O(n)”
-        best_case = Tex(r'Best Case: $\mathcal{O}(n)$').scale(0.8).next_to(code, RIGHT).shift(DOWN)
+        best_case = Tex(r'Best Case: $\mathcal{O}(n)$').scale(0.8).next_to(code, UP).shift(3 * LEFT).shift(0.2 * UP)
         self.play(Write(best_case), run_time=0.5)
         self.wait(0.1)
 
         # Write “Worst Case:"
-        worst_case = Tex(r'Worst Case:').scale(0.8).next_to(best_case, DOWN).align_to(best_case, LEFT)
+        worst_case = Tex(r'Worst Case:').scale(0.8).next_to(best_case, RIGHT, buff=0.5)
         self.play(Write(worst_case), run_time=0.5)
         self.play(arrow.animate.next_to(code, LEFT).align_to(code, UP).shift(0.08 * DOWN), run_time=0.5)
         self.wait(0.1)
@@ -1445,3 +1445,58 @@ class TimeComplexity(Scene):
         sweep([0.08, 0.08, 0.08, 0.08, 0.08, 0.08], 6)
         self.wait(0.1)
 
+        # Write (n - 1) next to worst case
+        n_1 = Tex(r'$(n - 1)$').scale(0.8).next_to(worst_case, RIGHT)
+        self.play(Write(n_1), run_time=0.5)
+        self.wait(0.1)
+
+        debug = before_sweep(5)
+        sweep([0.08, 0.08, 0.08, 0.08, 0.08], 5)
+        self.wait(0.1)
+
+        # Write (n - 2) next to n-1
+        n_2 = Tex(r'$ + (n - 2)$').scale(0.8).next_to(n_1, RIGHT)
+        self.play(Write(n_2), run_time=0.5)
+        self.wait(0.1)
+
+        debug = before_sweep(4)
+        sweep([0.08, 0.08, 0.08, 0.08], 4)
+        self.wait(0.1)
+
+        # Write (n - 3) next to n-2
+        n_3 = Tex(r'$ + (n - 3)$').scale(0.8).next_to(n_2, RIGHT)
+        self.play(Write(n_3), run_time=0.5)
+        self.wait(0.1)
+
+        # Write + ... + 1
+        dots = Tex(r'$ + \ldots + $').scale(0.8).next_to(n_3, RIGHT)
+        one = Tex(r'$1$').scale(0.8).next_to(dots, RIGHT)
+        self.play(Write(dots), run_time=0.5)
+        self.play(Write(one), run_time=0.2)
+        self.wait(0.1)
+
+        # - [ ]  Indicate `n - 1`
+        # - [ ]  Indicate `1`
+        # - [ ]  Write `= n * (n - 1) / 2`
+        self.play(Indicate(n_1), run_time=0.5)
+        self.play(Indicate(one), run_time=0.5)
+        self.wait(0.1)
+
+        # Write `= n * (n - 1) / 2`
+        total = Tex(r'$= n \cdot (n - 1) / 2$').scale(0.8).next_to(one, RIGHT)
+        self.play(Write(total), run_time=0.5)
+        self.wait(0.1)
+
+        # - [ ]  Write `= (n^2 - n) / 2`
+        # - [ ]  Write `= O(n^2)`
+        n_square = Tex(r'$ = (n^2 - n) / 2 = $').scale(0.8).next_to(total, RIGHT)
+        o_n_square = Tex(r'$\mathcal{O}(n^2)$').scale(0.8).next_to(n_square, RIGHT)
+        self.play(Write(n_square), run_time=0.5)
+        self.play(Write(o_n_square), run_time=0.5)
+
+        # Remove all the calculations and leave only o_n_square next to worst_case
+        self.play(
+            FadeOut(n_1, n_2, n_3, dots, one, total, n_square),
+            o_n_square.animate.next_to(worst_case, RIGHT),
+            run_time=0.5,
+        )
