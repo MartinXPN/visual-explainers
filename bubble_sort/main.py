@@ -1033,8 +1033,415 @@ class StableSorting(Scene):
         self.add(code)
         self.wait(0.1)
 
-        # Highlight different 7s with different colors
-        ...
+        # Highlight different 7s with different colors ([12, 7, 5, 7, 7, 1, 7])
+        colors = [RED_A, RED_B, RED_C, RED_E]
+        self.play(*highlight(array, 1, 2, colors[0], 0), run_time=0.1)
+        self.play(*highlight(array, 3, 4, colors[1], 0), run_time=0.1)
+        self.play(*highlight(array, 4, 5, colors[2], 0), run_time=0.1)
+        self.play(*highlight(array, 6, 7, colors[3], 0), run_time=0.1)
 
+        # Make a copy and move the copies of colored 7s down
+        sevens = [VGroup(array.cells[i].copy(), array.labels[i].copy()) for i in [1, 3, 4, 6]]
+        self.play(*[seven.animate.shift(1.1 * DOWN) for seven in sevens], code.animate.shift(0.6 * DOWN))
+
+        # Draw arrows between the colored 7s
+        arrows = []
+        for seven, next_seven in zip(sevens, sevens[1:]):
+            arrow = Arrow(seven, next_seven, color=RED, buff=0.1, stroke_width=10)
+            arrows.append(arrow)
+            self.play(Create(arrow), run_time=0.2)
+
+        self.play(LaggedStart(*[FadeOut(arrow) for arrow in arrows], lag_ratio=0.5), run_time=0.8)
+
+        # Swap the place of the 2nd and 3rd 7 (sevens)
+        first_path = ArcBetweenPoints(sevens[1].get_center(), sevens[2].get_center(), angle=PI/2)
+        second_path = ArcBetweenPoints(sevens[2].get_center(), sevens[1].get_center(), angle=PI/2)
+        self.play(MoveAlongPath(sevens[1], first_path), MoveAlongPath(sevens[2], second_path), run_time=0.5)
+
+        # Change the places of the 1st and 4th 7 (sevens)
+        first_path = ArcBetweenPoints(sevens[0].get_center(), sevens[3].get_center(), angle=PI/2)
+        second_path = ArcBetweenPoints(sevens[3].get_center(), sevens[0].get_center(), angle=PI/2)
+        self.play(MoveAlongPath(sevens[0], first_path), MoveAlongPath(sevens[3], second_path), run_time=0.5)
+
+        # Restore the original order of 7s
+        first_path = ArcBetweenPoints(sevens[2].get_center(), sevens[1].get_center(), angle=PI/2)
+        second_path = ArcBetweenPoints(sevens[1].get_center(), sevens[2].get_center(), angle=PI/2)
+        self.play(MoveAlongPath(sevens[2], first_path), MoveAlongPath(sevens[1], second_path), run_time=0.5)
+
+        first_path = ArcBetweenPoints(sevens[3].get_center(), sevens[0].get_center(), angle=PI/2)
+        second_path = ArcBetweenPoints(sevens[0].get_center(), sevens[3].get_center(), angle=PI/2)
+        self.play(MoveAlongPath(sevens[3], first_path), MoveAlongPath(sevens[0], second_path), run_time=0.5)
+
+        # Bring back the arrows
+        self.play(LaggedStart(*[Create(arrow) for arrow in arrows], lag_ratio=0.5), run_time=0.8)
+
+        # Title → “Is Bubble Sort Stable?”
+        new_title = Title('Is Bubble Sort Stable?', include_underline=False)
+        self.play(ReplacementTransform(title, new_title), run_time=0.5)
+
+        # Fade out the copies of 7s
+        self.play(
+            *[FadeOut(seven) for seven in sevens],
+            *[FadeOut(arr) for arr in arrows],
+            code.animate.shift(0.6 * UP),
+            run_time=0.8,
+        )
+        self.play(VGroup(*code.chars).animate.shift(1.5 * LEFT), run_time=0.5)
+
+        # Arrow to show which part of the code is being executed
+        arrow = Arrow(
+            start=LEFT, end=RIGHT, color=RED, buff=0.1,
+            stroke_width=10, max_stroke_width_to_length_ratio=15,
+            max_tip_length_to_length_ratio=0.5, tip_length=0.2,
+        ).scale(0.3).next_to(code, LEFT).align_to(code, UP).shift(0.08 * DOWN)
+        self.play(Create(arrow), run_time=0.5)
+
+        # show real-time values to better understand the code
+        def get_debug(u, changed, i):
+            res = Code(
+                code=dedent(f'''
+                # {u}
+                # {changed}
+                # {i}
+                ''').strip(),
+                tab_width=4,
+                language='Python',
+                line_spacing=0.6,
+                font='Monospace',
+                style='monokai',
+            ).next_to(code, RIGHT).align_to(code, UP).shift(0.25 * UP).code
+            return res
+
+        def before_sweep(u: int):
+            debug = get_debug(u, False, 0)
+            self.play(AddTextLetterByLetter(debug.chars[0], run_time=0.05 * len(debug.chars[0])))
+            self.wait(0.5)
+
+            self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
+            self.wait(0.1)
+            self.play(AddTextLetterByLetter(debug.chars[1], run_time=0.05 * len(debug.chars[1])))
+            self.wait(0.1)
+
+            # Move the arrow to the inner loop
+            self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
+            return debug
+
+        # Run bubble-sort animation for 1 sweep
+        def sweep(run_times: list, u: int):
+            nonlocal array, array_mobj, debug
+            debugs = [debug]
+            changed = entered_if = False
+            for i, time in enumerate(run_times):
+                # Add the debug value for the current iteration
+                debug = get_debug(u, changed, i)
+                debugs.append(debug)
+                self.play(ReplacementTransform(debugs[-2].chars[2], debugs[-1].chars[2]), run_time=time)
+                self.wait(time)
+
+                self.play(arrow.animate.shift(0.4 * DOWN), run_time=time)
+                self.play(*highlight(array, i, i + 2, ORANGE, 5), run_time=time)
+                self.wait(2 * time)
+                entered_if = False
+                if array.values[i] > array.values[i + 1]:
+                    entered_if = True
+                    self.play(arrow.animate.shift(0.4 * DOWN), run_time=time)
+                    new_array, new_array_mobj = swap(array, array_mobj, i, i + 1, aligned_edge=RIGHT if i == 0 else LEFT)
+                    self.play(TransformMatchingCells(array_mobj, new_array_mobj, path_arc=PI/3), run_time=time * 7)
+                    self.play(arrow.animate.shift(0.4 * DOWN), run_time=time)
+                    if not changed:
+                        self.play(*[RemoveTextLetterByLetter(d.chars[1], run_time=0.01 * len(d.chars[1])) for d in debugs])
+                        changed = True
+                        debug = get_debug(u, changed, i)
+                        debugs.append(debug)
+                        self.play(AddTextLetterByLetter(debug.chars[1], run_time=0.05 * len(debug.chars[1])))
+                    self.wait(time)
+                    array, array_mobj = new_array, new_array_mobj
+                else:
+                    self.wait(2 * time)
+
+                # Move to the start of the inner loop
+                if i != len(run_times) - 1:
+                    self.remove(*[d.chars[2] for d in debugs[:-1]])
+                    self.play(
+                        arrow.animate.shift(1.2 * UP if entered_if else 0.4 * UP),
+                        run_time=time,
+                    )
+
+                if array.values[i] != 7:
+                    self.play(*highlight(array, i, i + 1, BLUE_BACKGROUND, 0), run_time=time / 10)
+                else:
+                    # Count the number of 7s before i
+                    nb_sevens = len([val for val in array.values[:i] if val == 7])
+                    self.play(*highlight(array, i, i + 1, colors[nb_sevens], 0), run_time=time / 10)
+
+            # Move to the `if not changed` part
+            nb_sevens = len([val for val in array.values[:len(run_times)] if val == 7])
+            self.play(
+                arrow.animate.shift(0.4 * DOWN if entered_if else 1.2 * DOWN),
+                *(highlight(array, len(run_times), len(run_times) + 1, GREEN, 5)
+                  if array.values[len(run_times)] != 7
+                  else highlight(array, len(run_times), len(run_times) + 1, colors[nb_sevens], 0)),
+                run_time=0.2,
+            )
+            self.wait(0.1)
+            if not changed:
+                self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
+            else:
+                self.play(arrow.animate.shift(2.4 * UP), run_time=0.2)
+            self.wait(0.1)
+
+            # Make sure we properly delete the unnecessary debug values
+            self.add(debugs[-1])
+            self.remove(*[d.chars[2] for d in debugs[:-1]])
+            self.remove(*[d.chars[1] for d in debugs[:-1]])
+            self.remove(*[d.chars[0] for d in debugs[:-1]])
+            self.play(RemoveTextLetterByLetter(debugs[-1].chars[2], run_time=0.01 * len(debugs[-1].chars[2])))
+            self.play(RemoveTextLetterByLetter(debugs[-1].chars[1], run_time=0.01 * len(debugs[-1].chars[1])))
+            self.play(RemoveTextLetterByLetter(debugs[-1].chars[0], run_time=0.01 * len(debugs[-1].chars[0])))
+
+        debug = before_sweep(6)
+        sweep([0.08, 0.08, 0.08, 0.08, 0.08, 0.08], 6)
+        self.wait(0.1)
+
+        debug = before_sweep(5)
+        sweep([0.08, 0.08, 0.08, 0.08, 0.08], 5)
+        self.wait(0.1)
+
+        debug = before_sweep(4)
+        sweep([0.08, 0.08, 0.08, 0.08], 4)
+        self.wait(0.1)
+
+        self.play(FadeOut(arrow), code.animate.shift(1.5 * RIGHT), run_time=0.5)
+        self.wait(0.1)
+
+        # Indicate the `if` condition
+        self.play(Indicate(code.chars[3], run_time=0.5))
+        self.wait(0.1)
+
+        # Title -> "Bubble sort is stable"
+        title = Title('Bubble Sort is Stable', include_underline=False)
+        self.play(ReplacementTransform(new_title, title), run_time=0.5)
+        self.wait(0.1)
+
+        # Circumscribe the array
+        self.play(Circumscribe(VGroup(*array.cells), run_time=0.5))
+
+        new_title = Title('In-place Sorting', include_underline=False)
+        self.play(ReplacementTransform(title, new_title), run_time=0.5)
+        self.wait(0.1)
+
+        # Indicate the array
+        self.play(*[Indicate(cell, scale_factor=1.5) for cell in array.cells], run_time=0.5)
+        self.wait(0.1)
+
+        # Indicate the code
+        self.play(Indicate(code.chars, run_time=0.5))
+
+        # title -> Properties
+        title = Title('Properties', include_underline=False)
+        self.play(ReplacementTransform(new_title, title), run_time=0.5)
+
+        self.play(code.animate.shift(0.6 * DOWN), run_time=0.5)
+        # Stable on the left
+        # In-place on the right
+        # Both above the code
+        stable = Text('Stable', color=ORANGE).scale(0.8).next_to(code, UP).shift(3 * LEFT).shift(0.2 * UP)
+        in_place = Text('In-place', color=ORANGE).scale(0.8).next_to(code, UP).shift(2 * RIGHT).shift(0.2 * UP)
+        self.play(Write(stable), run_time=0.5)
+        self.play(Write(in_place), run_time=0.5)
+
+        self.wait()
+
+        # Transition to the next scene
+        new_title = Title('Time Complexity', include_underline=False)
+        self.play(ReplacementTransform(title, new_title), FadeOut(stable, in_place), code.animate.shift(0.6 * UP), run_time=0.5)
+        self.wait(0.1)
+
+        # a = [1, 3, 4, 5, 7, 9, 12]
+        new_array = Array([1, 3, 4, 5, 7, 9, 12], color=BLACK, cell_type='bubble')
+        new_array_mobj = new_array.get_mobject().center().shift(1.5 * UP)
+        self.play(TransformMatchingCells(array_mobj, new_array_mobj, path_arc=PI/3), run_time=0.5)
+        self.wait(1)
+
+
+class TimeComplexity(Scene):
+    def construct(self):
+        title = Title('Time Complexity', include_underline=False)
+        self.add(title)
+
+        array = Array([1, 3, 4, 5, 7, 9, 12], color=BLACK, cell_type='bubble')
+        array_mobj = array.get_mobject().center().shift(1.5 * UP)
+        a_text = Tex('a:').scale(0.9).next_to(array_mobj, LEFT)
+
+        indices = Array(
+            [i for i in range(len(array))],
+            width=array.width, height=array.height,
+            spacing=array.spacing, scale_text=array.scale_text, stroke_color=BLACK,
+        )
+        indices_mobj = indices.get_mobject().center().next_to(array_mobj, 0.1 * UP)
+        self.add(a_text, array_mobj, indices_mobj)
+
+        code = Code(
+            code=dedent('''
+                for u in range(len(a) - 1, 0, -1):
+                    changed = False
+                    for i in range(u):
+                        if a[i] > a[i + 1]:
+                            a[i], a[i + 1] = a[i + 1], a[i]
+                            changed = True
+                    if not changed:
+                        break
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).next_to(array_mobj, DOWN).shift(0.15 * DOWN).shift(0.25 * RIGHT).code
+        self.add(code)
+        self.wait(0.1)
+        self.play(VGroup(*code.chars).animate.shift(1.5 * LEFT))
+
+        # Arrow to show which part of the code is being executed
+        arrow = Arrow(
+            start=LEFT, end=RIGHT, color=RED, buff=0.1,
+            stroke_width=10, max_stroke_width_to_length_ratio=15,
+            max_tip_length_to_length_ratio=0.5, tip_length=0.2,
+        ).scale(0.3).next_to(code, LEFT).align_to(code, UP).shift(0.08 * DOWN)
+        self.play(Create(arrow), run_time=0.5)
+
+        # show real-time values to better understand the code
+        def get_debug(u, changed, i):
+            res = Code(
+                code=dedent(f'''
+                # {u}
+                # {changed}
+                # {i}
+                ''').strip(),
+                tab_width=4,
+                language='Python',
+                line_spacing=0.6,
+                font='Monospace',
+                style='monokai',
+            ).next_to(code, RIGHT).align_to(code, UP).shift(0.25 * UP).code
+            return res
+
+        def before_sweep(u: int):
+            debug = get_debug(u, False, 0)
+            self.play(AddTextLetterByLetter(debug.chars[0], run_time=0.05 * len(debug.chars[0])))
+            self.wait(0.5)
+
+            self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
+            self.wait(0.1)
+            self.play(AddTextLetterByLetter(debug.chars[1], run_time=0.05 * len(debug.chars[1])))
+            self.wait(0.1)
+
+            # Move the arrow to the inner loop
+            self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
+            return debug
+
+        # Run bubble-sort animation for 1 sweep
+        def sweep(run_times: list, u: int):
+            nonlocal array, array_mobj, debug
+            debugs = [debug]
+            changed = entered_if = False
+            for i, time in enumerate(run_times):
+                # Add the debug value for the current iteration
+                debug = get_debug(u, changed, i)
+                debugs.append(debug)
+                self.play(ReplacementTransform(debugs[-2].chars[2], debugs[-1].chars[2]), run_time=time)
+                self.wait(time)
+
+                self.play(arrow.animate.shift(0.4 * DOWN), run_time=time)
+                self.play(*highlight(array, i, i + 2, ORANGE, 5), run_time=time)
+                self.wait(2 * time)
+                entered_if = False
+                if array.values[i] > array.values[i + 1]:
+                    entered_if = True
+                    self.play(arrow.animate.shift(0.4 * DOWN), run_time=time)
+                    new_array, new_array_mobj = swap(array, array_mobj, i, i + 1, aligned_edge=RIGHT if i == 0 else LEFT)
+                    self.play(TransformMatchingCells(array_mobj, new_array_mobj, path_arc=PI/3), run_time=time * 7)
+                    self.play(arrow.animate.shift(0.4 * DOWN), run_time=time)
+                    if not changed:
+                        self.play(*[RemoveTextLetterByLetter(d.chars[1], run_time=0.01 * len(d.chars[1])) for d in debugs])
+                        changed = True
+                        debug = get_debug(u, changed, i)
+                        debugs.append(debug)
+                        self.play(AddTextLetterByLetter(debug.chars[1], run_time=0.05 * len(debug.chars[1])))
+                    self.wait(time)
+                    array, array_mobj = new_array, new_array_mobj
+                else:
+                    self.wait(2 * time)
+
+                # Move to the start of the inner loop
+                if i != len(run_times) - 1:
+                    self.remove(*[d.chars[2] for d in debugs[:-1]])
+                    self.play(
+                        arrow.animate.shift(1.2 * UP if entered_if else 0.4 * UP),
+                        run_time=time,
+                    )
+
+                self.play(*highlight(array, i, i + 1, BLUE_BACKGROUND, 0), run_time=time / 10)
+
+            # Move to the `if not changed` part
+            self.play(
+                arrow.animate.shift(0.4 * DOWN if entered_if else 1.2 * DOWN),
+                *highlight(array, len(run_times), len(run_times) + 1, GREEN, 5),
+                run_time=0.2,
+            )
+            self.wait(0.1)
+            if not changed:
+                self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
+            else:
+                self.play(arrow.animate.shift(2.4 * UP), run_time=0.2)
+            self.wait(0.1)
+
+            # Make sure we properly delete the unnecessary debug values
+            self.add(debugs[-1])
+            self.remove(*[d.chars[2] for d in debugs[:-1]])
+            self.remove(*[d.chars[1] for d in debugs[:-1]])
+            self.remove(*[d.chars[0] for d in debugs[:-1]])
+            self.play(RemoveTextLetterByLetter(debugs[-1].chars[2], run_time=0.01 * len(debugs[-1].chars[2])))
+            self.play(RemoveTextLetterByLetter(debugs[-1].chars[1], run_time=0.01 * len(debugs[-1].chars[1])))
+            self.play(RemoveTextLetterByLetter(debugs[-1].chars[0], run_time=0.01 * len(debugs[-1].chars[0])))
+
+        debug = before_sweep(6)
+        sweep([0.08, 0.08, 0.08, 0.08, 0.08, 0.08], 6)
+        self.wait(0.1)
+
+        # Write “Best Case: O(n)”
+        best_case = Tex(r'Best Case: $\mathcal{O}(n)$').scale(0.8).next_to(code, RIGHT).shift(DOWN)
+        self.play(Write(best_case), run_time=0.5)
+        self.wait(0.1)
+
+        # Write “Worst Case:"
+        worst_case = Tex(r'Worst Case:').scale(0.8).next_to(best_case, DOWN).align_to(best_case, LEFT)
+        self.play(Write(worst_case), run_time=0.5)
+        self.play(arrow.animate.next_to(code, LEFT).align_to(code, UP).shift(0.08 * DOWN), run_time=0.5)
+        self.wait(0.1)
+
+        # a = [1, 3, 4, 5, 7, 9, 12] → a = [12, 9, 7, 5, 4, 3, 1]
+        new_array = Array([12, 9, 7, 5, 4, 3, 1], color=BLACK, cell_type='bubble')
+        new_array_mobj = new_array.get_mobject().center().shift(1.5 * UP)
+        self.play(TransformMatchingCells(array_mobj, new_array_mobj, path_arc=PI/3), run_time=0.5)
+        self.wait(0.1)
+        array = new_array
+        array_mobj = new_array_mobj
+
+        # Indicate the outer loop
+        self.play(Indicate(code.chars[0], run_time=0.5))
+        self.wait(0.1)
+
+        # Indicate the inner loop
+        self.play(Indicate(code.chars[2], run_time=0.5))
+        self.wait(0.1)
+
+        # Indicate the swap line
+        self.play(Indicate(code.chars[4], run_time=0.5))
+        self.wait(0.1)
+
+        # Sweep 1 time
+        debug = before_sweep(6)
+        sweep([0.08, 0.08, 0.08, 0.08, 0.08, 0.08], 6)
         self.wait(0.1)
 
