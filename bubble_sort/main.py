@@ -799,10 +799,10 @@ class Optimization2(Scene):
             line_spacing=0.6,
             font='Monospace',
             style='monokai',
-        ).next_to(array_mobj, DOWN).shift(0.15 * DOWN).shift(0.25 * RIGHT).code
+        ).next_to(array_mobj, DOWN).shift(0.27 * RIGHT).code
 
         self.wait(5)
-        self.play(VGroup(*code.chars[1:]).animate.shift(0.6 * DOWN), run_time=0.5)
+        self.play(VGroup(*code.chars[1:]).animate.shift(0.4 * DOWN), run_time=0.5)
         self.wait(1)
         self.play(AddTextLetterByLetter(optimized_code.chars[1], run_time=0.1 * len(optimized_code.chars[1])))
         self.wait(4)
@@ -867,11 +867,11 @@ class Simulation(Scene):
             line_spacing=0.6,
             font='Monospace',
             style='monokai',
-        ).next_to(array_mobj, DOWN).shift(0.15 * DOWN).shift(0.25 * RIGHT).code
+        ).next_to(array_mobj, DOWN).shift(0.5 * RIGHT).code
         self.add(code)
 
         self.play(VGroup(*code.chars).animate.shift(1.5 * LEFT))
-        self.wait(0.1)
+        self.wait(0.5)
 
         # Arrow to show which part of the code is being executed
         arrow = Arrow(
@@ -879,7 +879,7 @@ class Simulation(Scene):
             stroke_width=10, max_stroke_width_to_length_ratio=15,
             max_tip_length_to_length_ratio=0.5, tip_length=0.2,
         ).scale(0.3).next_to(code, LEFT).align_to(code, UP).shift(0.08 * DOWN)
-        self.play(Create(arrow), run_time=0.5)
+        self.play(Create(arrow), run_time=1)
 
         # show real-time values to better understand the code
         def get_debug(u, changed, i):
@@ -900,15 +900,15 @@ class Simulation(Scene):
         def before_sweep(u: int):
             debug = get_debug(u, False, 0)
             self.play(AddTextLetterByLetter(debug.chars[0], run_time=0.1 * len(debug.chars[0])))
-            self.wait(0.5)
+            self.wait(1)
 
-            self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
-            self.wait(0.1)
+            self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.5)
+            self.wait(0.5)
             self.play(AddTextLetterByLetter(debug.chars[1], run_time=0.1 * len(debug.chars[1])))
-            self.wait(0.1)
+            self.wait(1.5)
 
             # Move the arrow to the inner loop
-            self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
+            self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.5)
             return debug
 
         # Run bubble-sort animation for 1 sweep
@@ -920,18 +920,18 @@ class Simulation(Scene):
                 # Add the debug value for the current iteration
                 debug = get_debug(u, changed, i)
                 debugs.append(debug)
-                self.play(ReplacementTransform(debugs[-2].chars[2], debugs[-1].chars[2]), run_time=time)
-                self.wait(time)
+                self.play(ReplacementTransform(debugs[-2].chars[2], debugs[-1].chars[2]), run_time=2 * time)
+                self.wait(2 * time)
 
                 self.play(arrow.animate.shift(0.4 * DOWN), run_time=time)
                 self.play(*highlight(array, i, i + 2, ORANGE, 5), run_time=time)
-                self.wait(2 * time)
+                self.wait(3 * time)
                 entered_if = False
                 if array.values[i] > array.values[i + 1]:
                     entered_if = True
                     self.play(arrow.animate.shift(0.4 * DOWN), run_time=time)
                     new_array, new_array_mobj = swap(array, array_mobj, i, i + 1, aligned_edge=RIGHT if i == 0 else LEFT)
-                    self.play(TransformMatchingCells(array_mobj, new_array_mobj, path_arc=PI/3), run_time=time * 7)
+                    self.play(TransformMatchingCells(array_mobj, new_array_mobj, path_arc=PI/2), run_time=3 * time)
                     self.play(arrow.animate.shift(0.4 * DOWN), run_time=time)
                     if not changed:
                         self.play(*[RemoveTextLetterByLetter(d.chars[1], run_time=0.01 * len(d.chars[1])) for d in debugs])
@@ -942,7 +942,7 @@ class Simulation(Scene):
                     self.wait(time)
                     array, array_mobj = new_array, new_array_mobj
                 else:
-                    self.wait(2 * time)
+                    self.wait(4 * time)
 
                 # Move to the start of the inner loop
                 if i != len(run_times) - 1:
@@ -955,17 +955,15 @@ class Simulation(Scene):
                 self.play(*highlight(array, i, i + 1, BLUE_BACKGROUND, 0), run_time=time / 10)
 
             # Move to the `if not changed` part
-            self.play(
-                arrow.animate.shift(0.4 * DOWN if entered_if else 1.2 * DOWN),
-                *highlight(array, len(run_times), len(run_times) + 1, GREEN, 5),
-                run_time=0.2,
-            )
-            self.wait(0.1)
+            self.wait(1)
+            self.play(*highlight(array, len(run_times), len(run_times) + 1, GREEN, 5), run_time=1)
+            self.wait(1)
+            self.play(arrow.animate.shift(0.4 * DOWN if entered_if else 1.2 * DOWN), run_time=0.5)
+            self.wait(3)
             if not changed:
-                self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
+                self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.5)
             else:
-                self.play(arrow.animate.shift(2.4 * UP), run_time=0.2)
-            self.wait(0.1)
+                self.play(arrow.animate.shift(2.4 * UP), run_time=1)
 
             # Make sure we properly delete the unnecessary debug values
             self.add(debugs[-1])
@@ -975,14 +973,14 @@ class Simulation(Scene):
             self.play(RemoveTextLetterByLetter(debugs[-1].chars[2], run_time=0.01 * len(debugs[-1].chars[2])))
             self.play(RemoveTextLetterByLetter(debugs[-1].chars[1], run_time=0.01 * len(debugs[-1].chars[1])))
             self.play(RemoveTextLetterByLetter(debugs[-1].chars[0], run_time=0.01 * len(debugs[-1].chars[0])))
+            self.wait(2)
 
+        self.wait(1)
         debug = before_sweep(6)
-        sweep([0.08, 0.08, 0.08, 0.08, 0.08, 0.08], 6)
-        self.wait(0.1)
+        sweep([0.9, 0.5, 0.5, 0.3, 0.3, 0.5], 6)
 
         debug = before_sweep(5)
-        sweep([0.08, 0.08, 0.08, 0.08, 0.08], 5)
-        self.wait(0.1)
+        sweep([0.5, 0.4, 0.4, 0.3, 0.3], 5)
 
         debug = before_sweep(4)
         sweep([0.08, 0.08, 0.08, 0.08], 4)
