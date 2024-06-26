@@ -692,6 +692,8 @@ class Optimization1(Scene):
         self.wait(2)
 
         code.become(optimized_code)
+        self.remove(optimized_code.chars[0])
+        self.remove(optimized_code.chars[1])
         self.play(ApplyWave(code, run_time=2))
         self.wait(1)
 
