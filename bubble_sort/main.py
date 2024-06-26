@@ -961,6 +961,7 @@ class Simulation(Scene):
             self.play(arrow.animate.shift(0.4 * DOWN if entered_if else 1.2 * DOWN), run_time=0.5)
             self.wait(3)
             if not changed:
+                self.wait(3)
                 self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.5)
             else:
                 self.play(arrow.animate.shift(2.4 * UP), run_time=1)
@@ -977,43 +978,38 @@ class Simulation(Scene):
 
         self.wait(1)
         debug = before_sweep(6)
-        sweep([0.9, 0.5, 0.5, 0.3, 0.3, 0.5], 6)
+        sweep([0.9, 0.5, 0.5, 0.4, 0.3, 0.5], 6)
 
         debug = before_sweep(5)
-        sweep([0.5, 0.4, 0.4, 0.3, 0.3], 5)
+        sweep([0.5, 0.5, 0.4, 0.3, 0.4], 5)
 
         debug = before_sweep(4)
-        sweep([0.08, 0.08, 0.08, 0.08], 4)
-        self.wait(0.1)
+        sweep([0.4, 0.55, 0.3, 0.15], 4)
 
         debug = before_sweep(3)
-        sweep([0.08, 0.08, 0.08], 3)
-        self.wait(0.1)
+        sweep([0.4, 0.3, 0.45], 3)
 
         debug = before_sweep(2)
-        sweep([0.08, 0.08], 2)
-        self.wait(0.1)
+        sweep([0.6, 0.2], 2)
 
         debug = before_sweep(1)
-        sweep([0.08], 1)
-        self.wait(0.1)
+        sweep([0.3], 1)
 
-        self.play(FadeOut(arrow), run_time=0.1)
-        self.wait(0.1)
-
+        self.play(FadeOut(arrow), run_time=0.5)
+        self.play(VGroup(*code.chars).animate.shift(1.5 * RIGHT))
         self.play(*highlight(array, 0, len(array), BLUE_BACKGROUND, 0), run_time=0.5)
+        self.wait(2)
+
         for cell in array.cells:
-            self.play(Indicate(cell, scale_factor=1.5), run_time=0.2)
-        self.wait(0.1)
+            self.play(Indicate(cell, scale_factor=1.5), run_time=0.6)
+        self.wait(4)
 
         # Transition to the next scene
         new_a = [12, 7, 5, 7, 7, 1, 7]
         new_array = Array(new_a, color=BLACK, cell_type='bubble')
         new_array_mobj = new_array.get_mobject().center().shift(1.5 * UP)
-        self.play(TransformMatchingCells(array_mobj, new_array_mobj, path_arc=PI/3), run_time=0.5)
-
-        self.play(VGroup(*code.chars).animate.shift(1.5 * RIGHT))
-        self.wait(0.1)
+        self.play(TransformMatchingCells(array_mobj, new_array_mobj, path_arc=PI/3), run_time=1)
+        self.wait(1)
 
 
 class StableSorting(Scene):
