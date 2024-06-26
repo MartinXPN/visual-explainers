@@ -252,7 +252,7 @@ class IntuitionBehindNaming(Scene):
         )
         indices_mobj = indices.get_mobject().center().next_to(array_mobj, 0.1 * UP)
         self.add(a_text, array_mobj, indices_mobj)
-        self.wait(0.1)
+        self.wait(0.2)
 
         # Turn all the cell rectangles into bubbles
         array_mobj.z_index = 1
@@ -263,10 +263,10 @@ class IntuitionBehindNaming(Scene):
             self.play(
                 ReplacementTransform(cell, bubble),
                 array.labels[i].animate.set_color(BLACK),
-                run_time=0.06,
+                run_time=0.5,
             )
             array.cells[i] = bubble
-            self.wait(0.1)
+            self.wait(0.7)
 
         array.cell_type = 'bubble'
         array.color = BLACK
@@ -289,14 +289,14 @@ class IntuitionBehindNaming(Scene):
             self.play(*highlight(array, 0, len(array), BLUE_BACKGROUND, 0), run_time=0.1)
 
         # Sweep + Highlight 12 at the end
-        sweep([0.07, 0.06, 0.05, 0.05, 0.06, 0.06])
+        sweep([0.1, 0.07, 0.06, 0.06, 0.07, 0.07])
         self.play(Indicate(array.labels[-1], scale_factor=2, color=ORANGE), run_time=0.5)
-        self.wait(0.1)
+        self.wait(1)
 
         # Sweep + Highlight 9 at the end
         sweep([0.07, 0.06, 0.05, 0.06, 0.06])
         self.play(Indicate(array.labels[-2], scale_factor=2, color=ORANGE), run_time=0.5)
-        self.wait(0.1)
+        self.wait(0.5)
 
         sweep([0.05, 0.05, 0.05, 0.05])
         sweep([0.05, 0.05, 0.05])
@@ -304,9 +304,9 @@ class IntuitionBehindNaming(Scene):
         sweep([0.05])
 
         for i in range(len(array)):
-            self.play(*highlight(array, i, i + 1, ORANGE, 5), run_time=0.1)
+            self.play(*highlight(array, i, i + 1, ORANGE, 5), run_time=0.5)
             self.play(*highlight(array, i, i + 1, BLUE_BACKGROUND, 0), run_time=0.01)
-        self.wait(0.1)
+        self.wait(10)
 
         # Change the bubbles back to rectangles
         rectangles = [
@@ -320,15 +320,13 @@ class IntuitionBehindNaming(Scene):
             ).move_to(cell.get_center())
             for i, cell in enumerate(array.cells)
         ]
-        self.play(*[
-            ReplacementTransform(cell, rectangle)
-            for cell, rectangle in zip(array.cells, rectangles)
-        ], *[
-            array.labels[i].animate.set_color(WHITE)
-            for i in range(len(array.labels))
-        ], run_time=2)
+        self.play(
+            *[ReplacementTransform(cell, rectangle) for cell, rectangle in zip(array.cells, rectangles)],
+            *[array.labels[i].animate.set_color(WHITE) for i in range(len(array.labels))],
+            run_time=1,
+        )
         array.cells = rectangles
-        self.wait(0.1)
+        self.wait(4)
 
         # Bring back the bubbles
         bubbles = [
@@ -337,20 +335,18 @@ class IntuitionBehindNaming(Scene):
             ).scale(0.25 + (0.03 * array.values[i])).move_to(cell.get_center())
             for i, cell in enumerate(array.cells)
         ]
-        self.play(*[
-            ReplacementTransform(cell, bubble)
-            for cell, bubble in zip(array.cells, bubbles)
-        ], *[
-            array.labels[i].animate.set_color(BLACK)
-            for i in range(len(array.labels))
-        ], run_time=2)
+        self.play(
+            *[ReplacementTransform(cell, bubble) for cell, bubble in zip(array.cells, bubbles)],
+            *[array.labels[i].animate.set_color(BLACK) for i in range(len(array.labels))],
+            run_time=2,
+        )
         array.cells = bubbles
-        self.wait(0.1)
+        self.wait(2)
 
         # Bring the array to the initial state
         initial_array = Array(a, color=BLACK, cell_type='bubble')
         initial_array_mobj = initial_array.get_mobject().center().shift(1.5 * UP)
-        self.play(TransformMatchingCells(array_mobj, initial_array_mobj, path_arc=PI/3), run_time=0.5)
+        self.play(TransformMatchingCells(array_mobj, initial_array_mobj, path_arc=PI/3), run_time=1)
         self.wait(1)
 
 
