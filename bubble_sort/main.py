@@ -1047,7 +1047,7 @@ class StableSorting(Scene):
             style='monokai',
         ).next_to(array_mobj, DOWN).shift(0.5 * RIGHT).code
         self.add(code)
-        self.wait(3)
+        self.wait(4)
 
         # Highlight different 7s with different colors ([12, 7, 5, 7, 7, 1, 7])
         colors = [RED_A, RED_B, RED_C, RED_E]
@@ -1059,7 +1059,7 @@ class StableSorting(Scene):
         # Make a copy and move the copies of colored 7s down
         sevens = [VGroup(array.cells[i].copy(), array.labels[i].copy()) for i in [1, 3, 4, 6]]
         self.play(*[seven.animate.shift(1.1 * DOWN) for seven in sevens], code.animate.shift(0.6 * DOWN))
-        self.wait(2)
+        self.wait(3)
 
         # Draw arrows between the colored 7s
         arrows = []
@@ -1095,12 +1095,12 @@ class StableSorting(Scene):
 
         # Bring back the arrows
         self.play(LaggedStart(*[Create(arrow) for arrow in arrows], lag_ratio=0.5), run_time=0.8)
-        self.wait(6)
+        self.wait(7)
 
         # Title → “Is Bubble Sort Stable?”
         new_title = Title('Is Bubble Sort Stable?', include_underline=False)
-        self.play(ReplacementTransform(title, new_title), run_time=0.5)
-        self.wait(2)
+        self.play(ReplacementTransform(title, new_title), run_time=1)
+        self.wait(1)
 
         # Fade out the copies of 7s
         self.play(
@@ -1109,7 +1109,7 @@ class StableSorting(Scene):
             code.animate.shift(0.6 * UP),
             run_time=1,
         )
-        self.wait(2)
+        self.wait(1)
         self.play(VGroup(*code.chars).animate.shift(1.5 * LEFT), run_time=1)
 
         # Arrow to show which part of the code is being executed
@@ -1119,7 +1119,7 @@ class StableSorting(Scene):
             max_tip_length_to_length_ratio=0.5, tip_length=0.2,
         ).scale(0.3).next_to(code, LEFT).align_to(code, UP).shift(0.08 * DOWN)
         self.play(Create(arrow), run_time=1)
-        self.wait(1)
+        self.wait(2)
 
         # show real-time values to better understand the code
         def get_debug(u, changed, i):
@@ -1137,18 +1137,18 @@ class StableSorting(Scene):
             ).next_to(code, RIGHT).align_to(code, UP).shift(0.25 * UP).code
             return res
 
-        def before_sweep(u: int):
+        def before_sweep(u: int, time: float):
             debug = get_debug(u, False, 0)
             self.play(AddTextLetterByLetter(debug.chars[0], run_time=0.1 * len(debug.chars[0])))
-            self.wait(0.5)
+            self.wait(2 * time)
 
-            self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
-            self.wait(0.1)
+            self.play(arrow.animate.shift(0.4 * DOWN), run_time=time)
+            self.wait(time)
             self.play(AddTextLetterByLetter(debug.chars[1], run_time=0.1 * len(debug.chars[1])))
-            self.wait(0.1)
+            self.wait(3 * time)
 
             # Move the arrow to the inner loop
-            self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
+            self.play(arrow.animate.shift(0.4 * DOWN), run_time=time)
             return debug
 
         # Run bubble-sort animation for 1 sweep
@@ -1171,7 +1171,7 @@ class StableSorting(Scene):
                     entered_if = True
                     self.play(arrow.animate.shift(0.4 * DOWN), run_time=time)
                     new_array, new_array_mobj = swap(array, array_mobj, i, i + 1, aligned_edge=RIGHT if i == 0 else LEFT)
-                    self.play(TransformMatchingCells(array_mobj, new_array_mobj, path_arc=PI/3), run_time=3 * time)
+                    self.play(TransformMatchingCells(array_mobj, new_array_mobj, path_arc=PI/2), run_time=3 * time)
                     self.play(arrow.animate.shift(0.4 * DOWN), run_time=time)
                     if not changed:
                         self.play(*[RemoveTextLetterByLetter(d.chars[1], run_time=0.01 * len(d.chars[1])) for d in debugs])
@@ -1200,25 +1200,24 @@ class StableSorting(Scene):
                     self.play(*highlight(array, i, i + 1, colors[nb_sevens], 0), run_time=time / 10)
 
             # Move to the `if not changed` part
-            self.wait(1)
+            self.wait(0.5)
             nb_sevens = len([val for val in array.values[:len(run_times)] if val == 7])
             self.play(
                 *(highlight(array, len(run_times), len(run_times) + 1, GREEN, 5)
                   if array.values[len(run_times)] != 7
                   else highlight(array, len(run_times), len(run_times) + 1, colors[nb_sevens], 0)),
-                run_time=1,
+                run_time=0.5,
             )
-            self.wait(1)
+            self.wait(0.5)
             self.play(arrow.animate.shift(0.4 * DOWN if entered_if else 1.2 * DOWN), run_time=0.5)
-            self.wait(3)
+            self.wait(0.5)
             if not changed:
                 self.wait(3)
                 self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.5)
             else:
-                self.play(arrow.animate.shift(2.4 * UP), run_time=2)
+                self.play(arrow.animate.shift(2.4 * UP), run_time=0.5)
 
             # Make sure we properly delete the unnecessary debug values
-            self.wait(1)
             self.add(debugs[-1])
             self.remove(*[d.chars[2] for d in debugs[:-1]])
             self.remove(*[d.chars[1] for d in debugs[:-1]])
@@ -1227,47 +1226,46 @@ class StableSorting(Scene):
             self.play(RemoveTextLetterByLetter(debugs[-1].chars[1], run_time=0.01 * len(debugs[-1].chars[1])))
             self.play(RemoveTextLetterByLetter(debugs[-1].chars[0], run_time=0.01 * len(debugs[-1].chars[0])))
 
-        debug = before_sweep(6)
-        sweep([0.08, 0.08, 0.08, 0.08, 0.08, 0.08], 6)
-        self.wait(0.1)
+        debug = before_sweep(6, time=0.5)
+        sweep([0.3, 0.1, 0.1, 0.15, 0.1, 0.15], 6)
 
-        debug = before_sweep(5)
-        sweep([0.08, 0.08, 0.08, 0.08, 0.08], 5)
+        debug = before_sweep(5, time=0.1)
+        sweep([0.35, 0.5, 0.5, 0.4, 0.5], 5)
 
-        debug = before_sweep(4)
-        sweep([0.08, 0.08, 0.08, 0.08], 4)
-
-        self.play(FadeOut(arrow), code.animate.shift(1.5 * RIGHT), run_time=0.5)
-        self.wait(0.1)
+        debug = before_sweep(4, time=0.1)
+        sweep([0.06, 0.06, 0.05, 0.05], 4)
 
         # Indicate the `if` condition
-        self.play(Indicate(code.chars[3], run_time=0.5))
-        self.wait(0.1)
+        self.play(FadeOut(arrow), code.animate.shift(1.5 * RIGHT), run_time=0.5)
+        self.play(Indicate(code.chars[3], run_time=2))
+        self.wait(3.5)
 
         # Title -> "Bubble sort is stable"
         title = Title('Bubble Sort is Stable', include_underline=False)
-        self.play(ReplacementTransform(new_title, title), run_time=0.5)
-        self.wait(0.1)
+        self.play(ReplacementTransform(new_title, title), run_time=1)
+        self.wait(16)
 
         # Circumscribe the array
-        self.play(Circumscribe(VGroup(*array.cells), run_time=0.5))
+        self.play(Circumscribe(VGroup(*array.cells), run_time=2))
+        self.wait(2)
 
         new_title = Title('In-place Sorting', include_underline=False)
-        self.play(ReplacementTransform(title, new_title), run_time=0.5)
-        self.wait(0.1)
+        self.play(ReplacementTransform(title, new_title), run_time=1)
+        self.wait(4)
 
         # Indicate the array
-        self.play(*[Indicate(cell, scale_factor=1.5) for cell in array.cells], run_time=0.5)
-        self.wait(0.1)
+        self.play(*[Indicate(cell, scale_factor=1.5) for cell in array.cells], run_time=1)
+        self.wait(2)
 
         # Indicate the code
-        self.play(Indicate(code.chars, run_time=0.5))
+        self.play(Indicate(code.chars, run_time=1))
+        self.wait(4)
 
         # title -> Properties
         title = Title('Properties', include_underline=False)
-        self.play(ReplacementTransform(new_title, title), run_time=0.5)
+        self.play(ReplacementTransform(new_title, title), run_time=1)
 
-        self.play(code.animate.shift(0.6 * DOWN), run_time=0.5)
+        self.play(code.animate.shift(0.6 * DOWN), run_time=1)
         # Stable on the left
         # In-place on the right
         # Both above the code
@@ -1276,17 +1274,17 @@ class StableSorting(Scene):
         self.play(Write(stable), run_time=0.5)
         self.play(Write(in_place), run_time=0.5)
 
-        self.wait()
+        self.wait(2)
 
         # Transition to the next scene
         new_title = Title('Time Complexity', include_underline=False)
-        self.play(ReplacementTransform(title, new_title), FadeOut(stable, in_place), code.animate.shift(0.6 * UP), run_time=0.5)
-        self.wait(0.1)
+        self.play(ReplacementTransform(title, new_title), FadeOut(stable, in_place), code.animate.shift(0.6 * UP), run_time=1)
+        self.wait(1)
 
         # a = [1, 3, 4, 5, 7, 9, 12]
         new_array = Array([1, 3, 4, 5, 7, 9, 12], color=BLACK, cell_type='bubble')
         new_array_mobj = new_array.get_mobject().center().shift(1.5 * UP)
-        self.play(TransformMatchingCells(array_mobj, new_array_mobj, path_arc=PI/3), run_time=0.5)
+        self.play(TransformMatchingCells(array_mobj, new_array_mobj, path_arc=PI/3), run_time=1)
         self.wait(1)
 
 
