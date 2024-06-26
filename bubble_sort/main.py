@@ -623,19 +623,20 @@ class Optimization1(Scene):
         ).next_to(array_mobj, DOWN).shift(0.5 * RIGHT).code
         self.add(code)
 
-        self.play(Indicate(code.chars[1], run_time=0.5))
-        self.play(Indicate(code.chars[-1], run_time=0.5))
-        self.wait(0.1)
+        self.wait(1)
+        self.play(Indicate(code.chars[0], run_time=2))
+        self.play(Indicate(code.chars[1], run_time=2))
+        self.wait(4)
 
         # Run bubble-sort animation for 1 sweep
         def sweep(run_times: list):
             nonlocal array, array_mobj
             for i, time in enumerate(run_times):
                 self.play(*highlight(array, i, i + 2, ORANGE, 5), run_time=time)
-                self.wait(time)
+                self.wait(2 * time)
                 if array.values[i] > array.values[i + 1]:
                     new_array, new_array_mobj = swap(array, array_mobj, i, i + 1, aligned_edge=RIGHT if i == 0 else LEFT)
-                    self.play(TransformMatchingCells(array_mobj, new_array_mobj, path_arc=PI/3), run_time=time * 7)
+                    self.play(TransformMatchingCells(array_mobj, new_array_mobj, path_arc=PI/2), run_time=time * 5)
                     self.wait(time)
                     array, array_mobj = new_array, new_array_mobj
                 else:
@@ -644,16 +645,22 @@ class Optimization1(Scene):
                 self.play(*highlight(array, i, i + 1, BLUE_BACKGROUND, 0), run_time=time / 10)
             self.play(*highlight(array, 0, len(run_times) + 1, BLUE_BACKGROUND, 0), run_time=0.1)
 
-        sweep([0.04, 0.04, 0.04, 0.04, 0.04, 0.04])
-        self.play(*highlight(array, 6, 7, GREEN, 5), run_time=0.1)
-        self.wait(0.1)
+        sweep([0.06, 0.06, 0.06, 0.06, 0.06, 0.06])
+        self.play(*highlight(array, 6, 7, GREEN, 5), run_time=0.5)
+        self.wait(1)
 
-        sweep([0.04, 0.04, 0.04, 0.04, 0.04])
-        self.play(*highlight(array, 5, 6, GREEN, 5), run_time=0.1)
-        self.wait(0.1)
+        sweep([0.06, 0.06, 0.06, 0.06, 0.06])
+        self.play(*highlight(array, 5, 6, GREEN, 5), run_time=0.5)
+        self.wait(2)
 
-        self.play(Circumscribe(VGroup(*array.cells[:-2]), run_time=0.5))
-        self.play(Indicate(code.chars[0], run_time=0.5))
+        self.play(Indicate(array.cells[-1], run_time=0.5))
+        self.play(Indicate(array.cells[-2], run_time=0.5))
+        self.wait(3)
+
+        self.play(Indicate(code.chars[0], run_time=1))
+        self.wait(2)
+        self.play(Circumscribe(VGroup(*array.cells[:-2]), run_time=2))
+        self.wait(2)
 
         optimized_code = Code(
             code=dedent('''
@@ -669,19 +676,24 @@ class Optimization1(Scene):
             style='monokai',
         ).next_to(array_mobj, DOWN).shift(0.3 * RIGHT).code
 
-        self.play(Indicate(array.cells[-1], run_time=0.5))
-        self.play(Indicate(array.cells[-2], run_time=0.5))
-        self.play(Indicate(array.cells[-3], run_time=0.5))
-        self.wait(0.1)
+        self.play(Indicate(code.chars[0], run_time=1))
+        self.wait(6)
 
-        self.play(RemoveTextLetterByLetter(code.chars[0], run_time=0.1 * len(code.chars[0])))
+        for i in range(len(array) - 1, -1, -1):
+            self.play(Indicate(array.cells[i], run_time=1.4 if i > 3 else 0.4))
+        self.wait(2)
+
+        self.play(RemoveTextLetterByLetter(code.chars[0], run_time=0.05 * len(code.chars[0])))
         self.play(AddTextLetterByLetter(optimized_code.chars[0], run_time=0.1 * len(optimized_code.chars[0])))
+        self.wait(4)
 
-        self.play(RemoveTextLetterByLetter(code.chars[-1], run_time=0.1 * len(code.chars[1])))
-        self.play(AddTextLetterByLetter(optimized_code.chars[-1], run_time=0.1 * len(optimized_code.chars[-1])))
+        self.play(RemoveTextLetterByLetter(code.chars[1], run_time=0.05 * len(code.chars[1])))
+        self.play(AddTextLetterByLetter(optimized_code.chars[1], run_time=0.1 * len(optimized_code.chars[1])))
+        self.wait(2)
 
         code.become(optimized_code)
-        self.play(ApplyWave(code, run_time=0.5))
+        self.play(ApplyWave(code, run_time=2))
+        self.wait(1)
 
 
 class Optimization2(Scene):
