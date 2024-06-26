@@ -964,9 +964,10 @@ class Simulation(Scene):
                 self.wait(3)
                 self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.5)
             else:
-                self.play(arrow.animate.shift(2.4 * UP), run_time=1)
+                self.play(arrow.animate.shift(2.4 * UP), run_time=2)
 
             # Make sure we properly delete the unnecessary debug values
+            self.wait(1)
             self.add(debugs[-1])
             self.remove(*[d.chars[2] for d in debugs[:-1]])
             self.remove(*[d.chars[1] for d in debugs[:-1]])
@@ -974,7 +975,6 @@ class Simulation(Scene):
             self.play(RemoveTextLetterByLetter(debugs[-1].chars[2], run_time=0.01 * len(debugs[-1].chars[2])))
             self.play(RemoveTextLetterByLetter(debugs[-1].chars[1], run_time=0.01 * len(debugs[-1].chars[1])))
             self.play(RemoveTextLetterByLetter(debugs[-1].chars[0], run_time=0.01 * len(debugs[-1].chars[0])))
-            self.wait(2)
 
         self.wait(1)
         debug = before_sweep(6)
@@ -1160,18 +1160,18 @@ class StableSorting(Scene):
                 # Add the debug value for the current iteration
                 debug = get_debug(u, changed, i)
                 debugs.append(debug)
-                self.play(ReplacementTransform(debugs[-2].chars[2], debugs[-1].chars[2]), run_time=time)
-                self.wait(time)
+                self.play(ReplacementTransform(debugs[-2].chars[2], debugs[-1].chars[2]), run_time=2 * time)
+                self.wait(2 * time)
 
                 self.play(arrow.animate.shift(0.4 * DOWN), run_time=time)
                 self.play(*highlight(array, i, i + 2, ORANGE, 5), run_time=time)
-                self.wait(2 * time)
+                self.wait(3 * time)
                 entered_if = False
                 if array.values[i] > array.values[i + 1]:
                     entered_if = True
                     self.play(arrow.animate.shift(0.4 * DOWN), run_time=time)
                     new_array, new_array_mobj = swap(array, array_mobj, i, i + 1, aligned_edge=RIGHT if i == 0 else LEFT)
-                    self.play(TransformMatchingCells(array_mobj, new_array_mobj, path_arc=PI/3), run_time=time * 7)
+                    self.play(TransformMatchingCells(array_mobj, new_array_mobj, path_arc=PI/3), run_time=3 * time)
                     self.play(arrow.animate.shift(0.4 * DOWN), run_time=time)
                     if not changed:
                         self.play(*[RemoveTextLetterByLetter(d.chars[1], run_time=0.01 * len(d.chars[1])) for d in debugs])
@@ -1182,7 +1182,7 @@ class StableSorting(Scene):
                     self.wait(time)
                     array, array_mobj = new_array, new_array_mobj
                 else:
-                    self.wait(2 * time)
+                    self.wait(4 * time)
 
                 # Move to the start of the inner loop
                 if i != len(run_times) - 1:
@@ -1200,22 +1200,25 @@ class StableSorting(Scene):
                     self.play(*highlight(array, i, i + 1, colors[nb_sevens], 0), run_time=time / 10)
 
             # Move to the `if not changed` part
+            self.wait(1)
             nb_sevens = len([val for val in array.values[:len(run_times)] if val == 7])
             self.play(
-                arrow.animate.shift(0.4 * DOWN if entered_if else 1.2 * DOWN),
                 *(highlight(array, len(run_times), len(run_times) + 1, GREEN, 5)
                   if array.values[len(run_times)] != 7
                   else highlight(array, len(run_times), len(run_times) + 1, colors[nb_sevens], 0)),
-                run_time=0.2,
+                run_time=1,
             )
-            self.wait(0.1)
+            self.wait(1)
+            self.play(arrow.animate.shift(0.4 * DOWN if entered_if else 1.2 * DOWN), run_time=0.5)
+            self.wait(3)
             if not changed:
-                self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
+                self.wait(3)
+                self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.5)
             else:
-                self.play(arrow.animate.shift(2.4 * UP), run_time=0.2)
-            self.wait(0.1)
+                self.play(arrow.animate.shift(2.4 * UP), run_time=2)
 
             # Make sure we properly delete the unnecessary debug values
+            self.wait(1)
             self.add(debugs[-1])
             self.remove(*[d.chars[2] for d in debugs[:-1]])
             self.remove(*[d.chars[1] for d in debugs[:-1]])
