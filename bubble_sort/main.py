@@ -1045,39 +1045,43 @@ class StableSorting(Scene):
             line_spacing=0.6,
             font='Monospace',
             style='monokai',
-        ).next_to(array_mobj, DOWN).shift(0.15 * DOWN).shift(0.25 * RIGHT).code
+        ).next_to(array_mobj, DOWN).shift(0.5 * RIGHT).code
         self.add(code)
-        self.wait(0.1)
+        self.wait(3)
 
         # Highlight different 7s with different colors ([12, 7, 5, 7, 7, 1, 7])
         colors = [RED_A, RED_B, RED_C, RED_E]
-        self.play(*highlight(array, 1, 2, colors[0], 0), run_time=0.1)
-        self.play(*highlight(array, 3, 4, colors[1], 0), run_time=0.1)
-        self.play(*highlight(array, 4, 5, colors[2], 0), run_time=0.1)
-        self.play(*highlight(array, 6, 7, colors[3], 0), run_time=0.1)
+        self.play(*highlight(array, 1, 2, colors[0], 0), run_time=1)
+        self.play(*highlight(array, 3, 4, colors[1], 0), run_time=1)
+        self.play(*highlight(array, 4, 5, colors[2], 0), run_time=1)
+        self.play(*highlight(array, 6, 7, colors[3], 0), run_time=1)
 
         # Make a copy and move the copies of colored 7s down
         sevens = [VGroup(array.cells[i].copy(), array.labels[i].copy()) for i in [1, 3, 4, 6]]
         self.play(*[seven.animate.shift(1.1 * DOWN) for seven in sevens], code.animate.shift(0.6 * DOWN))
+        self.wait(2)
 
         # Draw arrows between the colored 7s
         arrows = []
         for seven, next_seven in zip(sevens, sevens[1:]):
             arrow = Arrow(seven, next_seven, color=RED, buff=0.1, stroke_width=10)
             arrows.append(arrow)
-            self.play(Create(arrow), run_time=0.2)
+            self.play(Create(arrow), run_time=0.5)
 
-        self.play(LaggedStart(*[FadeOut(arrow) for arrow in arrows], lag_ratio=0.5), run_time=0.8)
+        self.wait(1)
+        self.play(LaggedStart(*[FadeOut(arrow) for arrow in arrows], lag_ratio=0.5), run_time=2)
 
         # Swap the place of the 2nd and 3rd 7 (sevens)
         first_path = ArcBetweenPoints(sevens[1].get_center(), sevens[2].get_center(), angle=PI/2)
         second_path = ArcBetweenPoints(sevens[2].get_center(), sevens[1].get_center(), angle=PI/2)
         self.play(MoveAlongPath(sevens[1], first_path), MoveAlongPath(sevens[2], second_path), run_time=0.5)
+        self.wait(6)
 
         # Change the places of the 1st and 4th 7 (sevens)
         first_path = ArcBetweenPoints(sevens[0].get_center(), sevens[3].get_center(), angle=PI/2)
         second_path = ArcBetweenPoints(sevens[3].get_center(), sevens[0].get_center(), angle=PI/2)
         self.play(MoveAlongPath(sevens[0], first_path), MoveAlongPath(sevens[3], second_path), run_time=0.5)
+        self.wait(4)
 
         # Restore the original order of 7s
         first_path = ArcBetweenPoints(sevens[2].get_center(), sevens[1].get_center(), angle=PI/2)
@@ -1087,22 +1091,26 @@ class StableSorting(Scene):
         first_path = ArcBetweenPoints(sevens[3].get_center(), sevens[0].get_center(), angle=PI/2)
         second_path = ArcBetweenPoints(sevens[0].get_center(), sevens[3].get_center(), angle=PI/2)
         self.play(MoveAlongPath(sevens[3], first_path), MoveAlongPath(sevens[0], second_path), run_time=0.5)
+        self.wait(2)
 
         # Bring back the arrows
         self.play(LaggedStart(*[Create(arrow) for arrow in arrows], lag_ratio=0.5), run_time=0.8)
+        self.wait(6)
 
         # Title → “Is Bubble Sort Stable?”
         new_title = Title('Is Bubble Sort Stable?', include_underline=False)
         self.play(ReplacementTransform(title, new_title), run_time=0.5)
+        self.wait(2)
 
         # Fade out the copies of 7s
         self.play(
             *[FadeOut(seven) for seven in sevens],
             *[FadeOut(arr) for arr in arrows],
             code.animate.shift(0.6 * UP),
-            run_time=0.8,
+            run_time=1,
         )
-        self.play(VGroup(*code.chars).animate.shift(1.5 * LEFT), run_time=0.5)
+        self.wait(2)
+        self.play(VGroup(*code.chars).animate.shift(1.5 * LEFT), run_time=1)
 
         # Arrow to show which part of the code is being executed
         arrow = Arrow(
@@ -1110,7 +1118,8 @@ class StableSorting(Scene):
             stroke_width=10, max_stroke_width_to_length_ratio=15,
             max_tip_length_to_length_ratio=0.5, tip_length=0.2,
         ).scale(0.3).next_to(code, LEFT).align_to(code, UP).shift(0.08 * DOWN)
-        self.play(Create(arrow), run_time=0.5)
+        self.play(Create(arrow), run_time=1)
+        self.wait(1)
 
         # show real-time values to better understand the code
         def get_debug(u, changed, i):
@@ -1221,11 +1230,9 @@ class StableSorting(Scene):
 
         debug = before_sweep(5)
         sweep([0.08, 0.08, 0.08, 0.08, 0.08], 5)
-        self.wait(0.1)
 
         debug = before_sweep(4)
         sweep([0.08, 0.08, 0.08, 0.08], 4)
-        self.wait(0.1)
 
         self.play(FadeOut(arrow), code.animate.shift(1.5 * RIGHT), run_time=0.5)
         self.wait(0.1)
