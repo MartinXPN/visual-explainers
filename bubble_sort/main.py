@@ -437,17 +437,16 @@ class IntuitionDetails(Scene):
             self.play(*highlight(array, i, i + 1, ORANGE, 0), run_time=0.3)
             self.play(*highlight(array, i, i + 1, BLUE_BACKGROUND, 0), run_time=0.3)
 
-        # Brace for all the elements with n at the bottom
-        brace = Brace(indices_mobj, DOWN, color=ORANGE).move_to(array_mobj, DOWN).shift(0.4 * DOWN)
-        n = brace.get_text('n', buff=0.1).set_color(ORANGE)
-        self.play(Create(brace), Create(n), run_time=0.5)
-        self.wait(0.5)
-
         # Bring the array to the initial state
         initial_array = Array(a, color=BLACK, cell_type='bubble')
         initial_array_mobj = initial_array.get_mobject().center().shift(1.5 * UP)
         self.play(TransformMatchingCells(array_mobj, initial_array_mobj, path_arc=PI/3), run_time=0.5)
-        self.wait(1)
+
+        # Brace for all the elements with n at the bottom
+        brace = Brace(indices_mobj, DOWN, color=ORANGE).move_to(initial_array_mobj, DOWN).shift(0.4 * DOWN)
+        n = brace.get_text('n', buff=0.1).set_color(ORANGE)
+        self.play(Create(brace), Create(n), run_time=0.5)
+        self.wait(1.5)
 
 
 class IntuitionBehindN1Loops(Scene):
@@ -470,12 +469,12 @@ class IntuitionBehindN1Loops(Scene):
         brace = Brace(indices_mobj, DOWN, color=ORANGE).move_to(array_mobj, DOWN).shift(0.4 * DOWN)
         n = brace.get_text('n', buff=0.1).set_color(ORANGE)
         self.add(brace, n)
-        self.wait(0.1)
+        self.wait(3)
 
         # Add counter = 0
         counter = Variable(0, Text('Loops'), var_type=Integer, color=ORANGE).next_to(n, DOWN).shift(0.5 * DOWN)
-        self.play(Write(counter), run_time=0.5)
-        self.wait(0.1)
+        self.play(Write(counter), run_time=1)
+        self.wait(1)
 
         # Run bubble-sort animation for 1 sweep
         def sweep(run_times: list):
@@ -485,7 +484,7 @@ class IntuitionBehindN1Loops(Scene):
                 self.wait(time)
                 if array.values[i] > array.values[i + 1]:
                     new_array, new_array_mobj = swap(array, array_mobj, i, i + 1, aligned_edge=RIGHT if i == 0 else LEFT)
-                    self.play(TransformMatchingCells(array_mobj, new_array_mobj, path_arc=PI/3), run_time=time * 7)
+                    self.play(TransformMatchingCells(array_mobj, new_array_mobj, path_arc=PI/2), run_time=time * 5)
                     self.wait(time)
                     array, array_mobj = new_array, new_array_mobj
                 else:
@@ -495,54 +494,47 @@ class IntuitionBehindN1Loops(Scene):
             self.play(*highlight(array, 0, len(run_times) + 1, BLUE_BACKGROUND, 0), run_time=0.1)
 
         sweep([0.04, 0.04, 0.04, 0.04, 0.04, 0.04])
-        self.play(*highlight(array, 6, 7, GREEN, 5), run_time=0.1)
-        self.play(counter.tracker.animate.set_value(1), run_time=0.5)
-        self.wait(0.1)
+        self.play(*highlight(array, 6, 7, GREEN, 5), counter.tracker.animate.set_value(1))
+        self.wait(1)
 
         sweep([0.04, 0.04, 0.04, 0.04, 0.04])
-        self.play(*highlight(array, 5, 6, GREEN, 5), run_time=0.1)
-        self.play(counter.tracker.animate.set_value(2), run_time=0.5)
-        self.wait(0.1)
+        self.play(*highlight(array, 5, 6, GREEN, 5), counter.tracker.animate.set_value(2))
+        self.wait(1)
 
         sweep([0.04, 0.04, 0.04, 0.04])
-        self.play(*highlight(array, 4, 5, GREEN, 5), run_time=0.1)
-        self.play(counter.tracker.animate.set_value(3), run_time=0.5)
-        self.wait(0.1)
+        self.play(*highlight(array, 4, 5, GREEN, 5), counter.tracker.animate.set_value(3))
+        self.wait(1)
 
         sweep([0.04, 0.04, 0.04])
-        self.play(*highlight(array, 3, 4, GREEN, 5), run_time=0.1)
-        self.play(counter.tracker.animate.set_value(4), run_time=0.5)
-        self.wait(0.1)
+        self.play(*highlight(array, 3, 4, GREEN, 5), counter.tracker.animate.set_value(4))
+        self.wait(1)
 
         sweep([0.04, 0.04])
-        self.play(*highlight(array, 2, 3, GREEN, 5), run_time=0.1)
-        self.play(counter.tracker.animate.set_value(5), run_time=0.5)
-        self.wait(0.1)
+        self.play(*highlight(array, 2, 3, GREEN, 5), counter.tracker.animate.set_value(5))
+        self.wait(1)
 
         sweep([0.04])
-        self.play(*highlight(array, 1, 2, GREEN, 5), run_time=0.1)
-        self.play(counter.tracker.animate.set_value(6), run_time=0.5)
-        self.wait(0.1)
+        self.play(*highlight(array, 1, 2, GREEN, 5), counter.tracker.animate.set_value(6))
+        self.wait(1)
 
-        self.play(Indicate(counter.value, scale_factor=2, color=ORANGE), run_time=0.5)
+        self.play(Indicate(counter.value, scale_factor=2, color=ORANGE), run_time=1)
         final_count = Text('Loops')
         final_count.add(MathTex(' = n - 1').next_to(final_count, RIGHT).shift(0.03 * UP))
         final_count.move_to(counter, DOWN).move_to(counter, LEFT)
-        self.play(
-            FadeOut(counter),
-            FadeIn(final_count), run_time=0.5)
-        self.wait(0.1)
+        self.play(FadeOut(counter), FadeIn(final_count), run_time=1)
+        self.wait(4)
 
-        self.play(ReplacementTransform(title, Title('Bubble Sort Implementation', include_underline=False)), run_time=0.5)
+        self.play(ReplacementTransform(title, Title('Bubble Sort Implementation', include_underline=False)), run_time=1)
         # Bring back the initial array
         initial_array = Array(a, color=BLACK, cell_type='bubble')
         initial_array_mobj = initial_array.get_mobject().center().shift(1.5 * UP)
-        self.play(TransformMatchingCells(array_mobj, initial_array_mobj, path_arc=PI/3), run_time=0.5)
-        self.wait(1)
+        self.play(TransformMatchingCells(array_mobj, initial_array_mobj, path_arc=PI/3), run_time=1)
+        self.wait(9)
 
-        self.play(Indicate(final_count, scale_factor=2, color=ORANGE), run_time=0.5)
-        self.wait(1)
-        self.play(FadeOut(final_count, brace, n), run_time=0.1)
+        self.play(Indicate(final_count, scale_factor=2, color=ORANGE), run_time=1)
+        self.wait(2)
+        self.play(FadeOut(final_count, brace, n), run_time=0.5)
+        self.wait(0.5)
 
 
 class Implementation(Scene):
