@@ -135,44 +135,44 @@ class Intuition(Scene):
         indices_mobj = indices.get_mobject().center().next_to(array_mobj, 0.1 * UP)
 
         self.add(a_text)
-        self.play(Create(array_mobj), Create(indices_mobj), run_time=0.1)
-        self.wait(0.1)
+        self.play(Create(array_mobj), Create(indices_mobj), run_time=1)
+        self.wait(0.2)
 
         # Sort the array
         sorted_array = Array(sorted(a))
         sorted_mobj = sorted_array.get_mobject().move_to(array_mobj)
-        self.play(TransformMatchingCells(array_mobj, sorted_mobj, path_arc=PI/3), run_time=0.5)
-        self.wait(0.1)
+        self.play(TransformMatchingCells(array_mobj, sorted_mobj, path_arc=PI/3), run_time=1.5)
+        self.wait(2.5)
 
         # Show the permutation
         permuted_array = Array([3, 5, 9, 4, 1, 12, 7])
         permuted_mobj = permuted_array.get_mobject().move_to(array_mobj)
         self.play(TransformMatchingCells(sorted_mobj, permuted_mobj, path_arc=PI/3), run_time=1)
+        self.wait(1.5)
 
         # Loop to the pair 9, 4
         for i in range(1, 4):
             if i != 1:
                 self.play(*highlight(permuted_array, i - 2, i - 1, WHITE, 2), run_time=0.01)
-            self.play(*highlight(permuted_array, i - 1, i + 1, ORANGE, 5), run_time=0.1)
-            self.wait(0.1)
+            self.play(*highlight(permuted_array, i - 1, i + 1, ORANGE, 5), run_time=0.5)
+            self.wait(1)
 
         # Swap 9 and 4
         swapped_array, swapped_mobj = swap(permuted_array, permuted_mobj, 2, 3)
-        self.play(TransformMatchingCells(permuted_mobj, swapped_mobj, path_arc=PI/2), run_time=0.5)
-        self.wait(0.1)
-        self.play(*highlight(swapped_array, 2, 3, WHITE, 2), run_time=0.1)
-        self.wait(0.1)
+        self.play(TransformMatchingCells(permuted_mobj, swapped_mobj, path_arc=PI/2), run_time=1)
+        self.wait(0.2)
+        self.play(*highlight(swapped_array, 2, 3, WHITE, 2), run_time=0.5)
+        self.wait(0.2)
 
         # Highlight 9 and after that 1
-        self.play(*highlight(swapped_array, 3, 5, ORANGE, 5), run_time=0.1)
-        self.wait(0.1)
-        self.play(Indicate(swapped_array.labels[3]), run_time=0.5)
-        self.play(Indicate(swapped_array.labels[4]), run_time=0.5)
+        self.play(*highlight(swapped_array, 3, 5, ORANGE, 5), run_time=0.2)
+        self.play(Indicate(swapped_array.labels[3]), run_time=0.4)
+        self.play(Indicate(swapped_array.labels[4]), run_time=0.4)
 
         # Swap 9 and 1
         new_swapped_array, new_swapped_mobj = swap(swapped_array, swapped_mobj, 3, 4)
         self.play(TransformMatchingCells(swapped_mobj, new_swapped_mobj, path_arc=PI/2), run_time=0.5)
-        self.wait(0.1)
+        self.wait(0.2)
 
         # Draw an arrow <- at the bottom of 1
         left_arrow = Arrow(
@@ -189,50 +189,51 @@ class Intuition(Scene):
         ).scale(0.3).next_to(new_swapped_array.cells[4], DOWN)
 
         self.play(Create(left_arrow), Indicate(new_swapped_array.labels[3]), run_time=0.5)
+        self.wait(1)
         self.play(Create(right_arrow), Indicate(new_swapped_array.labels[4]), run_time=0.5)
-        self.wait(0.1)
-
-        self.play(*highlight(new_swapped_array, 3, 5, WHITE, 2), run_time=0.1)
-        self.wait(0.1)
+        self.wait(2)
 
         # Bring the array to the initial state
+        self.play(*highlight(new_swapped_array, 3, 5, WHITE, 2), run_time=0.1)
         self.play(FadeOut(left_arrow, right_arrow), run_time=0.5)
         self.play(TransformMatchingCells(new_swapped_mobj, array_mobj, path_arc=PI/3), run_time=0.5)
-        self.wait(0.1)
+        self.wait(0.5)
 
         # Run bubble-sort animation for 1 sweep
         def sweep(run_times: list):
             nonlocal array, array_mobj
             for i, time in enumerate(run_times):
                 self.play(*highlight(array, i, i + 2, ORANGE, 5), run_time=time)
-                self.wait(time)
+                self.wait(6 * time)
                 if array.values[i] > array.values[i + 1]:
                     new_array, new_array_mobj = swap(array, array_mobj, i, i + 1)
-                    self.play(TransformMatchingCells(array_mobj, new_array_mobj, path_arc=PI/3), run_time=time * 7)
-                    self.wait(time)
+                    self.play(TransformMatchingCells(array_mobj, new_array_mobj, path_arc=PI/2), run_time=3 * time)
+                    self.wait(2 * time)
                     array, array_mobj = new_array, new_array_mobj
                 else:
+                    self.wait(2 * time)
                     self.play(Indicate(array.labels[i]), run_time=3 * time)
                     self.play(Indicate(array.labels[i + 1]), run_time=3 * time)
+                    self.wait(2 * time)
 
                 self.play(*highlight(array, i, i + 1, WHITE, 2), run_time=time / 10)
             self.play(*highlight(array, 0, len(array), WHITE, 2), run_time=0.1)
 
-        sweep([0.1, 0.1, 0.07, 0.07, 0.07, 0.07])
-        self.wait(0.1)
-        sweep([0.1, 0.1, 0.07, 0.07, 0.07])
-        self.wait(0.1)
+        sweep([0.5, 0.3, 0.1, 0.05, 0.05, 0.05])
+        self.wait(1)
+        sweep([0.6, 0.1, 0.1, 0.05, 0.05])
+        self.wait(3.5)
 
         # Circumscribe the last 2 elements
-        self.play(Circumscribe(array.labels[-1], Circle), run_time=0.5)
-        self.play(Circumscribe(array.labels[-2], Circle), run_time=0.5)
-        self.wait(0.1)
+        self.play(Circumscribe(array.labels[-1], Circle), run_time=1)
+        self.play(Circumscribe(array.labels[-2], Circle), run_time=1)
+        self.wait(4)
 
-        self.play(ReplacementTransform(title, Title('Bubble Sort', include_underline=False)), run_time=0.5)
+        self.play(ReplacementTransform(title, Title('Bubble Sort', include_underline=False)), run_time=1)
         initial_array = Array(a)
         initial_array_mobj = initial_array.get_mobject().center().shift(1.5 * UP)
         self.play(TransformMatchingCells(array_mobj, initial_array_mobj, path_arc=PI/3), run_time=0.5)
-        self.wait(1)
+        self.wait(0.2)
 
 
 class IntuitionBehindNaming(Scene):
