@@ -569,23 +569,26 @@ class Implementation(Scene):
         ).next_to(array_mobj, DOWN).shift(0.5 * RIGHT).code
 
         # Type the first line of the code
-        self.play(AddTextLetterByLetter(code.chars[0], run_time=0.05 * len(code.chars[0])))
-        self.wait(0.1)
+        self.play(AddTextLetterByLetter(code.chars[0], run_time=0.1 * len(code.chars[0])))
+        self.wait(1)
 
-        self.play(AddTextLetterByLetter(code.chars[1], run_time=0.05 * len(code.chars[1])))
-        self.wait(0.1)
+        self.play(AddTextLetterByLetter(code.chars[1], run_time=0.1 * len(code.chars[1])))
+        self.wait(4)
 
         # Indicate len(a) - 1
-        self.play(Indicate(code.chars[1][-12: -2], scale_factor=1.2), run_time=1)
-        self.wait(0.1)
+        self.play(Indicate(code.chars[1][-12: -2], scale_factor=1.5), run_time=2)
+        self.wait(5)
 
-        self.play(AddTextLetterByLetter(code.chars[2], run_time=0.05 * len(code.chars[2])))
-        self.play(AddTextLetterByLetter(code.chars[3], run_time=0.05 * len(code.chars[3])))
-        self.wait(0.1)
+        self.play(AddTextLetterByLetter(code.chars[2], run_time=0.1 * len(code.chars[2])))
+        self.wait(3)
+        # Indicate the > sign
+        self.play(Indicate(code.chars[2][-11: -10], scale_factor=1.5), run_time=2)
+        self.play(AddTextLetterByLetter(code.chars[3], run_time=0.1 * len(code.chars[3])))
+        self.wait(0.5)
 
         # Circumscribe the code
-        self.play(Circumscribe(code), run_time=0.5)
-        self.wait(0.1)
+        self.play(Circumscribe(code), run_time=1)
+        self.wait(1)
 
 
 class Optimization1(Scene):
@@ -671,11 +674,11 @@ class Optimization1(Scene):
         self.play(Indicate(array.cells[-3], run_time=0.5))
         self.wait(0.1)
 
-        self.play(RemoveTextLetterByLetter(code.chars[0], run_time=0.05 * len(code.chars[0])))
-        self.play(AddTextLetterByLetter(optimized_code.chars[0], run_time=0.05 * len(optimized_code.chars[0])))
+        self.play(RemoveTextLetterByLetter(code.chars[0], run_time=0.1 * len(code.chars[0])))
+        self.play(AddTextLetterByLetter(optimized_code.chars[0], run_time=0.1 * len(optimized_code.chars[0])))
 
-        self.play(RemoveTextLetterByLetter(code.chars[-1], run_time=0.05 * len(code.chars[1])))
-        self.play(AddTextLetterByLetter(optimized_code.chars[-1], run_time=0.05 * len(optimized_code.chars[-1])))
+        self.play(RemoveTextLetterByLetter(code.chars[-1], run_time=0.1 * len(code.chars[1])))
+        self.play(AddTextLetterByLetter(optimized_code.chars[-1], run_time=0.1 * len(optimized_code.chars[-1])))
 
         code.become(optimized_code)
         self.play(ApplyWave(code, run_time=0.5))
@@ -773,17 +776,17 @@ class Optimization2(Scene):
 
         self.play(VGroup(*code.chars[1:]).animate.shift(0.6 * DOWN), run_time=0.1)
         self.wait(0.1)
-        self.play(AddTextLetterByLetter(optimized_code.chars[1], run_time=0.05 * len(optimized_code.chars[1])))
+        self.play(AddTextLetterByLetter(optimized_code.chars[1], run_time=0.1 * len(optimized_code.chars[1])))
         self.wait(0.1)
 
-        self.play(AddTextLetterByLetter(optimized_code.chars[5], run_time=0.05 * len(optimized_code.chars[2])))
+        self.play(AddTextLetterByLetter(optimized_code.chars[5], run_time=0.1 * len(optimized_code.chars[2])))
         self.wait(0.1)
 
         # Indicate the inner loop along with its contents
         self.play(Indicate(VGroup(code.chars[1], code.chars[2], code.chars[3], optimized_code.chars[5]), run_time=0.5))
 
-        self.play(AddTextLetterByLetter(optimized_code.chars[6], run_time=0.05 * len(optimized_code.chars[6])))
-        self.play(AddTextLetterByLetter(optimized_code.chars[7], run_time=0.05 * len(optimized_code.chars[7])))
+        self.play(AddTextLetterByLetter(optimized_code.chars[6], run_time=0.1 * len(optimized_code.chars[6])))
+        self.play(AddTextLetterByLetter(optimized_code.chars[7], run_time=0.1 * len(optimized_code.chars[7])))
         self.wait(0.1)
 
         for i, time in enumerate([0.04] * len(array)):
@@ -866,12 +869,12 @@ class Simulation(Scene):
 
         def before_sweep(u: int):
             debug = get_debug(u, False, 0)
-            self.play(AddTextLetterByLetter(debug.chars[0], run_time=0.05 * len(debug.chars[0])))
+            self.play(AddTextLetterByLetter(debug.chars[0], run_time=0.1 * len(debug.chars[0])))
             self.wait(0.5)
 
             self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
             self.wait(0.1)
-            self.play(AddTextLetterByLetter(debug.chars[1], run_time=0.05 * len(debug.chars[1])))
+            self.play(AddTextLetterByLetter(debug.chars[1], run_time=0.1 * len(debug.chars[1])))
             self.wait(0.1)
 
             # Move the arrow to the inner loop
@@ -905,7 +908,7 @@ class Simulation(Scene):
                         changed = True
                         debug = get_debug(u, changed, i)
                         debugs.append(debug)
-                        self.play(AddTextLetterByLetter(debug.chars[1], run_time=0.05 * len(debug.chars[1])))
+                        self.play(AddTextLetterByLetter(debug.chars[1], run_time=0.1 * len(debug.chars[1])))
                     self.wait(time)
                     array, array_mobj = new_array, new_array_mobj
                 else:
@@ -1103,12 +1106,12 @@ class StableSorting(Scene):
 
         def before_sweep(u: int):
             debug = get_debug(u, False, 0)
-            self.play(AddTextLetterByLetter(debug.chars[0], run_time=0.05 * len(debug.chars[0])))
+            self.play(AddTextLetterByLetter(debug.chars[0], run_time=0.1 * len(debug.chars[0])))
             self.wait(0.5)
 
             self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
             self.wait(0.1)
-            self.play(AddTextLetterByLetter(debug.chars[1], run_time=0.05 * len(debug.chars[1])))
+            self.play(AddTextLetterByLetter(debug.chars[1], run_time=0.1 * len(debug.chars[1])))
             self.wait(0.1)
 
             # Move the arrow to the inner loop
@@ -1142,7 +1145,7 @@ class StableSorting(Scene):
                         changed = True
                         debug = get_debug(u, changed, i)
                         debugs.append(debug)
-                        self.play(AddTextLetterByLetter(debug.chars[1], run_time=0.05 * len(debug.chars[1])))
+                        self.play(AddTextLetterByLetter(debug.chars[1], run_time=0.1 * len(debug.chars[1])))
                     self.wait(time)
                     array, array_mobj = new_array, new_array_mobj
                 else:
@@ -1317,12 +1320,12 @@ class TimeComplexity(Scene):
 
         def before_sweep(u: int):
             debug = get_debug(u, False, 0)
-            self.play(AddTextLetterByLetter(debug.chars[0], run_time=0.05 * len(debug.chars[0])))
+            self.play(AddTextLetterByLetter(debug.chars[0], run_time=0.1 * len(debug.chars[0])))
             self.wait(0.5)
 
             self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
             self.wait(0.1)
-            self.play(AddTextLetterByLetter(debug.chars[1], run_time=0.05 * len(debug.chars[1])))
+            self.play(AddTextLetterByLetter(debug.chars[1], run_time=0.1 * len(debug.chars[1])))
             self.wait(0.1)
 
             # Move the arrow to the inner loop
@@ -1356,7 +1359,7 @@ class TimeComplexity(Scene):
                         changed = True
                         debug = get_debug(u, changed, i)
                         debugs.append(debug)
-                        self.play(AddTextLetterByLetter(debug.chars[1], run_time=0.05 * len(debug.chars[1])))
+                        self.play(AddTextLetterByLetter(debug.chars[1], run_time=0.1 * len(debug.chars[1])))
                     self.wait(time)
                     array, array_mobj = new_array, new_array_mobj
                 else:
