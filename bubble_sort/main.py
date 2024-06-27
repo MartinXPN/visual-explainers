@@ -1296,7 +1296,7 @@ class TimeComplexity(Scene):
 
         array = Array([1, 3, 4, 5, 7, 9, 12], color=BLACK, cell_type='bubble')
         array_mobj = array.get_mobject().center().shift(1.5 * UP)
-        a_text = Tex('a:').scale(0.9).next_to(array_mobj, LEFT)
+        a_text = Tex('a:').scale(0.9).next_to(array_mobj, LEFT, buff=0.35)
 
         indices = Array(
             [i for i in range(len(array))],
@@ -1322,7 +1322,7 @@ class TimeComplexity(Scene):
             line_spacing=0.6,
             font='Monospace',
             style='monokai',
-        ).next_to(array_mobj, DOWN).shift(0.15 * DOWN).shift(0.25 * RIGHT).code
+        ).next_to(array_mobj, DOWN).shift(0.5 * RIGHT).code
         self.add(code)
         self.wait(0.1)
         self.play(VGroup(*code.chars).animate.shift(1.5 * LEFT).shift(0.6 * DOWN), run_time=0.5)
@@ -1351,18 +1351,18 @@ class TimeComplexity(Scene):
             ).next_to(code, RIGHT).align_to(code, UP).shift(0.25 * UP).code
             return res
 
-        def before_sweep(u: int):
+        def before_sweep(u: int, time: float):
             debug = get_debug(u, False, 0)
             self.play(AddTextLetterByLetter(debug.chars[0], run_time=0.1 * len(debug.chars[0])))
-            self.wait(0.5)
+            self.wait(2 * time)
 
-            self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
-            self.wait(0.1)
+            self.play(arrow.animate.shift(0.4 * DOWN), run_time=time)
+            self.wait(time)
             self.play(AddTextLetterByLetter(debug.chars[1], run_time=0.1 * len(debug.chars[1])))
-            self.wait(0.1)
+            self.wait(3 * time)
 
             # Move the arrow to the inner loop
-            self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
+            self.play(arrow.animate.shift(0.4 * DOWN), run_time=time)
             return debug
 
         # Run bubble-sort animation for 1 sweep
@@ -1375,17 +1375,17 @@ class TimeComplexity(Scene):
                 debug = get_debug(u, changed, i)
                 debugs.append(debug)
                 self.play(ReplacementTransform(debugs[-2].chars[2], debugs[-1].chars[2]), run_time=time)
-                self.wait(time)
+                self.wait(2 * time)
 
                 self.play(arrow.animate.shift(0.4 * DOWN), run_time=time)
                 self.play(*highlight(array, i, i + 2, ORANGE, 5), run_time=time)
-                self.wait(2 * time)
+                self.wait(3 * time)
                 entered_if = False
                 if array.values[i] > array.values[i + 1]:
                     entered_if = True
                     self.play(arrow.animate.shift(0.4 * DOWN), run_time=time)
                     new_array, new_array_mobj = swap(array, array_mobj, i, i + 1, aligned_edge=RIGHT if i == 0 else LEFT)
-                    self.play(TransformMatchingCells(array_mobj, new_array_mobj, path_arc=PI/3), run_time=time * 7)
+                    self.play(TransformMatchingCells(array_mobj, new_array_mobj, path_arc=PI/2), run_time=3 * time)
                     self.play(arrow.animate.shift(0.4 * DOWN), run_time=time)
                     if not changed:
                         self.play(*[RemoveTextLetterByLetter(d.chars[1], run_time=0.01 * len(d.chars[1])) for d in debugs])
@@ -1396,7 +1396,7 @@ class TimeComplexity(Scene):
                     self.wait(time)
                     array, array_mobj = new_array, new_array_mobj
                 else:
-                    self.wait(2 * time)
+                    self.wait(4 * time)
 
                 # Move to the start of the inner loop
                 if i != len(run_times) - 1:
@@ -1409,17 +1409,13 @@ class TimeComplexity(Scene):
                 self.play(*highlight(array, i, i + 1, BLUE_BACKGROUND, 0), run_time=time / 10)
 
             # Move to the `if not changed` part
-            self.play(
-                arrow.animate.shift(0.4 * DOWN if entered_if else 1.2 * DOWN),
-                *highlight(array, len(run_times), len(run_times) + 1, GREEN, 5),
-                run_time=0.2,
-            )
-            self.wait(0.1)
+            self.play(*highlight(array, len(run_times), len(run_times) + 1, GREEN, 5), run_time=1)
+            self.play(arrow.animate.shift(0.4 * DOWN if entered_if else 1.2 * DOWN), run_time=0.5)
+            self.wait(0.5)
             if not changed:
-                self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
+                self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.5)
             else:
-                self.play(arrow.animate.shift(2.4 * UP), run_time=0.2)
-            self.wait(0.1)
+                self.play(arrow.animate.shift(2.4 * UP), run_time=1)
 
             # Make sure we properly delete the unnecessary debug values
             self.add(debugs[-1])
@@ -1430,135 +1426,130 @@ class TimeComplexity(Scene):
             self.play(RemoveTextLetterByLetter(debugs[-1].chars[1], run_time=0.01 * len(debugs[-1].chars[1])))
             self.play(RemoveTextLetterByLetter(debugs[-1].chars[0], run_time=0.01 * len(debugs[-1].chars[0])))
 
-        debug = before_sweep(6)
-        sweep([0.08, 0.08, 0.08, 0.08, 0.08, 0.08], 6)
-        self.wait(0.1)
+        debug = before_sweep(6, time=0.1)
+        sweep([0.05, 0.05, 0.05, 0.05, 0.05, 0.05], 6)
 
         # Write “Best Case: O(n)”
+        self.wait(2)
         best_case = Tex(r'Best Case: $\mathcal{O}(n)$').scale(0.8).next_to(code, UP).shift(3 * LEFT).shift(0.2 * UP)
-        self.play(Write(best_case), run_time=0.5)
-        self.wait(0.1)
+        self.play(Write(best_case), run_time=2)
+        self.wait(4)
 
         # Write “Worst Case:"
         worst_case = Tex(r'Worst Case:').scale(0.8).next_to(best_case, RIGHT, buff=0.5)
-        self.play(Write(worst_case), run_time=0.5)
+        self.play(Write(worst_case), run_time=1)
         self.play(arrow.animate.next_to(code, LEFT).align_to(code, UP).shift(0.08 * DOWN), run_time=0.5)
-        self.wait(0.1)
+        self.wait(12)
 
         # a = [1, 3, 4, 5, 7, 9, 12] → a = [12, 9, 7, 5, 4, 3, 1]
         new_array = Array([12, 9, 7, 5, 4, 3, 1], color=BLACK, cell_type='bubble')
         new_array_mobj = new_array.get_mobject().center().shift(1.5 * UP)
-        self.play(TransformMatchingCells(array_mobj, new_array_mobj, path_arc=PI/3), run_time=0.5)
-        self.wait(0.1)
+        self.play(TransformMatchingCells(array_mobj, new_array_mobj, path_arc=PI/3), run_time=1)
+        self.wait(4)
         array = new_array
         array_mobj = new_array_mobj
 
         # Indicate the outer loop
-        self.play(Indicate(code.chars[0], run_time=0.5))
-        self.wait(0.1)
+        self.play(Indicate(code.chars[0], run_time=2))
+        self.wait(2)
 
         # Indicate the inner loop
-        self.play(Indicate(code.chars[2], run_time=0.5))
-        self.wait(0.1)
+        self.play(Indicate(code.chars[2], run_time=2))
 
         # Indicate the swap line
-        self.play(Indicate(code.chars[4], run_time=0.5))
-        self.wait(0.1)
+        self.play(Indicate(code.chars[4], run_time=2))
+        self.wait(1)
 
         # Sweep 1 time
-        debug = before_sweep(6)
-        sweep([0.08, 0.08, 0.08, 0.08, 0.08, 0.08], 6)
-        self.wait(0.1)
+        debug = before_sweep(6, time=0.05)
+        sweep([0.01, 0.01, 0.01, 0.01, 0.01, 0.005], 6)
 
         # Write (n - 1) next to worst case
         n_1 = Tex(r'$(n - 1)$').scale(0.8).next_to(worst_case, RIGHT)
-        self.play(Write(n_1), run_time=0.5)
-        self.wait(0.1)
+        self.play(Write(n_1), run_time=0.2)
 
-        debug = before_sweep(5)
-        sweep([0.08, 0.08, 0.08, 0.08, 0.08], 5)
-        self.wait(0.1)
+        debug = before_sweep(5, time=0.05)
+        sweep([0.01, 0.01, 0.01, 0.01, 0.005], 5)
 
         # Write (n - 2) next to n-1
         n_2 = Tex(r'$ + (n - 2)$').scale(0.8).next_to(n_1, RIGHT, buff=0.08)
-        self.play(Write(n_2), run_time=0.5)
-        self.wait(0.1)
+        self.play(Write(n_2), run_time=0.2)
 
-        debug = before_sweep(4)
-        sweep([0.08, 0.08, 0.08, 0.08], 4)
-        self.wait(0.1)
+        debug = before_sweep(4, time=0.05)
+        sweep([0.005, 0.005, 0.005, 0.005], 4)
 
         # Write (n - 3) next to n-2
         n_3 = Tex(r'$ + (n - 3)$').scale(0.8).next_to(n_2, RIGHT, buff=0.08)
-        self.play(Write(n_3), run_time=0.5)
-        self.wait(0.1)
+        self.play(Write(n_3), run_time=0.2)
 
         # Write + ... + 1
         dots = Tex(r'$ + \ldots + $').scale(0.8).next_to(n_3, RIGHT, buff=0.08)
         one = Tex(r'$1$').scale(0.8).next_to(dots, RIGHT, buff=0.08)
         self.play(Write(dots), run_time=0.5)
         self.play(Write(one), run_time=0.2)
-        self.wait(0.1)
+        self.wait(5)
 
         # - [ ]  Indicate `n - 1`
         # - [ ]  Indicate `1`
         # - [ ]  Write `= n * (n - 1) / 2`
-        self.play(Indicate(n_1), run_time=0.5)
-        self.play(Indicate(one), run_time=0.5)
-        self.wait(0.1)
+        self.play(Indicate(n_1), run_time=1)
+        self.play(Indicate(one), run_time=1)
+        self.wait(4)
 
         # Write `= n * (n - 1) / 2`
         formula = VGroup(n_1, n_2, n_3, dots, one)
         total = Tex(r'$\frac{n \cdot (n - 1)}{2}$').next_to(worst_case, RIGHT)
-        self.play(TransformMatchingTex(formula, total), run_time=0.5)
-        self.wait(0.1)
+        self.play(TransformMatchingTex(formula, total), run_time=1)
+        self.wait(2)
 
         # - [ ]  Write `= (n^2 - n) / 2`
         # - [ ]  Write `= O(n^2)`
         n_square = Tex(r'$ = \frac{n^2 - n}{2}$').next_to(total, RIGHT, buff=0.08)
-        self.play(Write(n_square), run_time=0.5)
-        self.wait(0.2)
+        self.play(Write(n_square), run_time=1)
+        self.wait(2)
 
         o_n_square = Tex(r'$\mathcal{O}(n^2)$').scale(0.8).next_to(worst_case, RIGHT)
-        self.play(TransformMatchingTex(VGroup(total, n_square), o_n_square), run_time=0.5)
-        self.wait(0.1)
-        self.play(FadeOut(arrow), run_time=0.1)
+        total.add(n_square)
+        self.play(TransformMatchingTex(total, o_n_square), run_time=1)
+        self.play(FadeOut(arrow), run_time=0.5)
+        self.wait(7)
 
         # Write “Average Case:”
         average_case = Tex(r'Average Case:').scale(0.8).next_to(o_n_square, RIGHT, buff=0.5)
-        self.play(Write(average_case), run_time=0.5)
-        self.wait(0.1)
+        self.play(Write(average_case), run_time=1)
+        self.wait(2)
 
         # Indicate the outer loop
-        self.play(Indicate(code.chars[0], run_time=0.5))
+        self.play(Indicate(code.chars[0], run_time=1))
         # Write n / 2
-        n_2 = Tex(r'$\frac{n}{2}$').scale(0.8).next_to(average_case, RIGHT)
-        self.play(Write(n_2), run_time=0.5)
-        self.wait(0.1)
+        n_2 = Tex(r'$\frac{n}{2}$').next_to(average_case, RIGHT)
+        self.play(Write(n_2), run_time=1)
+        self.wait(2)
 
         # Indicate the inner loop
-        self.play(Indicate(code.chars[2], run_time=0.5))
+        self.play(Indicate(code.chars[2], run_time=1))
         # Write * n
         n_3 = Tex(r'$\cdot n$').scale(0.8).next_to(n_2, RIGHT, buff=0.08)
-        self.play(Write(n_3), run_time=0.5)
+        self.play(Write(n_3), run_time=1)
+        self.wait(3)
 
         # Write O(n^2)
-        equal = Tex(r'$=$').scale(0.8).next_to(n_3, RIGHT)
-        o_n_square_avg = Tex(r'$\mathcal{O}(n^2)$').scale(0.8).next_to(equal, RIGHT)
-        self.play(Write(VGroup(equal, o_n_square_avg)), run_time=0.5)
-        self.wait(0.1)
+        equal = Tex(r'$=$').scale(0.8).next_to(n_3, RIGHT, buff=0.15)
+        o_n_square_avg = Tex(r'$\mathcal{O}(n^2)$').scale(0.8).next_to(equal, RIGHT, buff=0.15)
+        self.play(Write(VGroup(equal, o_n_square_avg)), run_time=1)
+        self.wait(2)
 
         # Remove all the average case calculations and replace them with O(n^2)
         self.play(TransformMatchingTex(
             VGroup(n_2, n_3, equal, o_n_square_avg),
             o_n_square_avg.next_to(average_case, RIGHT)
         ), run_time=0.5)
-        self.wait(0.1)
+        self.wait(2)
 
         # Indicate average case
-        self.play(Indicate(VGroup(average_case, o_n_square_avg)), run_time=0.5)
-        self.play(VGroup(average_case, o_n_square_avg).animate.set_color(ORANGE), run_time=0.5)
-        self.wait(0.1)
+        self.play(Indicate(VGroup(average_case, o_n_square_avg)), run_time=1)
+        self.play(VGroup(average_case, o_n_square_avg).animate.set_color(ORANGE), run_time=1)
+        self.wait(5)
 
         # Indicate best case
         self.play(Indicate(best_case), run_time=0.5)
@@ -1567,28 +1558,34 @@ class TimeComplexity(Scene):
         # Indicate worst case
         self.play(Indicate(VGroup(worst_case, o_n_square)), run_time=0.5)
         self.play(VGroup(worst_case, o_n_square).animate.set_color(ORANGE), run_time=0.5)
-        self.wait(0.1)
+        self.wait(1)
 
         # a = [1, 3, 4, 5, 7, 9, 12] → a = [12, 9, 7, 5, 4, 3, 1]
         new_array = Array([1, 3, 4, 5, 7, 9, 12], color=BLACK, cell_type='bubble')
         new_array_mobj = new_array.get_mobject().center().shift(1.5 * UP)
-        self.play(TransformMatchingCells(array_mobj, new_array_mobj, path_arc=PI/3), run_time=0.5)
-        self.wait(0.1)
+        self.play(TransformMatchingCells(array_mobj, new_array_mobj, path_arc=PI/3), run_time=1)
+        self.wait(1)
         array, array_mobj = new_array, new_array_mobj
 
         # a = [12, 9, 7, 5, 4, 3, 1] → a = [1, 3, 4, 5, 7, 9, 12]
         new_array = Array([12, 9, 7, 5, 4, 3, 1], color=BLACK, cell_type='bubble')
         new_array_mobj = new_array.get_mobject().center().shift(1.5 * UP)
-        self.play(TransformMatchingCells(array_mobj, new_array_mobj, path_arc=PI/3), run_time=0.5)
-        self.wait(0.1)
+        self.play(TransformMatchingCells(array_mobj, new_array_mobj, path_arc=PI/3), run_time=1)
+        self.wait(3)
         array, array_mobj = new_array, new_array_mobj
 
         # Title -> Bubble Sort
         new_title = Title('Bubble Sort', include_underline=False)
-        self.play(ReplacementTransform(title, new_title), run_time=0.5)
-        self.wait(0.1)
+        self.play(ReplacementTransform(title, new_title), run_time=1)
+        self.wait(1)
 
         # Wave the code
         self.play(code.animate.shift(1.5 * RIGHT), run_time=0.5)
-        self.play(ApplyWave(code), run_time=0.5)
-        self.wait(0.1)
+        self.play(ApplyWave(code, run_time=2))
+        self.wait(2)
+        self.play(Indicate(new_title), run_time=1)
+        self.wait(2)
+        self.play(ApplyWave(code, run_time=2))
+        self.wait(4)
+        self.play(ApplyWave(code, run_time=2))
+        self.wait(6)
