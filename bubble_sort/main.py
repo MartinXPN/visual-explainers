@@ -657,7 +657,7 @@ class Optimization1(Scene):
         self.play(Indicate(array.cells[-2], run_time=0.5))
         self.wait(3)
 
-        self.play(Indicate(code.chars[0], run_time=1))
+        self.play(Indicate(code.chars[1], run_time=1))
         self.wait(2)
         self.play(Circumscribe(VGroup(*array.cells[:-2]), run_time=2))
         self.wait(2)
