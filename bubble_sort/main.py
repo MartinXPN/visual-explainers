@@ -1243,43 +1243,44 @@ class StableSorting(Scene):
         # Title -> "Bubble sort is stable"
         title = Title('Bubble Sort is Stable', include_underline=False)
         self.play(ReplacementTransform(new_title, title), run_time=1)
-        self.wait(16)
+        self.wait(14)
 
         # Circumscribe the array
         self.play(Circumscribe(VGroup(*array.cells), run_time=2))
-        self.wait(2)
+        self.wait(7)
 
         new_title = Title('In-place Sorting', include_underline=False)
         self.play(ReplacementTransform(title, new_title), run_time=1)
-        self.wait(4)
+        self.wait(5)
 
         # Indicate the array
         self.play(*[Indicate(cell, scale_factor=1.5) for cell in array.cells], run_time=1)
-        self.wait(2)
+        self.wait(4)
 
         # Indicate the code
         self.play(Indicate(code.chars, run_time=1))
-        self.wait(4)
+        self.wait(8)
 
         # title -> Properties
         title = Title('Properties', include_underline=False)
         self.play(ReplacementTransform(new_title, title), run_time=1)
 
         self.play(code.animate.shift(0.6 * DOWN), run_time=1)
+        self.wait(2)
         # Stable on the left
         # In-place on the right
         # Both above the code
         stable = Text('Stable', color=ORANGE).scale(0.8).next_to(code, UP).shift(3 * LEFT).shift(0.2 * UP)
-        in_place = Text('In-place', color=ORANGE).scale(0.8).next_to(code, UP).shift(2 * RIGHT).shift(0.2 * UP)
-        self.play(Write(stable), run_time=0.5)
-        self.play(Write(in_place), run_time=0.5)
-
-        self.wait(2)
+        in_place = Text('In-place', color=ORANGE).scale(0.8).next_to(code, UP).shift(1.5 * RIGHT).shift(0.2 * UP)
+        self.play(Write(stable), run_time=1)
+        self.wait(4)
+        self.play(Write(in_place), run_time=1)
+        self.wait(8)
 
         # Transition to the next scene
         new_title = Title('Time Complexity', include_underline=False)
         self.play(ReplacementTransform(title, new_title), FadeOut(stable, in_place), code.animate.shift(0.6 * UP), run_time=1)
-        self.wait(1)
+        self.wait(6)
 
         # a = [1, 3, 4, 5, 7, 9, 12]
         new_array = Array([1, 3, 4, 5, 7, 9, 12], color=BLACK, cell_type='bubble')
