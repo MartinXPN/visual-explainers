@@ -60,3 +60,32 @@ class Introduction(Scene):
             bar.set_color(WHITE)
         self.wait(2)
 
+
+class IntroductionImplementation(Scene):
+    def construct(self):
+        code = Code(
+            code=dedent('''
+                for i in range(1, len(a)):
+                j = i
+                while j > 0 and a[j] < a[j - 1]:
+                    a[j - 1], a[j] = a[j], a[j - 1]
+                    j -= 1
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).center().code
+
+        for line in code.chars:
+            self.play(AddTextLetterByLetter(line, run_time=0.1 * len(line)))
+        self.wait(2)
+
+
+class Intuition(Scene):
+    def construct(self):
+        title = Title('Insertion Sort', include_underline=False)
+        self.play(Write(title), run_time=0.2)
+
+        self.wait(0.5)
