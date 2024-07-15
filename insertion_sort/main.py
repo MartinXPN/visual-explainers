@@ -3,6 +3,8 @@ from textwrap import dedent
 
 from manim import *
 
+from insertion_sort.array import Array
+
 
 small = [2, 7, 10, 5, 3, -1]
 large = [12, 3, 5, 9, 4, 1, 7]
@@ -87,5 +89,17 @@ class Intuition(Scene):
     def construct(self):
         title = Title('Insertion Sort', include_underline=False)
         self.play(Write(title), run_time=0.2)
+
+        array = Array(small, color=BLACK, cell_type='card')
+        array_mobj = array.get_mobject().center().shift(1.5 * UP)
+        a_text = Tex('a:').scale(0.9).next_to(array_mobj, LEFT)
+
+        indices = Array(
+            [i for i in range(len(array))],
+            width=array.width, height=array.height,
+            spacing=array.spacing, scale_text=array.scale_text, stroke_color=BLACK,
+        )
+        indices_mobj = indices.get_mobject().center().next_to(array_mobj, 0.1 * UP)
+        self.play(Create(array_mobj), Create(a_text), Create(indices_mobj), run_time=2)
 
         self.wait(0.5)
