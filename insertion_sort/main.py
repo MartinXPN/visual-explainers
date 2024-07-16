@@ -10,12 +10,12 @@ small = [2, 7, 10, 5, 3, -1]
 large = [12, 3, 5, 9, 4, 1, 7]
 ORANGE = ManimColor('#fa541c')
 BLUE_BACKGROUND = ManimColor('#ADD8E6')
+random.seed(42)
 
 
 class Introduction(Scene):
     def construct(self):
         # Create vertical bars representing the array and sort them with insertion sort
-        random.seed(42)
         array = list(range(1, 55))
         random.shuffle(array)
 
