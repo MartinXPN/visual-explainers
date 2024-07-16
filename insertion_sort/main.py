@@ -428,3 +428,55 @@ class Implementation(Scene):
             run_time=0.5,
         )
         self.wait(1)
+
+
+class Simulation(Scene):
+    def construct(self):
+        title = Title('Insertion Sort', include_underline=False)
+        self.add(title)
+
+        array = Array(large.copy(), color=BLACK, cell_type='card')
+        array_mobj = array.get_mobject().center().shift(UP)
+        a_text = Tex('a:').scale(0.9).next_to(array_mobj, LEFT)
+        indices = Array(
+            [i for i in range(len(array))],
+            width=array.width, height=array.height,
+            spacing=array.spacing, scale_text=array.scale_text, stroke_color=BLACK,
+        )
+        indices_mobj = indices.get_mobject().center().next_to(array_mobj, UP, buff=0.4)
+        self.add(array_mobj, a_text, indices_mobj)
+
+        code = Code(
+            code=dedent('''
+                for i in range(1, len(a)):
+                    j = i
+                    while j > 0 and a[j] < a[j - 1]:
+                        a[j - 1], a[j] = a[j], a[j - 1]
+                        j -= 1
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).next_to(array_mobj, DOWN, buff=0.8).shift(0.5 * RIGHT).code
+        self.add(code)
+        self.wait(0.1)
+
+        self.play(
+            *[cell.animate.shift(1.5 * RIGHT) for cell in array.cells[1:]],
+            *[label.animate.shift(1.5 * RIGHT) for label in array.labels[1:]],
+            *[label.animate.set_color(BLACK) for label in indices.labels[1:]],
+            run_time=0.5,
+        )
+        self.play(code.animate.shift(2 * LEFT), run_time=0.5)
+        self.wait(0.1)
+
+        # Arrow to show which part of the code is being executed
+        arrow = Arrow(
+            start=LEFT, end=RIGHT, color=RED, buff=0.1,
+            stroke_width=10, max_stroke_width_to_length_ratio=15,
+            max_tip_length_to_length_ratio=0.5, tip_length=0.2,
+        ).scale(0.3).next_to(code, LEFT).align_to(code, UP).shift(0.08 * DOWN)
+        self.play(Create(arrow), run_time=0.5)
+        self.wait(0.1)
