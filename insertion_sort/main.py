@@ -479,4 +479,31 @@ class Simulation(Scene):
             max_tip_length_to_length_ratio=0.5, tip_length=0.2,
         ).scale(0.3).next_to(code, LEFT).align_to(code, UP).shift(0.08 * DOWN)
         self.play(Create(arrow), run_time=0.5)
+
+        # show real-time values to better understand the code
+        def get_debug(i, j, cur, prev):
+            res = Code(
+                code=dedent(f'''
+                # i: {i}
+                # j: {j}
+                # {cur} < {prev} ?
+                ''').strip(),
+                tab_width=4,
+                language='Python',
+                line_spacing=0.6,
+                font='Monospace',
+                style='monokai',
+            ).next_to(code, RIGHT).align_to(code, UP).shift(0.25 * UP).code
+            return res
+
+        debug = get_debug(1, 1, array.values[1], array.values[0])
+        self.play(AddTextLetterByLetter(debug.chars[0], run_time=0.1 * len(debug.chars[0])))
+        self.wait(0.1)
+
+        self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.5)
+        self.play(AddTextLetterByLetter(debug.chars[1], run_time=0.1 * len(debug.chars[1])))
+        self.wait(0.1)
+
+        self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.5)
+        self.play(AddTextLetterByLetter(debug.chars[2], run_time=0.1 * len(debug.chars[2])))
         self.wait(0.1)
