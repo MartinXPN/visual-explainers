@@ -6,7 +6,8 @@ from manim import *
 from insertion_sort.array import Array
 
 
-small = [2, 7, 10, 5, 3, -1]
+small = [10, 2, 7, 5, 3]
+medium = [2, 7, 10, 5, 3, -1]
 large = [12, 3, 5, 9, 4, 1, 7]
 ORANGE = ManimColor('#fa541c')
 BLUE_BACKGROUND = ManimColor('#ADD8E6')
@@ -90,8 +91,10 @@ class Intuition(Scene):
         title = Title('Insertion Sort', include_underline=False)
         self.play(Write(title), run_time=0.2)
 
-        array = Array(small, color=BLACK, cell_type='card')
-        array_mobj = array.get_mobject().center().shift(1.5 * UP)
+        array_shadow = Array(medium, color=BLACK, cell_type='card')
+        array_shadow_mobj = array_shadow.get_mobject().center().shift(1 * UP)
+        array = Array(medium[:3], color=BLACK, cell_type='card')
+        array_mobj = array.get_mobject().align_to(array_shadow_mobj, LEFT).align_to(array_shadow_mobj, DOWN)
         a_text = Tex('a:').scale(0.9).next_to(array_mobj, LEFT)
 
         indices = Array(
@@ -99,7 +102,48 @@ class Intuition(Scene):
             width=array.width, height=array.height,
             spacing=array.spacing, scale_text=array.scale_text, stroke_color=BLACK,
         )
-        indices_mobj = indices.get_mobject().center().next_to(array_mobj, 0.1 * UP)
-        self.play(Create(array_mobj), Create(a_text), Create(indices_mobj), run_time=2)
+        indices_mobj = indices.get_mobject().center().next_to(array_mobj, UP, buff=0.4)
+        self.play(Create(array_mobj), Create(a_text), Create(indices_mobj), run_time=0.5)
+        self.wait(0.2)
 
+        self.play(LaggedStart(*[
+            Indicate(VGroup(cell, label))
+            for cell, label in zip(array.cells, array.labels)
+        ], lag_ratio=0.4, run_time=0.5))
+        self.wait(0.1)
+
+        # 5 appears on the screen
+        new_element = Array(medium[3:4], color=BLACK, cell_type='card')
+        new_element_mobj = new_element.get_mobject() \
+            .align_to(array_mobj, LEFT).align_to(array_mobj, UP) \
+            .shift(3 * (array.width + array.spacing) * RIGHT) \
+            .shift(0.3 * UP).shift(10 * RIGHT)
+        self.add(new_element_mobj)
+        self.play(new_element_mobj.animate.shift(10 * LEFT), run_time=0.5)
+        self.wait(0.2)
+
+        # Insert 5 in its correct place
+        for i in range(2, 0, -1):
+            to_path = ArcBetweenPoints(array.cells[i].get_center(), new_element_mobj.copy().shift(0.3 * DOWN).get_center(), angle=PI/4)
+            from_path = ArcBetweenPoints(new_element_mobj.get_center(), array.cells[i].copy().shift(0.3 * UP).get_center(), angle=PI/4)
+            self.play(
+                MoveAlongPath(VGroup(array.cells[i], array.labels[i]), path=to_path),
+                MoveAlongPath(new_element_mobj, path=from_path),
+                run_time=0.5,
+            )
+        self.wait(0.2)
+
+        # Move 5 down and add an index
+        indices = Array(
+            [i for i in range(len(array) + 1)],
+            width=array.width, height=array.height,
+            spacing=array.spacing, scale_text=array.scale_text, stroke_color=BLACK,
+        )
+        new_indices_mobj = indices.get_mobject().center().next_to(array_mobj, UP, buff=0.4)
+
+        self.play(
+            new_element_mobj.animate.shift(0.3 * DOWN),
+            TransformMatchingShapes(indices_mobj, new_indices_mobj),
+            run_time=0.5,
+        )
         self.wait(0.5)

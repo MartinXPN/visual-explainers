@@ -4,12 +4,11 @@ from itertools import chain
 from manim import *
 from manim.animation.transform_matching_parts import TransformMatchingAbstractBase
 
-
 card_paths = [
     'insertion_sort/card-spade.svg',
+    'insertion_sort/card-heart.svg',
     'insertion_sort/card-club.svg',
     'insertion_sort/card-diamond.svg',
-    'insertion_sort/card-heart.svg',
 ]
 
 
@@ -58,7 +57,7 @@ class Array:
             elif self.cell_type == 'card':
                 # Pick the card based on the value
                 path = card_paths[value % 4]
-                self.color[i] = BLACK if value % 4 in [0, 1] else RED
+                self.color[i] = BLACK if value % 2 == 0 else RED
                 card = SVGMobject(path).scale(self.width / 2)
                 card.move_to(rectangle.get_center())
                 self.cells.append(card)
