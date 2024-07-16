@@ -277,3 +277,154 @@ class IntuitionFull(Scene):
             run_time=0.5,
         )
         self.wait(1)
+
+
+class Implementation(Scene):
+    def construct(self):
+        title = Title('Insertion Sort Implementation', include_underline=False)
+        self.add(title)
+
+        array = Array(small.copy(), color=BLACK, cell_type='card')
+        array_mobj = array.get_mobject().center().shift(UP)
+        a_text = Tex('a:').scale(0.9).next_to(array_mobj, LEFT)
+        indices = Array(
+            [i for i in range(len(array))],
+            width=array.width, height=array.height,
+            spacing=array.spacing, scale_text=array.scale_text, stroke_color=BLACK,
+        )
+        indices_mobj = indices.get_mobject().center().next_to(array_mobj, UP, buff=0.4)
+        self.add(array_mobj, a_text, indices_mobj)
+        self.wait(0.1)
+
+        code = Code(
+            code=dedent('''
+                for i in range(1, len(a)):
+                    j = i
+                    while j > 0 and a[j] < a[j - 1]:
+                        a[j - 1], a[j] = a[j], a[j - 1]
+                        j -= 1
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).next_to(array_mobj, DOWN, buff=0.8).shift(0.5 * RIGHT).code
+
+        self.play(array_mobj.animate.shift(2.5 * RIGHT), *[
+            index.animate.set_color(BLACK) for index in indices.labels
+        ], run_time=0.5)
+        self.wait(0.1)
+
+        self.play(AddTextLetterByLetter(code.chars[0], run_time=0.1 * len(code.chars[0])))
+        self.wait(0.1)
+
+        # Indicate 1 in the code + Bring 10 to the left
+        self.play(Indicate(code.chars[0][15], scale_factor=2), run_time=0.5)
+        self.wait(0.1)
+        self.play(
+            array.cells[0].animate.shift(2.5 * LEFT),
+            array.labels[0].animate.shift(2.5 * LEFT),
+            indices.labels[0].animate.set_color(WHITE),
+            run_time=0.5,
+        )
+        self.wait(0.1)
+
+        # Indicate the last 3 cards
+        self.play(LaggedStart(
+            *[Indicate(VGroup(cell, label)) for cell, label in zip(array.cells[-3:], array.labels[-3:])],
+            lag_ratio=0.4,
+            run_time=0.5,
+        ))
+        self.wait(0.1)
+
+        # Move 2 at index 1 up (to insert it)
+        self.play(array.cells[1].animate.shift(0.3 * UP), array.labels[1].animate.shift(0.3 * UP), run_time=0.2)
+        self.wait(0.1)
+        self.play(AddTextLetterByLetter(code.chars[1], run_time=0.1 * len(code.chars[1])))
+        self.wait(0.1)
+
+        # Move 2 to the left
+        self.play(
+            array.cells[1].animate.shift(2.5 * LEFT),
+            array.labels[1].animate.shift(2.5 * LEFT),
+            indices.labels[1].animate.set_color(WHITE),
+            run_time=0.5,
+        )
+        self.wait(0.1)
+
+        self.play(AddTextLetterByLetter(code.chars[2], run_time=0.1 * len(code.chars[2])))
+        self.play(AddTextLetterByLetter(code.chars[3], run_time=0.1 * len(code.chars[3])))
+        self.wait(0.1)
+        self.play(AddTextLetterByLetter(code.chars[4], run_time=0.1 * len(code.chars[4])))
+        self.wait(0.1)
+
+        def sort(index: int, highlight: bool = False, shift=True, run_time: float = 0.2):
+            value = array.values[index]
+            if shift:
+                self.play(
+                    array.cells[index].animate.shift(0.3 * UP),
+                    array.labels[index].animate.shift(0.3 * UP),
+                    run_time=run_time,
+                )
+                # Shift the index to the left
+                self.play(
+                    array.cells[index].animate.shift(2.5 * LEFT),
+                    array.labels[index].animate.shift(2.5 * LEFT),
+                    run_time=run_time,
+                )
+            indices.labels[index].set_color(WHITE),
+
+            # Insert in the right place
+            for i in range(index, 0, -1):
+                if highlight:
+                    self.play(array.cells[i - 1][0].animate.set_color(YELLOW), run_time=run_time)
+
+                if array.values[i - 1] < array.values[i]:
+                    if highlight:
+                        self.play(array.cells[i - 1][0].animate.set_color(WHITE), run_time=2 * run_time)
+                    break
+
+                to_path = ArcBetweenPoints(array.cells[i - 1].get_center(), array.cells[i].copy().shift(0.3 * DOWN).get_center(), angle=PI / 4)
+                from_path = ArcBetweenPoints(array.cells[i].get_center(), array.cells[i - 1].copy().shift(0.3 * UP).get_center(), angle=PI / 4)
+                self.play(
+                    MoveAlongPath(VGroup(array.cells[i - 1], array.labels[i - 1]), path=to_path),
+                    MoveAlongPath(VGroup(array.cells[i], array.labels[i]), path=from_path),
+                    run_time=run_time,
+                )
+                array.values[i - 1], array.values[i] = array.values[i], array.values[i - 1]
+                array.cells[i - 1], array.cells[i] = array.cells[i], array.cells[i - 1]
+                array.labels[i - 1], array.labels[i] = array.labels[i], array.labels[i - 1]
+                array.color[i - 1], array.color[i] = array.color[i], array.color[i - 1]
+
+                if highlight:
+                    self.play(array.cells[i][0].animate.set_color(WHITE), run_time=run_time)
+
+            final_index = array.values.index(value)
+            self.play(VGroup(array.cells[final_index], array.labels[final_index]).animate.shift(0.3 * DOWN), run_time=run_time)
+            print(f'Array became: {array.values}')
+            self.wait(run_time)
+
+        sort(1, highlight=True, shift=False, run_time=0.6)
+        sort(2, highlight=True, run_time=0.5)
+        self.wait(0.1)
+        self.play(ApplyWave(code, run_time=1))
+        self.wait(0.1)
+
+        # Transition to the next scene
+        new_array = Array(large, color=BLACK, cell_type='card')
+        new_array_mobj = new_array.get_mobject().center().shift(UP)
+        new_indices = Array(
+            [i for i in range(len(new_array))],
+            width=new_array.width, height=new_array.height,
+            spacing=new_array.spacing, scale_text=new_array.scale_text, stroke_color=BLACK,
+        )
+        new_indices_mobj = new_indices.get_mobject().center().next_to(new_array_mobj, UP, buff=0.4)
+        self.play(
+            TransformMatchingShapes(array_mobj, new_array_mobj, path_arc=PI/3),
+            ReplacementTransform(title, Title('Insertion Sort', include_underline=False)),
+            ReplacementTransform(indices_mobj, new_indices_mobj),
+            a_text.animate.next_to(new_array_mobj, LEFT),
+            run_time=0.5,
+        )
+        self.wait(1)
