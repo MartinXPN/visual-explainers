@@ -103,47 +103,81 @@ class Intuition(Scene):
             spacing=array.spacing, scale_text=array.scale_text, stroke_color=BLACK,
         )
         indices_mobj = indices.get_mobject().center().next_to(array_mobj, UP, buff=0.4)
-        self.play(Create(array_mobj), Create(a_text), Create(indices_mobj), run_time=0.5)
-        self.wait(0.2)
+        self.play(Create(array_mobj), Create(a_text), Create(indices_mobj), run_time=1)
+        self.wait(0.5)
 
         self.play(LaggedStart(*[
             Indicate(VGroup(cell, label))
             for cell, label in zip(array.cells, array.labels)
-        ], lag_ratio=0.4, run_time=0.5))
+        ], lag_ratio=0.4, run_time=1))
+        self.wait(0.5)
+
+        def insert(new_value: int, highlight: bool = False, run_time: float = 0.2):
+            new_element = Array([new_value], color=BLACK, cell_type='card')
+            new_element_mobj = new_element.get_mobject() \
+                .align_to(array_mobj, LEFT).align_to(array_mobj, UP) \
+                .shift(len(array) * (array.width + array.spacing) * RIGHT) \
+                .shift(0.3 * UP).shift(10 * RIGHT)
+            self.add(new_element_mobj)
+            self.play(new_element_mobj.animate.shift(10 * LEFT), run_time=2 * run_time)
+
+            new_indices = Array(
+                [i for i in range(len(array) + 1)],
+                width=array.width, height=array.height,
+                spacing=array.spacing, scale_text=array.scale_text, stroke_color=BLACK,
+            )
+            new_indices_mobj = new_indices.get_mobject().align_to(indices_mobj, LEFT).align_to(indices_mobj, UP)
+            indices_mobj.become(new_indices_mobj)
+            self.wait(run_time)
+
+            # Insert in the right place
+            insert_idx = len(array)
+            for i in range(len(array) - 1, -1, -1):
+                if highlight:
+                    self.play(array.cells[i][0].animate.set_color(YELLOW), run_time=run_time)
+
+                if array.values[i] < new_value:
+                    if highlight:
+                        self.play(array.cells[i][0].animate.set_color(WHITE), run_time=2 * run_time)
+                    break
+
+                insert_idx = i
+                to_path = ArcBetweenPoints(array.cells[i].get_center(), new_element_mobj.copy().shift(0.3 * DOWN).get_center(), angle=PI / 4)
+                from_path = ArcBetweenPoints(new_element_mobj.get_center(), array.cells[i].copy().shift(0.3 * UP).get_center(), angle=PI / 4)
+                self.play(
+                    MoveAlongPath(VGroup(array.cells[i], array.labels[i]), path=to_path),
+                    MoveAlongPath(new_element_mobj, path=from_path),
+                    run_time=run_time,
+                )
+
+                if highlight:
+                    self.play(array.cells[i][0].animate.set_color(WHITE), run_time=run_time)
+            self.wait(run_time)
+
+            self.play(new_element_mobj.animate.shift(0.3 * DOWN), run_time=run_time)
+            array.values.insert(insert_idx, new_element.values[0])
+            array.cells.insert(insert_idx, new_element.cells[0])
+            array.labels.insert(insert_idx, new_element.labels[0])
+            array.color.insert(insert_idx, new_element.color[0])
+            print(f'Array became: {array.values}')
+            array_mobj.add(new_element_mobj)
+            self.wait(run_time)
+
+        insert(medium[3], run_time=0.6)
+        insert(medium[4], highlight=True, run_time=0.5)
+        insert(medium[5], highlight=True, run_time=0.4)
         self.wait(0.1)
 
-        # 5 appears on the screen
-        new_element = Array(medium[3:4], color=BLACK, cell_type='card')
-        new_element_mobj = new_element.get_mobject() \
-            .align_to(array_mobj, LEFT).align_to(array_mobj, UP) \
-            .shift(3 * (array.width + array.spacing) * RIGHT) \
-            .shift(0.3 * UP).shift(10 * RIGHT)
-        self.add(new_element_mobj)
-        self.play(new_element_mobj.animate.shift(10 * LEFT), run_time=0.5)
-        self.wait(0.2)
-
-        # Insert 5 in its correct place
-        for i in range(2, 0, -1):
-            to_path = ArcBetweenPoints(array.cells[i].get_center(), new_element_mobj.copy().shift(0.3 * DOWN).get_center(), angle=PI/4)
-            from_path = ArcBetweenPoints(new_element_mobj.get_center(), array.cells[i].copy().shift(0.3 * UP).get_center(), angle=PI/4)
-            self.play(
-                MoveAlongPath(VGroup(array.cells[i], array.labels[i]), path=to_path),
-                MoveAlongPath(new_element_mobj, path=from_path),
-                run_time=0.5,
-            )
-        self.wait(0.2)
-
-        # Move 5 down and add an index
-        indices = Array(
-            [i for i in range(len(array) + 1)],
-            width=array.width, height=array.height,
-            spacing=array.spacing, scale_text=array.scale_text, stroke_color=BLACK,
-        )
-        new_indices_mobj = indices.get_mobject().center().next_to(array_mobj, UP, buff=0.4)
+        # Transition to the next scene
+        new_array = Array(small, color=BLACK, cell_type='card')
+        new_array_mobj = new_array.get_mobject().center().shift(1 * UP)
+        indices_mobj.submobjects.pop()
+        indices_mobj.submobjects.pop()
 
         self.play(
-            new_element_mobj.animate.shift(0.3 * DOWN),
-            TransformMatchingShapes(indices_mobj, new_indices_mobj),
+            ReplacementTransform(array_mobj, new_array_mobj),
+            indices_mobj.animate.next_to(new_array_mobj, UP, buff=0.4),
+            a_text.animate.scale(0.9).next_to(new_array_mobj, LEFT),
             run_time=0.5,
         )
         self.wait(0.5)
