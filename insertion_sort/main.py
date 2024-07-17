@@ -693,3 +693,65 @@ class TimeComplexity(Scene):
             run_time=0.5,
         )
         self.wait(0.1)
+
+
+class UseCase(Scene):
+    def construct(self):
+        title = Title('Insertion Sort Use Cases', include_underline=False)
+        self.add(title)
+
+        array = Array([1, 4, 5, 3, 7, 12, 9], color=BLACK, cell_type='card')
+        array_mobj = array.get_mobject().center().shift(UP)
+        a_text = Tex('a:').scale(0.9).next_to(array_mobj, LEFT)
+        indices = Array(
+            [i for i in range(len(array))],
+            width=array.width, height=array.height,
+            spacing=array.spacing, scale_text=array.scale_text, stroke_color=BLACK,
+        )
+        indices_mobj = indices.get_mobject().center().next_to(array_mobj, UP, buff=0.4)
+        self.add(array_mobj, a_text, indices_mobj)
+        self.wait(0.1)
+
+        new_array_mobj = array_mobj.copy()
+        self.play(new_array_mobj.animate.shift(2 * DOWN), run_time=0.5)
+        self.wait(0.1)
+
+        new_array = Array([1, 3, 4, 5, 7, 9, 12], color=BLACK, cell_type='card')
+        self.play(TransformMatchingCells(new_array_mobj, new_array.get_mobject().center().shift(DOWN), path_arc=PI/3), run_time=0.5)
+        self.wait(0.1)
+
+        # Dran arrows between 3s and 9s
+        arrow3 = Arrow(
+            start=array.cells[3].get_bottom(), end=new_array.cells[1].get_top(),
+            color=ORANGE, buff=0.1, stroke_width=7, max_stroke_width_to_length_ratio=10,
+            max_tip_length_to_length_ratio=0.5, tip_length=0.25,
+        )
+        arrow9 = Arrow(
+            start=array.cells[6].get_bottom(), end=new_array.cells[5].get_top(),
+            color=ORANGE, buff=0.1, stroke_width=7, max_stroke_width_to_length_ratio=10,
+            max_tip_length_to_length_ratio=0.5, tip_length=0.25,
+        )
+        self.play(Create(arrow3), Create(arrow9), run_time=0.5)
+        self.wait(0.1)
+
+        # Write Elements are at most 3 locations away from the final position
+        text = Text(
+            'Elements are at most 3 locations\naway from the final position', font='Monospace', color=WHITE
+        ).scale(0.5).next_to(new_array_mobj, DOWN, buff=0.5).align_to(new_array_mobj, LEFT)
+        self.play(Write(text), run_time=0.5)
+        self.wait(0.1)
+
+        # Write 3*n = O(n)
+        _3n = MathTex(r'3 \cdot n = ', color=WHITE).scale(0.8).next_to(text, RIGHT, buff=0.5)
+        on = MathTex(r'\mathcal{O}(n)', color=ORANGE).scale(0.8).next_to(_3n, RIGHT, buff=0.2)
+        self.play(Write(_3n), run_time=0.5)
+        self.play(Write(on), run_time=0.5)
+        self.wait(0.1)
+
+        comparison = MathTex(r'< \mathcal{O}(n \log{n})').scale(0.8).next_to(on, RIGHT, buff=0.2)
+        self.play(Write(comparison), run_time=0.5)
+        self.wait(0.1)
+
+        # Indicate the text
+        self.play(Indicate(text), run_time=0.5)
+        self.wait(0.1)
