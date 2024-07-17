@@ -467,9 +467,9 @@ class Simulation(Scene):
             *[cell.animate.shift(1.5 * RIGHT) for cell in array.cells[1:]],
             *[label.animate.shift(1.5 * RIGHT) for label in array.labels[1:]],
             *[label.animate.set_color(BLACK) for label in indices.labels[1:]],
-            run_time=0.5,
+            run_time=0.2,
         )
-        self.play(code.animate.shift(2 * LEFT), run_time=0.5)
+        self.play(code.animate.shift(2 * LEFT), run_time=0.2)
         self.wait(0.1)
 
         # Arrow to show which part of the code is being executed
@@ -478,7 +478,7 @@ class Simulation(Scene):
             stroke_width=10, max_stroke_width_to_length_ratio=15,
             max_tip_length_to_length_ratio=0.5, tip_length=0.2,
         ).scale(0.3).next_to(code, LEFT).align_to(code, UP).shift(0.08 * DOWN)
-        self.play(Create(arrow), run_time=0.5)
+        self.play(Create(arrow), run_time=0.2)
 
         # show real-time values to better understand the code
         def get_debug(i, j, cur, prev):
@@ -496,14 +496,105 @@ class Simulation(Scene):
             ).next_to(code, RIGHT).align_to(code, UP).shift(0.25 * UP).code
             return res
 
-        debug = get_debug(1, 1, array.values[1], array.values[0])
-        self.play(AddTextLetterByLetter(debug.chars[0], run_time=0.1 * len(debug.chars[0])))
-        self.wait(0.1)
+        def sort(index: int, highlight: bool = False, run_time: float = 0.2):
+            value = array.values[index]
 
-        self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.5)
-        self.play(AddTextLetterByLetter(debug.chars[1], run_time=0.1 * len(debug.chars[1])))
-        self.wait(0.1)
+            debug = get_debug(i=index, j=index, cur=array.values[index], prev=array.values[index - 1])
+            start_debug = debug
+            self.play(AddTextLetterByLetter(debug.chars[0], run_time=0.05 * len(debug.chars[0])))
+            self.wait(0.1)
 
-        self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.5)
-        self.play(AddTextLetterByLetter(debug.chars[2], run_time=0.1 * len(debug.chars[2])))
-        self.wait(0.1)
+            self.play(
+                array.cells[index].animate.shift(0.3 * UP),
+                array.labels[index].animate.shift(0.3 * UP),
+                run_time=run_time,
+            )
+            # Shift the index to the left
+            self.play(
+                array.cells[index].animate.shift(1.5 * LEFT),
+                array.labels[index].animate.shift(1.5 * LEFT),
+                run_time=run_time,
+            )
+            indices.labels[index].set_color(WHITE)
+
+            # Insert in the right place
+            for i in range(index, 0, -1):
+                debug = get_debug(i=index, j=i, cur=array.values[i], prev=array.values[i - 1])
+                if i == index:
+                    self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
+                    self.play(AddTextLetterByLetter(debug.chars[1], run_time=0.05 * len(debug.chars[1])))
+                else:
+                    debug.chars[1] = next_debug.chars[1]
+                self.wait(0.1)
+
+                if i == index:
+                    self.play(arrow.animate.shift(0.4 * DOWN), run_time=0.2)
+                self.play(AddTextLetterByLetter(debug.chars[2], run_time=0.05 * len(debug.chars[2])))
+                self.wait(0.1)
+
+                if highlight:
+                    self.play(array.cells[i - 1][0].animate.set_color(YELLOW), run_time=run_time)
+
+                if array.values[i - 1] < array.values[i]:
+                    if highlight:
+                        self.play(array.cells[i - 1][0].animate.set_color(WHITE), run_time=run_time)
+                    self.play(RemoveTextLetterByLetter(debug.chars[2], run_time=0.05 * len(debug.chars[2])))
+                    break
+
+                to_path = ArcBetweenPoints(array.cells[i - 1].get_center(), array.cells[i].copy().shift(0.3 * DOWN).get_center(), angle=PI / 4)
+                from_path = ArcBetweenPoints(array.cells[i].get_center(), array.cells[i - 1].copy().shift(0.3 * UP).get_center(), angle=PI / 4)
+                self.play(arrow.animate.shift(0.4 * DOWN), run_time=run_time)
+                self.play(
+                    MoveAlongPath(VGroup(array.cells[i - 1], array.labels[i - 1]), path=to_path),
+                    MoveAlongPath(VGroup(array.cells[i], array.labels[i]), path=from_path),
+                    run_time=run_time,
+                )
+                array.values[i - 1], array.values[i] = array.values[i], array.values[i - 1]
+                array.cells[i - 1], array.cells[i] = array.cells[i], array.cells[i - 1]
+                array.labels[i - 1], array.labels[i] = array.labels[i], array.labels[i - 1]
+                array.color[i - 1], array.color[i] = array.color[i], array.color[i - 1]
+
+                next_debug = get_debug(i=index, j=i - 1, cur=array.values[i - 1], prev=array.values[i - 2])
+                self.play(arrow.animate.shift(0.4 * DOWN), run_time=run_time)
+                self.remove(debug.chars[1])
+                self.add(next_debug.chars[1])
+                if highlight:
+                    self.play(array.cells[i][0].animate.set_color(WHITE), run_time=run_time)
+
+                self.play(
+                    arrow.animate.shift(0.8 * UP),
+                    RemoveTextLetterByLetter(debug.chars[2]),
+                    run_time=run_time,
+                )
+                self.remove(debug.chars[2])
+
+            final_index = array.values.index(value)
+            self.play(VGroup(array.cells[final_index], array.labels[final_index]).animate.shift(0.3 * DOWN), run_time=run_time)
+            print(f'Array became: {array.values}')
+            self.play(arrow.animate.shift(0.8 * UP), run_time=run_time)
+            self.remove(next_debug.chars[1])
+            self.remove(start_debug.chars[0])
+
+        sort(1, highlight=True, run_time=0.2)
+        # Indicate the first 2 elements
+        self.play(LaggedStart(
+            *[Indicate(VGroup(cell, label)) for cell, label in zip(array.cells[:2], array.labels[:2])],
+            lag_ratio=0.4,
+            run_time=0.5,
+        ))
+        sort(2, highlight=True, run_time=0.2)
+        sort(3, highlight=True, run_time=0.2)
+        sort(4, highlight=True, run_time=0.2)
+        sort(5, highlight=True, run_time=0.2)
+        sort(6, highlight=True, run_time=0.2)
+
+        self.play(LaggedStart(
+            *[Indicate(VGroup(cell, label)) for cell, label in zip(array.cells, array.labels)],
+            lag_ratio=0.4,
+            run_time=1,
+        ))
+        self.wait(0.5)
+
+        # Transition to the next scene
+        self.play(ReplacementTransform(title, Title('Time Complexity', include_underline=False)))
+        self.wait(0.5)
