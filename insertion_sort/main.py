@@ -755,3 +755,42 @@ class UseCase(Scene):
         # Indicate the text
         self.play(Indicate(text), run_time=0.5)
         self.wait(0.1)
+
+
+class Conclusion(Scene):
+    def construct(self):
+        title = Title('Insertion Sort', include_underline=False)
+        self.add(title)
+
+        array = Array(large.copy(), color=BLACK, cell_type='card')
+        array_mobj = array.get_mobject().center().shift(UP)
+        a_text = Tex('a:').scale(0.9).next_to(array_mobj, LEFT)
+        indices = Array(
+            [i for i in range(len(array))],
+            width=array.width, height=array.height,
+            spacing=array.spacing, scale_text=array.scale_text, stroke_color=BLACK,
+        )
+        indices_mobj = indices.get_mobject().center().next_to(array_mobj, UP, buff=0.4)
+        self.add(array_mobj, a_text, indices_mobj)
+
+        code = Code(
+            code=dedent('''
+                for i in range(1, len(a)):
+                    j = i
+                    while j > 0 and a[j] < a[j - 1]:
+                        a[j - 1], a[j] = a[j], a[j - 1]
+                        j -= 1
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).next_to(array_mobj, DOWN, buff=0.8).shift(0.5 * RIGHT).code
+
+        for line in code.chars:
+            self.play(AddTextLetterByLetter(line, run_time=0.01 * len(line)))
+        self.wait(0.1)
+
+        self.play(ApplyWave(code, run_time=1))
+        self.wait(0.1)
