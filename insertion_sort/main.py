@@ -88,7 +88,8 @@ class IntroductionImplementation(Scene):
 class Intuition(Scene):
     def construct(self):
         title = Title('Insertion Sort', include_underline=False)
-        self.play(Write(title), run_time=0.2)
+        self.play(Write(title), run_time=2)
+        self.wait(1)
 
         array_shadow = Array(medium, color=BLACK, cell_type='card')
         array_shadow_mobj = array_shadow.get_mobject().center().shift(UP)
@@ -103,7 +104,7 @@ class Intuition(Scene):
         )
         indices_mobj = indices.get_mobject().center().next_to(array_mobj, UP, buff=0.4)
         self.play(Create(array_mobj), Create(a_text), Create(indices_mobj), run_time=1)
-        self.wait(0.5)
+        self.wait(1.5)
 
         self.play(LaggedStart(*[
             Indicate(VGroup(cell, label))
@@ -162,10 +163,17 @@ class Intuition(Scene):
             array_mobj.add(new_element_mobj)
             self.wait(run_time)
 
-        insert(medium[3], run_time=0.6)
-        insert(medium[4], highlight=True, run_time=0.5)
-        insert(medium[5], highlight=True, run_time=0.4)
-        self.wait(0.1)
+        self.wait(1)
+        insert(medium[3], run_time=0.7)
+        insert(medium[4], highlight=True, run_time=1.1)
+        self.wait(3)
+        self.play(LaggedStart(*[
+            Indicate(VGroup(cell, label))
+            for cell, label in zip(array.cells, array.labels)
+        ], lag_ratio=0.4, run_time=1))
+        self.wait(1)
+        insert(medium[5], highlight=True, run_time=0.35)
+        self.wait(0.5)
 
         # Transition to the next scene
         new_array = Array(small, color=BLACK, cell_type='card')
