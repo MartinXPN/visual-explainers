@@ -205,7 +205,7 @@ class IntuitionFull(Scene):
         )
         indices_mobj = indices.get_mobject().center().next_to(array_mobj, UP, buff=0.4)
         self.add(array_mobj, a_text, indices_mobj)
-        self.wait(0.1)
+        self.wait(3)
 
         # Shift all to the right and leave 10 on the left
         self.play(
@@ -213,10 +213,10 @@ class IntuitionFull(Scene):
             *[label.animate.shift(2.5 * RIGHT) for label in array.labels[1:]],
             *[cell.animate.shift(2.5 * RIGHT) for cell in indices.cells[1:]],
             *[label.animate.shift(2.5 * RIGHT) for label in indices.labels[1:]],
-            run_time=0.5,
+            run_time=1,
         )
         self.play(*[index.animate.set_color(BLACK) for index in indices.labels[1:]], run_time=0.5)
-        self.wait(0.1)
+        self.wait(2)
 
         def sort(index: int, highlight: bool = False, run_time: float = 0.2):
             value = array.values[index]
@@ -263,18 +263,17 @@ class IntuitionFull(Scene):
             final_index = array.values.index(value)
             self.play(VGroup(array.cells[final_index], array.labels[final_index]).animate.shift(0.3 * DOWN), run_time=run_time)
             print(f'Array became: {array.values}')
-            self.wait(run_time)
 
-        sort(1, run_time=0.6)
-        self.play(Circumscribe(VGroup(array.cells[0], array.cells[1]), color=ORANGE, buff=0.3, stroke_width=8, run_time=0.5))
-        self.wait(0.5)
+        sort(1, highlight=True, run_time=1)
+        self.play(Circumscribe(VGroup(array.cells[0], array.cells[1]), color=ORANGE, buff=0.3, stroke_width=8, run_time=1.5))
+        self.wait(2)
 
-        sort(2, highlight=True, run_time=0.5)
+        sort(2, highlight=True, run_time=0.9)
         sort(3, highlight=True, run_time=0.4)
-        sort(4, highlight=True, run_time=0.3)
+        sort(4, highlight=True, run_time=0.45)
 
-        self.play(Circumscribe(array_mobj, color=ORANGE, buff=0.3, stroke_width=8, run_time=0.5))
-        self.wait(1)
+        self.play(Circumscribe(array_mobj, color=ORANGE, buff=0.3, stroke_width=8, run_time=2))
+        self.wait(2)
 
         # Transition to the next scene
         new_array = Array(small, color=BLACK, cell_type='card')
@@ -282,7 +281,7 @@ class IntuitionFull(Scene):
         self.play(
             TransformMatchingCells(array_mobj, new_array_mobj, path_arc=PI/3),
             ReplacementTransform(title, Title('Insertion Sort Implementation', include_underline=False)),
-            run_time=0.5,
+            run_time=1,
         )
         self.wait(1)
 
