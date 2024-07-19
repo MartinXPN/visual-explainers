@@ -652,35 +652,35 @@ class TimeComplexity(Scene):
             style='monokai',
         ).next_to(array_mobj, DOWN, buff=0.8).shift(0.5 * RIGHT).shift(2 * LEFT).code
         self.add(code)
-        self.wait(0.1)
+        self.wait(1)
 
         # Indicate the outer loop
-        self.play(Indicate(code.chars[0], run_time=0.5))
-        self.wait(0.1)
+        self.play(Indicate(code.chars[0], run_time=2))
+        self.wait(2)
 
         # Indicate the inner loop
-        self.play(Indicate(code.chars[2], run_time=0.5))
-        self.wait(0.1)
+        self.play(Indicate(code.chars[2], run_time=2))
+        self.wait(2)
 
         # Indicate the outer loop and write n - 1 next to it
         n_1 = MathTex('n - 1', color=ORANGE).scale(0.9).next_to(code.chars[0], RIGHT, buff=3)
-        self.play(Indicate(code.chars[0], run_time=0.5))
+        self.play(Indicate(code.chars[0], run_time=1))
         self.play(Write(n_1), run_time=0.5)
-        self.wait(0.1)
+        self.wait(1)
 
         # Indicate the inner loop
-        self.play(Indicate(code.chars[2], run_time=0.5))
-        self.wait(0.1)
+        self.play(Indicate(code.chars[2], run_time=2))
+        self.wait(7)
 
         # Reverse order of the array (half sorted on the left - half reverse on the right)
         new_array = Array(sorted(large, reverse=True), color=BLACK, cell_type='card')
         new_array_mobj = new_array.get_mobject().center().shift(UP)
-        self.play(TransformMatchingCells(array_mobj, new_array_mobj, path_arc=PI/3), run_time=0.5)
-        self.wait(0.1)
+        self.play(TransformMatchingCells(array_mobj, new_array_mobj, path_arc=PI/3), run_time=1)
+        self.wait(2)
 
         o_n = MathTex(r'\mathcal{O}(n)', color=ORANGE).scale(0.9).next_to(n_1, DOWN).align_to(n_1, LEFT).shift(0.2 * DOWN)
         self.play(Write(o_n), run_time=0.5)
-        self.wait(0.1)
+        self.wait(3)
 
         # Draw curved-arrows for each element to the very start of the array
         arrows = [CurvedArrow(
@@ -689,27 +689,15 @@ class TimeComplexity(Scene):
         ) for i in range(1, len(array))]
         for i in range(len(arrows) + 2):
             if 0 <= i < len(arrows):
-                self.play(Create(arrows[i]), run_time=0.2)
+                self.play(Create(arrows[i]), run_time=0.5)
             if i >= 2:
                 self.play(FadeOut(arrows[i - 2]), run_time=0.2)
-        self.wait(0.1)
+        self.wait(3)
 
         # Write O(n^2)
         n_2 = MathTex(r'\mathcal{O}(n^2)', color=ORANGE).next_to(code.chars[1], RIGHT).align_to(n_1, LEFT)
-        self.play(ReplacementTransform(VGroup(n_1, o_n), n_2), run_time=0.5)
-        self.wait(0.1)
-
-        # Transition to the next scene
-        array = Array([1, 4, 5, 3, 7, 12, 9], color=BLACK, cell_type='card')
-        array_mobj = array.get_mobject().center().shift(UP)
-
-        self.play(
-            ReplacementTransform(title, Title('Insertion Sort Use Cases', include_underline=False)),
-            TransformMatchingCells(new_array_mobj, array_mobj, path_arc=PI/3),
-            FadeOut(code, n_2),
-            run_time=0.5,
-        )
-        self.wait(0.1)
+        self.play(ReplacementTransform(VGroup(n_1, o_n), n_2), run_time=1)
+        self.wait(2)
 
 
 class UseCase(Scene):
