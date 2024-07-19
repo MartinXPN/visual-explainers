@@ -794,8 +794,8 @@ class Conclusion(Scene):
         ).next_to(array_mobj, DOWN, buff=0.8).shift(0.5 * RIGHT).code
 
         for line in code.chars:
-            self.play(AddTextLetterByLetter(line, run_time=0.01 * len(line)))
-        self.wait(0.1)
+            self.play(AddTextLetterByLetter(line, run_time=0.05 * len(line)))
+        self.wait(1)
 
-        self.play(ApplyWave(code, run_time=1))
+        self.play(ApplyWave(code, run_time=2))
         self.wait(0.1)
