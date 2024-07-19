@@ -467,16 +467,16 @@ class Simulation(Scene):
             style='monokai',
         ).next_to(array_mobj, DOWN, buff=0.8).shift(0.5 * RIGHT).code
         self.add(code)
-        self.wait(0.1)
+        self.wait(3)
 
         self.play(
             *[cell.animate.shift(1.5 * RIGHT) for cell in array.cells[1:]],
             *[label.animate.shift(1.5 * RIGHT) for label in array.labels[1:]],
             *[label.animate.set_color(BLACK) for label in indices.labels[1:]],
-            run_time=0.2,
+            run_time=1,
         )
-        self.play(code.animate.shift(2 * LEFT), run_time=0.2)
-        self.wait(0.1)
+        self.play(code.animate.shift(2 * LEFT), run_time=1)
+        self.wait(1)
 
         # Arrow to show which part of the code is being executed
         arrow = Arrow(
@@ -484,7 +484,8 @@ class Simulation(Scene):
             stroke_width=10, max_stroke_width_to_length_ratio=15,
             max_tip_length_to_length_ratio=0.5, tip_length=0.2,
         ).scale(0.3).next_to(code, LEFT).align_to(code, UP).shift(0.08 * DOWN)
-        self.play(Create(arrow), run_time=0.2)
+        self.play(Create(arrow), run_time=0.5)
+        self.wait(5)
 
         # show real-time values to better understand the code
         def get_debug(i, j, cur, prev):
@@ -581,31 +582,41 @@ class Simulation(Scene):
             self.remove(next_debug.chars[1])
             self.remove(start_debug.chars[0])
 
-        sort(1, highlight=True, run_time=0.2)
+        sort(1, highlight=True, run_time=1)
         # Indicate the first 2 elements
         self.play(LaggedStart(
             *[Indicate(VGroup(cell, label)) for cell, label in zip(array.cells[:2], array.labels[:2])],
             lag_ratio=0.4,
-            run_time=0.5,
+            run_time=2,
         ))
-        sort(2, highlight=True, run_time=0.2)
-        sort(3, highlight=True, run_time=0.2)
-        sort(4, highlight=True, run_time=0.2)
-        sort(5, highlight=True, run_time=0.2)
-        sort(6, highlight=True, run_time=0.2)
+
+        sort(2, highlight=True, run_time=0.8)
+        sort(3, highlight=True, run_time=0.5)
+        sort(4, highlight=True, run_time=0.6)
+        self.wait(2)
+        self.play(LaggedStart(
+            *[Indicate(VGroup(cell, label)) for cell, label in zip(array.cells[:5], array.labels[:5])],
+            lag_ratio=0.4,
+            run_time=2,
+        ))
+        self.play(Circumscribe(VGroup(array.cells[-1], array.cells[-2]), color=ORANGE, buff=0.3, stroke_width=8, run_time=1))
+
+        sort(5, highlight=True, run_time=0.4)
+        sort(6, highlight=True, run_time=0.4)
+        self.wait(2)
 
         self.play(LaggedStart(
             *[Indicate(VGroup(cell, label)) for cell, label in zip(array.cells, array.labels)],
             lag_ratio=0.4,
-            run_time=1,
+            run_time=2,
         ))
-        self.wait(0.5)
+        self.wait(2)
 
         # Transition to the next scene
         self.play(
             ReplacementTransform(title, Title('Time Complexity', include_underline=False)),
             FadeOut(arrow),
-            run_time=0.5,
+            run_time=1,
         )
         self.wait(0.5)
 
