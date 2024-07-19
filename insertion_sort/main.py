@@ -9,7 +9,6 @@ small = [10, 2, 7, 5, 3]
 medium = [2, 7, 10, 5, 3, -1]
 large = [12, 3, 5, 9, 4, 1, 7]
 ORANGE = ManimColor('#fa541c')
-BLUE_BACKGROUND = ManimColor('#ADD8E6')
 random.seed(42)
 
 
