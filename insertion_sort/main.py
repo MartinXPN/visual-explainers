@@ -301,7 +301,7 @@ class Implementation(Scene):
         )
         indices_mobj = indices.get_mobject().center().next_to(array_mobj, UP, buff=0.4)
         self.add(array_mobj, a_text, indices_mobj)
-        self.wait(0.1)
+        self.wait(4)
 
         code = Code(
             code=dedent('''
@@ -318,53 +318,52 @@ class Implementation(Scene):
             style='monokai',
         ).next_to(array_mobj, DOWN, buff=0.8).shift(0.5 * RIGHT).code
 
-        self.play(array_mobj.animate.shift(2.5 * RIGHT), *[
-            index.animate.set_color(BLACK) for index in indices.labels
-        ], run_time=0.5)
-        self.wait(0.1)
+        self.play(*[index.animate.set_color(BLACK) for index in indices.labels], run_time=1)
+        self.play(array_mobj.animate.shift(2.5 * RIGHT), run_time=1)
+        self.wait(1)
 
-        self.play(AddTextLetterByLetter(code.chars[0], run_time=0.1 * len(code.chars[0])))
-        self.wait(0.1)
+        self.play(AddTextLetterByLetter(code.chars[0], run_time=0.11 * len(code.chars[0])))
+        self.wait(4)
 
         # Indicate 1 in the code + Bring 10 to the left
-        self.play(Indicate(code.chars[0][15], scale_factor=2), run_time=0.5)
-        self.wait(0.1)
         self.play(
             array.cells[0].animate.shift(2.5 * LEFT),
             array.labels[0].animate.shift(2.5 * LEFT),
             indices.labels[0].animate.set_color(WHITE),
             run_time=0.5,
         )
-        self.wait(0.1)
+        self.wait(2)
+
+        self.play(Indicate(code.chars[0][15], scale_factor=2), run_time=2)
+        self.wait(4)
 
         # Indicate the last 3 cards
         self.play(LaggedStart(
             *[Indicate(VGroup(cell, label)) for cell, label in zip(array.cells[-3:], array.labels[-3:])],
             lag_ratio=0.4,
-            run_time=0.5,
+            run_time=1,
         ))
-        self.wait(0.1)
+        self.wait(2)
 
         # Move 2 at index 1 up (to insert it)
-        self.play(array.cells[1].animate.shift(0.3 * UP), array.labels[1].animate.shift(0.3 * UP), run_time=0.2)
-        self.wait(0.1)
+        self.play(array.cells[1].animate.shift(0.3 * UP), array.labels[1].animate.shift(0.3 * UP), run_time=1)
+        self.wait(1)
         self.play(AddTextLetterByLetter(code.chars[1], run_time=0.1 * len(code.chars[1])))
-        self.wait(0.1)
+        self.wait(2)
 
         # Move 2 to the left
         self.play(
             array.cells[1].animate.shift(2.5 * LEFT),
             array.labels[1].animate.shift(2.5 * LEFT),
             indices.labels[1].animate.set_color(WHITE),
-            run_time=0.5,
+            run_time=1,
         )
-        self.wait(0.1)
+        self.wait(1)
 
-        self.play(AddTextLetterByLetter(code.chars[2], run_time=0.1 * len(code.chars[2])))
-        self.play(AddTextLetterByLetter(code.chars[3], run_time=0.1 * len(code.chars[3])))
-        self.wait(0.1)
+        self.play(AddTextLetterByLetter(code.chars[2], run_time=0.05 * len(code.chars[2])))
+        self.play(AddTextLetterByLetter(code.chars[3], run_time=0.05 * len(code.chars[3])))
         self.play(AddTextLetterByLetter(code.chars[4], run_time=0.1 * len(code.chars[4])))
-        self.wait(0.1)
+        self.wait(1)
 
         def sort(index: int, highlight: bool = False, shift=True, run_time: float = 0.2):
             value = array.values[index]
@@ -412,11 +411,11 @@ class Implementation(Scene):
             print(f'Array became: {array.values}')
             self.wait(run_time)
 
-        sort(1, highlight=True, shift=False, run_time=0.6)
+        sort(1, highlight=True, shift=False, run_time=0.4)
         sort(2, highlight=True, run_time=0.5)
-        self.wait(0.1)
-        self.play(ApplyWave(code, run_time=1))
-        self.wait(0.1)
+        self.wait(0.5)
+        self.play(ApplyWave(code, run_time=2))
+        self.wait(3)
 
         # Transition to the next scene
         new_array = Array(large, color=BLACK, cell_type='card')
@@ -428,13 +427,13 @@ class Implementation(Scene):
         )
         new_indices_mobj = new_indices.get_mobject().center().next_to(new_array_mobj, UP, buff=0.4)
         self.play(
-            TransformMatchingShapes(array_mobj, new_array_mobj, path_arc=PI/3),
+            TransformMatchingCells(array_mobj, new_array_mobj, path_arc=PI/3),
             ReplacementTransform(title, Title('Insertion Sort', include_underline=False)),
             ReplacementTransform(indices_mobj, new_indices_mobj),
             a_text.animate.next_to(new_array_mobj, LEFT),
-            run_time=0.5,
+            run_time=1,
         )
-        self.wait(1)
+        self.wait(0.5)
 
 
 class Simulation(Scene):
