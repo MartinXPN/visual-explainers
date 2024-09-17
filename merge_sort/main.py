@@ -10,7 +10,7 @@ ORANGE = ManimColor('#fa541c')
 random.seed(42)
 
 
-class Introduction(Scene):
+class IntroductionBars(Scene):
     def construct(self):
         # Create vertical bars representing the array and sort them with insertion sort
         array = list(range(1, 65))
@@ -80,14 +80,14 @@ class Introduction(Scene):
 
         items = [Item(value, bar) for value, bar in zip(array, bars)]
         sorted_array = merge_sort(items)
-        self.wait(1)
+        self.wait(0.2)
 
         self.play(LaggedStart(
             *[item.bar.animate.set_color(ORANGE) for item in sorted_array],
             lag_ratio=0.6,
-            run_time=4,
+            run_time=2,
         ))
-        self.wait(1)
+        self.wait(0.5)
 
         for item in sorted_array:
             item.bar.set_color(WHITE)
@@ -97,7 +97,7 @@ class Introduction(Scene):
 class IntroductionSortingVisualized(Scene):
     def construct(self):
         array = Array(arr)
-        array_mobj = array.get_mobject().scale(0.5).center().shift(2.5 * UP)
+        array_mobj = array.get_mobject().center().shift(2.5 * UP)
         self.play(Create(array_mobj))
         self.wait(1)
 
