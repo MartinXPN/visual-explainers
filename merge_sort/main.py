@@ -101,6 +101,73 @@ class IntroductionSortingVisualized(Scene):
         self.play(Create(array_mobj))
         self.wait(1)
 
+        def merge_sort(a: Array, a_mobj: Mobject) -> tuple[Array, Mobject]:
+            if len(a) <= 1:
+                return a, a_mobj
+
+            # Copy the left part of the array and place it on the bottom-left side of the current array => sort it
+            l = Array(a.values[: len(a) // 2], width=a.width, height=a.height, spacing=a.spacing, scale_text=a.scale_text, stroke_color=a.stroke_color)
+            l_mobj = l.get_mobject().next_to(a_mobj, DOWN, buff=0.4).align_to(a_mobj, LEFT).shift(0.4 * LEFT)
+            l_arrow = Arrow(
+                start=a_mobj.get_bottom(), end=l_mobj.get_top(),
+                color=ORANGE, buff=0.2, stroke_width=5, max_stroke_width_to_length_ratio=10,
+                max_tip_length_to_length_ratio=0.5, tip_length=0.15,
+            )
+            self.play(*[item.animate.set_color(DARK_GRAY) for item in a.labels[len(a) // 2:]], run_time=0.2)
+            self.play(Create(l_mobj), Create(l_arrow), run_time=0.5)
+            left, left_mobj = merge_sort(l, l_mobj)
+
+            # Copy the right part of the array and place it on the bottom-right side of the current array => sort it
+            r = Array(a.values[len(a) // 2:], width=a.width, height=a.height, spacing=a.spacing, scale_text=a.scale_text, stroke_color=a.stroke_color)
+            r_mobj = r.get_mobject().next_to(a_mobj, DOWN, buff=0.4).align_to(a_mobj, RIGHT).shift(0.4 * RIGHT)
+            r_arrow = Arrow(
+                start=a_mobj.get_bottom(), end=r_mobj.get_top(),
+                color=ORANGE, buff=0.2, stroke_width=5, max_stroke_width_to_length_ratio=10,
+                max_tip_length_to_length_ratio=0.5, tip_length=0.15,
+            )
+            self.play(
+                *[item.animate.set_color(DARK_GRAY) for item in a.labels[: len(a) // 2]],
+                *[item.animate.set_color(WHITE) for item in a.labels[len(a) // 2:]],
+                run_time=0.2,
+            )
+            self.play(Create(r_mobj), Create(r_arrow), run_time=0.5)
+            right, right_mobj = merge_sort(r, r_mobj)
+
+            # Merge the sorted left and right parts and fade the parts out
+            res = Array(sorted(a.values), width=a.width, height=a.height, spacing=a.spacing, scale_text=a.scale_text, stroke_color=a.stroke_color)
+            res_mobj = res.get_mobject().align_to(a_mobj, DOWN).align_to(a_mobj, LEFT)
+
+            # Merge the left and right into res by moving each number along the straight path from left/right to res cell
+            # Hide all the labels of the current array + Reverse the arrows (make pointers direct in the opposite direction)
+            self.play(
+                *[item.animate.set_color(BLACK) for item in a.labels],
+                l_arrow.animate.rotate(PI),
+                r_arrow.animate.rotate(PI),
+                run_time=0.5,
+            )
+
+            # Merge the left and right parts into res
+            for i, val in enumerate(sorted(a.values)):
+                if val in left.values:
+                    index = left.values.index(val)
+                    label = left.labels[index].copy()
+                    self.play(label.animate.move_to(res.labels[i]), run_time=0.5)
+                    self.remove(a.labels[i], a.rectangles[i], label)
+                    self.add(res.labels[i].set_z_index(1000000), res.rectangles[i])
+                else:
+                    index = right.values.index(val)
+                    label = right.labels[index].copy()
+                    self.play(label.animate.move_to(res.labels[i]), run_time=0.5)
+                    self.remove(a.labels[i], a.rectangles[i], label)
+                    self.add(res.labels[i].set_z_index(1000000), res.rectangles[i])
+
+            self.remove(l_mobj, r_mobj)
+            self.play(FadeOut(left_mobj, right_mobj, l_arrow, r_arrow), run_time=1)
+            return res, res_mobj
+
+
+        merge_sort(array, array_mobj)
+        self.wait(1)
 
 class IntroductionImplementation(Scene):
     def construct(self):
