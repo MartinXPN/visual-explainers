@@ -92,3 +92,84 @@ class Introduction(Scene):
         for item in sorted_array:
             item.bar.set_color(WHITE)
         self.wait(1)
+
+
+class IntroductionSortingVisualized(Scene):
+    def construct(self):
+        array = Array(arr)
+        array_mobj = array.get_mobject().scale(0.5).center().shift(2.5 * UP)
+        self.play(Create(array_mobj))
+        self.wait(1)
+
+
+class IntroductionImplementation(Scene):
+    def construct(self):
+        code = Code(
+            code=dedent('''
+                def merge(a, b):
+                    i, j, res = 0, 0, []
+                    while i < len(a) or j < len(b):
+                        ai = a[i] if i < len(a) else float('inf')
+                        bj = b[j] if j < len(b) else float('inf')
+                
+                        if ai < bj:
+                            res.append(ai)
+                            i += 1
+                        else:
+                            res.append(bj)
+                            j += 1
+                    return res
+                
+                
+                def merge_sort(a):
+                    if len(a) <= 1:
+                        return a
+                
+                    l = merge_sort(a[: len(a) // 2])
+                    r = merge_sort(a[len(a) // 2:])
+                    return merge(l, r)
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).center().scale(0.7).code
+
+        for line in code:
+            if line:
+                self.play(AddTextLetterByLetter(line, run_time=len(line) * 0.05))
+        self.wait(0.5)
+
+class IntroductionPlots(Scene):
+    def construct(self):
+        """ Plot O(n^2), O(n log n), and O(n) """
+        # Set up the axes
+        axes = Axes(
+            x_range=[0, 10, 1],     # x-axis from 0 to 10 with step size of 1
+            y_range=[0, 100, 10],   # y-axis from 0 to 100 with step size of 10
+            axis_config={'include_ticks': False},
+            # axis_config={'color': BLUE}
+        ).scale(0.7)
+
+        # Plotting the functions
+        graph_n2 = axes.plot(lambda x: x ** 2, color=RED, x_range=[0, 10], use_smoothing=True)
+        graph_nlogn = axes.plot(lambda x: x * np.log(x), color=YELLOW, x_range=[1, 10], use_smoothing=True)
+        graph_n = axes.plot(lambda x: x, color=GREEN, x_range=[0, 10], use_smoothing=True)
+
+        # Add graph labels
+        graph_n2_label = axes.get_graph_label(graph_n2, label=MathTex(r'\mathcal{O}(n^2)'), x_val=10)
+        graph_nlogn_label = axes.get_graph_label(graph_nlogn, label=MathTex(r'\mathcal{O}(n \log{n})'), x_val=11.5)
+        graph_n_label = axes.get_graph_label(graph_n, label=MathTex(r'\mathcal{O}(n)'), x_val=10)
+
+        # Add all elements to the scene
+        self.play(LaggedStart(
+            Create(axes),
+            Create(graph_n2), Write(graph_n2_label),
+            Create(graph_nlogn), Write(graph_nlogn_label),
+            Create(graph_n), Write(graph_n_label),
+            lag_ratio=0.7,
+            run_time=4,
+        ))
+
+        self.wait(1)
