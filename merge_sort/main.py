@@ -113,7 +113,11 @@ class IntroductionSortingVisualized(Scene):
                 color=ORANGE, buff=0.2, stroke_width=5, max_stroke_width_to_length_ratio=10,
                 max_tip_length_to_length_ratio=0.5, tip_length=0.15,
             )
-            self.play(*[item.animate.set_color(DARK_GRAY) for item in a.labels[len(a) // 2:]], run_time=0.2)
+            self.play(
+                *[item.animate.set_color(ORANGE).scale(1.25) for item in a.labels[:len(a) // 2]],
+                *[item.animate.set_color(DARK_GRAY) for item in a.labels[len(a) // 2:]],
+                run_time=0.2,
+            )
             self.play(Create(l_mobj), Create(l_arrow), run_time=0.5)
             left, left_mobj = merge_sort(l, l_mobj)
 
@@ -126,8 +130,9 @@ class IntroductionSortingVisualized(Scene):
                 max_tip_length_to_length_ratio=0.5, tip_length=0.15,
             )
             self.play(
-                *[item.animate.set_color(DARK_GRAY) for item in a.labels[: len(a) // 2]],
-                *[item.animate.set_color(WHITE) for item in a.labels[len(a) // 2:]],
+                l_arrow.animate.set_color(DARK_GRAY),
+                *[item.animate.set_color(DARK_GRAY).scale(1 / 1.25) for item in a.labels[: len(a) // 2]],
+                *[item.animate.set_color(ORANGE).scale(1.25) for item in a.labels[len(a) // 2:]],
                 run_time=0.2,
             )
             self.play(Create(r_mobj), Create(r_arrow), run_time=0.5)
@@ -141,8 +146,8 @@ class IntroductionSortingVisualized(Scene):
             # Hide all the labels of the current array + Reverse the arrows (make pointers direct in the opposite direction)
             self.play(
                 *[item.animate.set_color(BLACK) for item in a.labels],
-                l_arrow.animate.rotate(PI),
-                r_arrow.animate.rotate(PI),
+                l_arrow.animate.rotate(PI).set_color(ORANGE),
+                r_arrow.animate.rotate(PI).set_color(ORANGE),
                 run_time=0.5,
             )
 
