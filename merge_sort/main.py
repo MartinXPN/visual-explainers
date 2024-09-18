@@ -245,3 +245,71 @@ class IntroductionPlots(Scene):
         ))
 
         self.wait(1)
+
+
+class IntroductionRecursionVisualized(Scene):
+    def construct(self):
+        array = Array(arr, fill_color=WHITE, fill_opacity=1)
+        array_mobj = array.get_mobject().center().shift(2.5 * UP)
+        self.play(Create(array_mobj))
+        self.wait(1)
+
+        def merge_sort(a: Array, a_mobj: Mobject) -> tuple[Array, Mobject]:
+            if len(a) <= 1:
+                return a, a_mobj
+
+            # Copy the left part of the array and place it on the bottom-left side of the current array => sort it
+            l = Array(a.values[: len(a) // 2], fill_color=a.fill_color, fill_opacity=a.fill_opacity)
+            l_mobj = l.get_mobject().next_to(a_mobj, DOWN, buff=0.4).align_to(a_mobj, LEFT).shift(0.4 * LEFT)
+            l_arrow = Arrow(
+                start=a_mobj.get_bottom(), end=l_mobj.get_top(),
+                color=ORANGE, buff=0.2, stroke_width=5, max_stroke_width_to_length_ratio=10,
+                max_tip_length_to_length_ratio=0.5, tip_length=0.15,
+            )
+            self.play(
+                *[item.animate.set_color(ORANGE) for item in a.labels[:len(a) // 2]],
+                *[item.animate.set_fill(ORANGE).set_stroke(ORANGE) for item in a.rectangles[:len(a) // 2]],
+                *[item.animate.set_color(DARK_GRAY) for item in a.labels[len(a) // 2:]],
+                *[item.animate.set_fill(DARK_GRAY).set_stroke(DARK_GRAY) for item in a.rectangles[len(a) // 2:]],
+                run_time=0.2,
+            )
+            self.play(Create(l_mobj), Create(l_arrow), run_time=0.5)
+            left, left_mobj = merge_sort(l, l_mobj)
+
+            # Copy the right part of the array and place it on the bottom-right side of the current array => sort it
+            r = Array(a.values[len(a) // 2:], fill_color=a.fill_color, fill_opacity=a.fill_opacity)
+            r_mobj = r.get_mobject().next_to(a_mobj, DOWN, buff=0.4).align_to(a_mobj, RIGHT).shift(0.4 * RIGHT)
+            r_arrow = Arrow(
+                start=a_mobj.get_bottom(), end=r_mobj.get_top(),
+                color=ORANGE, buff=0.2, stroke_width=5, max_stroke_width_to_length_ratio=10,
+                max_tip_length_to_length_ratio=0.5, tip_length=0.15,
+            )
+            self.play(
+                l_arrow.animate.set_color(DARK_GRAY),
+                *[item.animate.set_color(DARK_GRAY) for item in a.labels[: len(a) // 2]],
+                *[item.animate.set_fill(DARK_GRAY).set_stroke(DARK_GREY) for item in a.rectangles[: len(a) // 2]],
+                *[item.animate.set_color(ORANGE) for item in a.labels[len(a) // 2:]],
+                *[item.animate.set_fill(ORANGE).set_stroke(ORANGE) for item in a.rectangles[len(a) // 2:]],
+                run_time=0.2,
+            )
+            self.play(Create(r_mobj), Create(r_arrow), run_time=0.5)
+            right, right_mobj = merge_sort(r, r_mobj)
+
+            # Merge the left and right into res by moving each number along the straight path from left/right to res cell
+            # Hide all the labels of the current array + Reverse the arrows (make pointers direct in the opposite direction)
+            self.play(
+                *[item.animate.set_color(WHITE) for item in a.labels],
+                *[item.animate.set_fill(WHITE).set_stroke(WHITE) for item in a.rectangles],
+                l_arrow.animate.rotate(PI).set_color(ORANGE),
+                r_arrow.animate.rotate(PI).set_color(ORANGE),
+                run_time=0.5,
+            )
+
+            # Merge the left and right parts into res
+            self.remove(l_mobj, r_mobj, left_mobj, right_mobj)
+            self.play(FadeOut(l_arrow, r_arrow), run_time=0.2)
+            return a, a_mobj
+
+
+        merge_sort(array, array_mobj)
+        self.wait(1)
