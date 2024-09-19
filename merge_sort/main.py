@@ -918,14 +918,14 @@ class Simulation(Scene):
             line_spacing=0.6,
             font='Monospace',
             style='monokai',
-        ).scale(0.7).center().align_to(merge_code, DOWN).shift(3.5 * RIGHT).code
+        ).scale(0.7).center().align_to(merge_code, DOWN).shift(0.25 * DOWN).shift(3.5 * RIGHT).code
         self.add(sort_code)
 
-        self.play(array_mobj.animate.scale(0.9).shift(2.5 * RIGHT), run_time=0.5)
+        self.play(array_mobj.animate.shift(2.8 * RIGHT).shift(0.3 * UP), run_time=0.5)
         self.wait(0.2)
 
         merge_arrow = Arrow(
-            start=LEFT, end=RIGHT, color=RED, buff=0.1,
+            start=LEFT, end=RIGHT, color=YELLOW, buff=0.1,
             stroke_width=10, max_stroke_width_to_length_ratio=15,
             max_tip_length_to_length_ratio=0.5, tip_length=0.2,
         ).scale(0.3).next_to(merge_code, LEFT).align_to(merge_code, UP)
@@ -936,4 +936,150 @@ class Simulation(Scene):
             max_tip_length_to_length_ratio=0.5, tip_length=0.2,
         ).scale(0.3).next_to(sort_code, LEFT).align_to(sort_code, UP)
         self.play(Create(sort_arrow), run_time=0.5)
+        self.wait(1)
+
+        def merge_sort(a: Array, a_mobj: Mobject, run_time) -> tuple[Array, Mobject]:
+            sort_arrow.next_to(sort_code[0], LEFT)
+            self.play(FadeIn(sort_arrow), run_time=run_time)
+            self.play(sort_arrow.animate.next_to(sort_code[1], LEFT).shift(0.1 * DOWN), run_time=run_time)
+            self.wait(run_time)
+            if len(a) <= 1:
+                self.play(sort_arrow.animate.next_to(sort_code[2], LEFT).shift(0.1 * DOWN), run_time=run_time)
+                self.wait(run_time)
+                self.play(FadeOut(sort_arrow), run_time=run_time)
+                return a, a_mobj
+
+            # Copy the left part of the array and place it on the bottom-left side of the current array => sort it
+            l = Array(a.values[: len(a) // 2], width=a.width, height=a.height, spacing=a.spacing, scale_text=a.scale_text, stroke_color=a.stroke_color)
+            l_mobj = l.get_mobject().next_to(a_mobj, DOWN, buff=0.4).align_to(a_mobj, LEFT).shift(0.4 * LEFT)
+            l_arrow = Arrow(
+                start=a_mobj.get_bottom(), end=l_mobj.get_top(),
+                color=ORANGE, buff=0.2, stroke_width=5, max_stroke_width_to_length_ratio=10,
+                max_tip_length_to_length_ratio=0.5, tip_length=0.15,
+            )
+            self.play(
+                sort_arrow.animate.next_to(sort_code[4], LEFT).shift(0.2 * DOWN),
+                *[item.animate.set_color(ORANGE).scale(1.25) for item in a.labels[:len(a) // 2]],
+                *[item.animate.set_color(DARK_GRAY) for item in a.labels[len(a) // 2:]],
+                run_time=run_time,
+            )
+            self.wait(run_time)
+            self.play(Create(l_mobj), Create(l_arrow), run_time=run_time)
+            self.wait(run_time)
+            left, left_mobj = merge_sort(l, l_mobj, run_time=run_time)
+
+            # Copy the right part of the array and place it on the bottom-right side of the current array => sort it
+            r = Array(a.values[len(a) // 2:], width=a.width, height=a.height, spacing=a.spacing, scale_text=a.scale_text, stroke_color=a.stroke_color)
+            r_mobj = r.get_mobject().next_to(a_mobj, DOWN, buff=0.4).align_to(a_mobj, RIGHT).shift(0.4 * RIGHT)
+            r_arrow = Arrow(
+                start=a_mobj.get_bottom(), end=r_mobj.get_top(),
+                color=ORANGE, buff=0.2, stroke_width=5, max_stroke_width_to_length_ratio=10,
+                max_tip_length_to_length_ratio=0.5, tip_length=0.15,
+            )
+            self.play(
+                l_arrow.animate.set_color(DARK_GRAY),
+                sort_arrow.animate.next_to(sort_code[5], LEFT).shift(0.1 * DOWN),
+                *[item.animate.set_color(DARK_GRAY).scale(1 / 1.25) for item in a.labels[: len(a) // 2]],
+                *[item.animate.set_color(ORANGE).scale(1.25) for item in a.labels[len(a) // 2:]],
+                run_time=run_time,
+            )
+            self.wait(run_time)
+            self.play(Create(r_mobj), Create(r_arrow), run_time=run_time)
+            self.wait(run_time)
+            right, right_mobj = merge_sort(r, r_mobj, run_time=run_time)
+
+            # Merge the sorted left and right parts and fade the parts out
+            res = Array(sorted(a.values), width=a.width, height=a.height, spacing=a.spacing, scale_text=a.scale_text, stroke_color=a.stroke_color)
+            res_mobj = res.get_mobject().align_to(a_mobj, DOWN).align_to(a_mobj, LEFT)
+
+            # Merge the left and right into res by moving each number along the straight path from left/right to res cell
+            # Hide all the labels of the current array + Reverse the arrows (make pointers direct in the opposite direction)
+            self.play(
+                sort_arrow.animate.next_to(sort_code[6], LEFT).shift(0.1 * DOWN),
+                *[item.animate.set_color(BLACK) for item in a.labels],
+                l_arrow.animate.rotate(PI).set_color(ORANGE),
+                r_arrow.animate.rotate(PI).set_color(ORANGE),
+                run_time=run_time,
+            )
+            self.wait(run_time)
+
+            # Merge the left and right parts into res
+            merge_arrow.next_to(merge_code[0], LEFT)
+            self.play(FadeIn(merge_arrow), run_time=run_time)
+            self.play(merge_arrow.animate.next_to(merge_code[1], LEFT).shift(0.1 * DOWN), run_time=run_time)
+            self.wait(run_time)
+
+            # draw 2 arrows pointing to the first elements of the left and right arrays
+            left_pointer = Arrow(
+                start=left.rectangles[0].get_bottom() + 0.8 * DOWN, end=left.rectangles[0].get_bottom(),
+                color=YELLOW, buff=0.2, stroke_width=5, max_stroke_width_to_length_ratio=10,
+                max_tip_length_to_length_ratio=0.5, tip_length=0.15,
+            )
+
+            right_pointer = Arrow(
+                start=right.rectangles[0].get_bottom() + 0.8 * DOWN, end=right.rectangles[0].get_bottom(),
+                color=YELLOW, buff=0.2, stroke_width=5, max_stroke_width_to_length_ratio=10,
+                max_tip_length_to_length_ratio=0.5, tip_length=0.15,
+            )
+
+            # Highlight the first 2 elements (orange + increase size)
+            self.play(
+                Create(left_pointer), Create(right_pointer),
+                left.labels[0].animate.set_color(YELLOW).scale(1.25),
+                right.labels[0].animate.set_color(YELLOW).scale(1.25),
+                run_time=run_time,
+            )
+            self.wait(run_time)
+
+            self.play(merge_arrow.animate.next_to(merge_code[2], LEFT).shift(0.1 * DOWN), run_time=run_time)
+            self.wait(run_time)
+
+            for i, val in enumerate(sorted(a.values)):
+                self.play(merge_arrow.animate.next_to(merge_code[3], LEFT).shift(0.1 * DOWN), run_time=run_time)
+                self.wait(run_time)
+                self.play(merge_arrow.animate.next_to(merge_code[4], LEFT).shift(0.1 * DOWN), run_time=run_time)
+                self.wait(run_time)
+                self.play(merge_arrow.animate.next_to(merge_code[6], LEFT).shift(0.2 * DOWN), run_time=run_time)
+                self.wait(run_time)
+                if val in left.values:
+                    index = left.values.index(val)
+                    label = left.labels[index].copy()
+                    self.play(merge_arrow.animate.next_to(merge_code[7], LEFT).shift(0.1 * DOWN), run_time=run_time)
+                    self.play(label.animate.move_to(res.labels[i].set_color(WHITE)), run_time=run_time)
+                    self.wait(run_time)
+                    self.play(merge_arrow.animate.next_to(merge_code[8], LEFT).shift(0.1 * DOWN), run_time=run_time)
+                    self.play(
+                        left.labels[index].animate.set_color(WHITE).scale(1 / 1.25),
+                        left_pointer.animate.shift((left.width + left.spacing) * RIGHT),
+                        *([left.labels[index + 1].animate.set_color(YELLOW).scale(1.25)] if index + 1 < len(left) else []),
+                        run_time=run_time,
+                    )
+                    self.remove(a.labels[i], a.rectangles[i], label)
+                    self.add(res.labels[i].set_z_index(1000000), res.rectangles[i])
+                    self.wait(run_time)
+                else:
+                    index = right.values.index(val)
+                    label = right.labels[index].copy()
+                    self.play(merge_arrow.animate.next_to(merge_code[10], LEFT).shift(0.1 * DOWN), run_time=run_time)
+                    self.play(label.animate.move_to(res.labels[i]), run_time=run_time)
+                    self.wait(run_time)
+                    self.play(merge_arrow.animate.next_to(merge_code[11], LEFT).shift(0.1 * DOWN), run_time=run_time)
+                    self.play(
+                        right.labels[index].animate.set_color(WHITE).scale(1 / 1.25),
+                        right_pointer.animate.shift((right.width + right.spacing) * RIGHT),
+                        *([right.labels[index + 1].animate.set_color(YELLOW).scale(1.25)] if index + 1 < len(right) else []),
+                        run_time=run_time,
+                    )
+                    self.remove(a.labels[i], a.rectangles[i], label)
+                    self.add(res.labels[i].set_z_index(1000000), res.rectangles[i])
+                    self.wait(run_time)
+
+            self.play(merge_arrow.animate.next_to(merge_code[12], LEFT).shift(0.1 * DOWN), run_time=run_time)
+            self.wait(run_time)
+            self.remove(l_mobj, r_mobj)
+            self.play(FadeOut(left_mobj, right_mobj, l_arrow, r_arrow, merge_arrow, left_pointer, right_pointer), run_time=run_time)
+            return res, res_mobj
+
+        merge_sort(array, array_mobj, run_time=0.25)
+        self.play(FadeOut(sort_arrow), run_time=0.2)
         self.wait(1)
