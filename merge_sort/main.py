@@ -1,4 +1,5 @@
 import random
+from itertools import chain
 from textwrap import dedent
 
 from manim import *
@@ -540,5 +541,173 @@ class MergeStepImplementation(Scene):
         )
 
         self.add(title, left_mobj, right_mobj, res_mobj, left_text, right_text, left_arrow, right_arrow)
+        self.wait(1)
+
+        # draw 2 arrows pointing to the first elements of the left and right arrays
+        left_pointer = Arrow(
+            start=left.rectangles[0].get_bottom() + 0.8 * DOWN, end=left.rectangles[0].get_bottom(),
+            color=ORANGE, buff=0.2, stroke_width=5, max_stroke_width_to_length_ratio=10,
+            max_tip_length_to_length_ratio=0.5, tip_length=0.15,
+        )
+
+        right_pointer = Arrow(
+            start=right.rectangles[0].get_bottom() + 0.8 * DOWN, end=right.rectangles[0].get_bottom(),
+            color=ORANGE, buff=0.2, stroke_width=5, max_stroke_width_to_length_ratio=10,
+            max_tip_length_to_length_ratio=0.5, tip_length=0.15,
+        )
+        self.play(
+            Create(left_pointer), Create(right_pointer),
+            left.labels[0].animate.set_color(ORANGE).scale(1.25),
+            right.labels[0].animate.set_color(ORANGE).scale(1.25),
+            run_time=0.5,
+        )
+
+        code = Code(
+            code=dedent('''
+                i, j, res = 0, 0, []
+                while i < len(a) or j < len(b):
+                    ai = a[i] if i < len(a) else float('inf')
+                    bj = b[j] if j < len(b) else float('inf')
+
+                    if ai < bj:
+                        res.append(ai)
+                        i += 1
+                    else:
+                        res.append(bj)
+                        j += 1
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).scale(0.75).center().shift(1.75 * DOWN).code
+
+        self.play(AddTextLetterByLetter(code.chars[0], run_time=0.1 * len(code.chars[0])))
+        self.wait(0.2)
+        self.play(AddTextLetterByLetter(code.chars[1], run_time=0.1 * len(code.chars[1])))
+        self.wait(0.2)
+        self.play(AddTextLetterByLetter(code.chars[2], run_time=0.1 * len(code.chars[2])))
+        self.wait(0.2)
+        self.play(AddTextLetterByLetter(code.chars[3], run_time=0.1 * len(code.chars[3])))
+
+        self.play(AddTextLetterByLetter(code.chars[5], run_time=0.1 * len(code.chars[5])))
+        self.play(AddTextLetterByLetter(code.chars[6], run_time=0.1 * len(code.chars[6])))
+        self.play(AddTextLetterByLetter(code.chars[7], run_time=0.1 * len(code.chars[7])))
+        self.wait(0.2)
+
+        self.play(AddTextLetterByLetter(code.chars[8], run_time=0.1 * len(code.chars[8])))
+        self.play(AddTextLetterByLetter(code.chars[9], run_time=0.1 * len(code.chars[9])))
+        self.play(AddTextLetterByLetter(code.chars[10], run_time=0.1 * len(code.chars[10])))
+        self.wait(1)
+
+        def move_smallest(l_index, r_index, res_index, run_time=0.5, move_pointer=True):
+            l_val = left.values[l_index] if l_index < len(left) else float('inf')
+            r_val = right.values[r_index] if r_index < len(right) else float('inf')
+            if l_val < r_val:
+                label = left.labels[l_index].copy()
+                self.play(label.animate.move_to(res.labels[res_index]).set_color(WHITE), run_time=run_time)
+                self.play(
+                    left.labels[l_index].animate.set_color(WHITE).scale(1 / 1.25),
+                    *([left_pointer.animate.shift((left.width + left.spacing) * RIGHT)] if move_pointer else []),
+                    *([left.labels[l_index + 1].animate.set_color(ORANGE).scale(1.25)] if l_index + 1 < len(left) else []),
+                    run_time=run_time,
+                )
+                self.remove(res.labels[res_index])
+                res.labels[res_index] = label
+                return l_index + 1, r_index
+            else:
+                label = right.labels[r_index].copy()
+                self.play(label.animate.move_to(res.labels[res_index]).set_color(WHITE), run_time=run_time)
+                self.play(
+                    right.labels[r_index].animate.set_color(WHITE).scale(1 / 1.25),
+                    *([right_pointer.animate.shift((right.width + right.spacing) * RIGHT)] if move_pointer else []),
+                    *([right.labels[r_index + 1].animate.set_color(ORANGE).scale(1.25)] if r_index + 1 < len(right) else []),
+                    run_time=run_time,
+                )
+                self.remove(res.labels[res_index])
+                res.labels[res_index] = label
+                return l_index, r_index + 1
+        l, r = 0, 0
+        l, r = move_smallest(l, r, 0, run_time=0.5)
+        l, r = move_smallest(l, r, 1, run_time=0.2)
+        l, r = move_smallest(l, r, 2, run_time=0.2)
+        l, r = move_smallest(l, r, 3, run_time=0.2)
+        l, r = move_smallest(l, r, 4, run_time=0.2)
+        l, r = move_smallest(l, r, 5, run_time=0.2)
+        l, r = move_smallest(l, r, 6, run_time=0.2)
+        self.wait(1)
+
+        # Hide pointers and move the arrays down a bit
+        self.play(FadeOut(left_pointer, right_pointer), run_time=0.2)
+        self.play(VGroup(left_text, right_text, left_mobj, right_mobj, res_mobj, left_arrow, right_arrow, *res.labels).animate.shift(0.5 * DOWN), run_time=1)
+        self.wait(1)
+
+        # Highlight one cell in the result
+        self.play(Indicate(res.rectangles[4], scale_factor=1.5, color=ORANGE), run_time=1)
+
+        # Highlight the arrows from a and b to the result (ShowPassingFlash)
+        self.play(
+            ShowPassingFlash(left_arrow.copy().set_color(WHITE), time_width=0.5, run_time=1),
+            ShowPassingFlash(right_arrow.copy().set_color(WHITE), time_width=0.5, run_time=1),
+        )
+        # Draw an arrow at the top of the result & A+B at the top
+        res_arrow = DoubleArrow(
+            start=res_mobj.get_left() + 0.5 * UP, end=res_mobj.get_right() + 0.5 * UP,
+            color=ORANGE, buff=0, stroke_width=5, max_stroke_width_to_length_ratio=10,
+            max_tip_length_to_length_ratio=0.5, tip_length=0.15,
+        )
+        a_plus_b = MathTex(r'\mathcal{O}(A + B)', color=ORANGE).scale(0.7).next_to(res_arrow, UP, buff=0.1)
+        self.play(Create(res_arrow), Write(a_plus_b), run_time=0.5)
+        self.wait(1)
+
+        # Highlight A from O(A+B) and the first array
+        self.play(Indicate(a_plus_b[0][2], scale_factor=1.6), Indicate(left_mobj), run_time=1)
+        self.wait(0.2)
+        self.play(Indicate(a_plus_b[0][4], scale_factor=1.6), Indicate(right_mobj), run_time=1)
+        self.wait(0.2)
+
+        self.play(ApplyWave(code.chars, run_time=2))
+        self.wait(0.5)
+
+        # Transition to the next scene
+        self.play(FadeOut(code, a_plus_b, res_arrow), run_time=0.5)
+        self.play(*[item.animate.set_color(BLACK) for item in res.labels], run_time=0.5)
+        self.play(
+            ReplacementTransform(title, Title('Split and Merge', include_underline=False)),
+            VGroup(left_mobj, right_mobj, res_mobj, left_text, right_text, left_arrow, right_arrow, *res.labels).animate.shift(0.5 * UP),
+            run_time=0.5,
+        )
+        self.wait(0.5)
+
+        # Move the elements from a and b into the result
+        self.play(
+            left.labels[0].animate.set_color(ORANGE).scale(1.25),
+            right.labels[0].animate.set_color(ORANGE).scale(1.25),
+            run_time=0.5,
+        )
+        l, r = 0, 0
+        l, r = move_smallest(l, r, 0, run_time=0.5, move_pointer=False)
+        l, r = move_smallest(l, r, 1, run_time=0.2, move_pointer=False)
+        l, r = move_smallest(l, r, 2, run_time=0.2, move_pointer=False)
+        l, r = move_smallest(l, r, 3, run_time=0.2, move_pointer=False)
+        l, r = move_smallest(l, r, 4, run_time=0.2, move_pointer=False)
+        l, r = move_smallest(l, r, 5, run_time=0.2, move_pointer=False)
+        l, r = move_smallest(l, r, 6, run_time=0.2, move_pointer=False)
+
+        # Fade out a and b
+        self.play(FadeOut(
+            left_mobj, left_text, left_arrow,
+            right_mobj, right_text, right_arrow,
+        ), run_time=0.5)
+
+        # Replace the result with the unsorted array [12, 3, 5, 9, 4, 1, 7]
+        unsorted = Array(arr)
+        unsorted_mobj = unsorted.get_mobject().center().shift(2.2 * UP)
+        self.play(TransformMatchingCells(
+            VGroup(*chain.from_iterable(zip(res.rectangles, res.labels))),
+            unsorted_mobj,
+            path_arc=PI/2,
+        ), run_time=1)
         self.wait(1)
 
