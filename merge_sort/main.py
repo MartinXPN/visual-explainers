@@ -96,10 +96,13 @@ class IntroductionBars(Scene):
 
 
 class IntroductionSortingVisualized(Scene):
-    def construct(self):
+    def construct(self, animate_creation=True):
         array = Array(arr)
-        array_mobj = array.get_mobject().center().shift(2.5 * UP)
-        self.play(Create(array_mobj))
+        array_mobj = array.get_mobject().center().shift(2.2 * UP)
+        if animate_creation:
+            self.play(Create(array_mobj))
+        else:
+            self.add(array_mobj)
         self.wait(1)
 
         def merge_sort(a: Array, a_mobj: Mobject) -> tuple[Array, Mobject]:
@@ -710,4 +713,98 @@ class MergeStepImplementation(Scene):
             path_arc=PI/2,
         ), run_time=1)
         self.wait(1)
+
+
+class SplitMerge(IntroductionSortingVisualized):
+    def construct(self):
+        title = Title('Split and Merge', include_underline=False)
+        self.add(title)
+        super().construct(animate_creation=False)
+
+
+class SplitMergeImplementation(Scene):
+    def construct(self):
+        title = Title('Split and Merge', include_underline=False)
+        self.add(title)
+        array = Array(arr)
+        array_mobj = array.get_mobject().center().shift(2.2 * UP)
+        self.add(array_mobj)
+
+        sorted_array = Array(sorted(arr))
+        sorted_array_mobj = sorted_array.get_mobject().center().next_to(array_mobj, DOWN, buff=1)
+        pointer_to_sorted = Arrow(
+            start=array_mobj.get_bottom(), end=sorted_array_mobj.get_top(),
+            color=ORANGE, buff=0.2, stroke_width=5, max_stroke_width_to_length_ratio=10,
+            max_tip_length_to_length_ratio=0.5, tip_length=0.15,
+        )
+        self.play(Create(sorted_array_mobj), Create(pointer_to_sorted), run_time=1)
+        self.wait(1)
+
+        code = Code(
+            code=dedent('''
+                def merge_sort(a):
+                    if len(a) <= 1:
+                        return a
+                
+                    l = merge_sort(a[: len(a) // 2])
+                    r = merge_sort(a[len(a) // 2:])
+                    return merge(l, r)
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).scale(0.75).center().shift(1.75 * DOWN).code
+
+        self.play(AddTextLetterByLetter(code.chars[0], run_time=0.1 * len(code.chars[0])), FadeOut(pointer_to_sorted, sorted_array_mobj))
+        self.wait(0.2)
+
+        self.play(AddTextLetterByLetter(code.chars[1], run_time=0.1 * len(code.chars[1])))
+        self.play(AddTextLetterByLetter(code.chars[2], run_time=0.1 * len(code.chars[2])))
+        self.wait(0.2)
+
+        # Add left part (code + array)
+        l = Array(array.values[: len(array) // 2])
+        l_mobj = l.get_mobject().next_to(array_mobj, DOWN, buff=0.4).align_to(array_mobj, LEFT).shift(0.4 * LEFT)
+        l_arrow = Arrow(
+            start=array_mobj.get_bottom(), end=l_mobj.get_top(),
+            color=ORANGE, buff=0.2, stroke_width=5, max_stroke_width_to_length_ratio=10,
+            max_tip_length_to_length_ratio=0.5, tip_length=0.15,
+        )
+        self.play(
+            AddTextLetterByLetter(code.chars[4], run_time=0.1 * len(code.chars[4])),
+            *[item.animate.set_color(ORANGE).scale(1.25) for item in array.labels[:len(array) // 2]],
+            *[item.animate.set_color(DARK_GRAY) for item in array.labels[len(array) // 2:]],
+            Create(l_mobj, run_time=1),
+            Create(l_arrow, run_time=1),
+        )
+
+        # Add right aprt (code + array)
+        r = Array(array.values[len(array) // 2:])
+        r_mobj = r.get_mobject().next_to(array_mobj, DOWN, buff=0.4).align_to(array_mobj, RIGHT).shift(0.4 * RIGHT)
+        r_arrow = Arrow(
+            start=array_mobj.get_bottom(), end=r_mobj.get_top(),
+            color=ORANGE, buff=0.2, stroke_width=5, max_stroke_width_to_length_ratio=10,
+            max_tip_length_to_length_ratio=0.5, tip_length=0.15,
+        )
+        self.play(
+            AddTextLetterByLetter(code.chars[5], run_time=0.1 * len(code.chars[5])),
+            l_arrow.animate.set_color(DARK_GRAY),
+            *[item.animate.set_color(DARK_GRAY).scale(1 / 1.25) for item in array.labels[: len(array) // 2]],
+            *[item.animate.set_color(ORANGE).scale(1.25) for item in array.labels[len(array) // 2:]],
+            Create(r_mobj, run_time=1),
+            Create(r_arrow, run_time=1),
+        )
+        self.wait(0.2)
+
+        # Highlight the merge_sort parts of the code
+        self.play(
+            Indicate(code.chars[4][5:15], scale_factor=1.5),
+            Indicate(code.chars[5][5:15], scale_factor=1.5),
+            run_time=1,
+        )
+        self.wait(1)
+
+        # Replace the labels of the left and right parts by their sorted versions
 
