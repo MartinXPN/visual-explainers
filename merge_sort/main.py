@@ -313,3 +313,232 @@ class IntroductionRecursionVisualized(Scene):
 
         merge_sort(array, array_mobj)
         self.wait(1)
+
+
+class MergeStep(Scene):
+    def construct(self):
+        title = Title('Merge Two Sorted Arrays', include_underline=False)
+        left = Array([3, 5, 12])
+        right = Array([1, 4, 7, 9])
+        res = Array(sorted(arr), color=BLACK)
+
+        res_mobj = res.get_mobject().center().shift(UP)
+        left_mobj = left.get_mobject().next_to(res_mobj, DOWN, buff=0.8).align_to(res_mobj, LEFT).shift(0.8 * LEFT)
+        right_mobj = right.get_mobject().next_to(res_mobj, DOWN, buff=0.8).align_to(res_mobj, RIGHT).shift(1.2 * RIGHT)
+        left_text = Tex('a:').scale(0.9).next_to(left_mobj, LEFT)
+        right_text = Tex('b:').scale(0.9).next_to(right_mobj, LEFT)
+
+        # Create arrows that point from the center of left to the center of res and from the center of right to the center of res
+        left_arrow = Arrow(
+            start=left_mobj.get_top(), end=res_mobj.get_bottom(),
+            color=ORANGE, buff=0.2, stroke_width=5, max_stroke_width_to_length_ratio=10,
+            max_tip_length_to_length_ratio=0.5, tip_length=0.15,
+        )
+        right_arrow = Arrow(
+            start=right_mobj.get_top(), end=res_mobj.get_bottom(),
+            color=ORANGE, buff=0.2, stroke_width=5, max_stroke_width_to_length_ratio=10,
+            max_tip_length_to_length_ratio=0.5, tip_length=0.15,
+        )
+
+        self.play(Create(left_mobj), Write(left_text), run_time=0.5)
+        self.play(Create(right_mobj), Write(right_text), run_time=0.5)
+        self.wait(0.2)
+
+        self.play(Write(title), run_time=0.5)
+        self.wait(0.2)
+
+        self.play(Create(res_mobj), Create(left_arrow), Create(right_arrow), run_time=0.5)
+        self.play(LaggedStart(
+            *[item.animate.set_color(WHITE) for item in res.labels],
+            lag_ratio=0.6,
+            run_time=1,
+        ))
+        self.wait(0.2)
+
+        o_a_plus_b = MathTex(r'\mathcal{O}(A + B)').scale(0.9).center().shift(2 * DOWN)
+        self.play(Write(o_a_plus_b), run_time=0.5)
+
+        self.play(Indicate(left_mobj, color=ORANGE), Indicate(left_text, color=ORANGE), Indicate(o_a_plus_b[0][2], color=ORANGE, scale_factor=1.6), run_time=1)
+        self.play(Indicate(right_mobj, color=ORANGE), Indicate(right_text, color=ORANGE), Indicate(o_a_plus_b[0][4], color=ORANGE, scale_factor=1.6), run_time=1)
+        self.wait(0.2)
+
+        # Highlight the elements of the resulting array one by one and highlight the corresponding element in a or b.
+        for i, value in enumerate(res.values):
+            if value in left.values:
+                index = left.values.index(value)
+                self.play(Indicate(left.labels[index], color=ORANGE, scale_factor=1.8), Indicate(res.labels[i], color=ORANGE, scale_factor=1.8), run_time=0.5)
+            else:
+                index = right.values.index(value)
+                self.play(Indicate(right.labels[index], color=ORANGE, scale_factor=1.8), Indicate(res.labels[i], color=ORANGE, scale_factor=1.8), run_time=0.5)
+        self.wait(0.2)
+
+        self.play(FadeOut(o_a_plus_b), run_time=0.5)
+        self.wait(0.2)
+
+        self.play(Indicate(left_mobj, color=ORANGE), Indicate(left_text, color=ORANGE), run_time=0.5)
+        self.play(Indicate(right_mobj, color=ORANGE), Indicate(right_text, color=ORANGE), run_time=0.5)
+        self.wait(0.2)
+
+        self.play(Circumscribe(res_mobj), run_time=0.5)
+        self.play(LaggedStart(
+            *[Indicate(item, color=ORANGE, scale_factor=1.8) for item in res.labels],
+            lag_ratio=0.6,
+            run_time=1,
+        ))
+        self.wait(0.2)
+
+        # Make the numbers in the resulting array black
+        self.play(LaggedStart(
+            *[item.animate.set_color(BLACK) for item in res.labels],
+            lag_ratio=0.6,
+            run_time=1,
+        ))
+
+        # draw 2 arrows pointing to the first elements of the left and right arrays
+        left_pointer = Arrow(
+            start=left.rectangles[0].get_bottom() + 0.8 * DOWN, end=left.rectangles[0].get_bottom(),
+            color=ORANGE, buff=0.2, stroke_width=5, max_stroke_width_to_length_ratio=10,
+            max_tip_length_to_length_ratio=0.5, tip_length=0.15,
+        )
+
+        right_pointer = Arrow(
+            start=right.rectangles[0].get_bottom() + 0.8 * DOWN, end=right.rectangles[0].get_bottom(),
+            color=ORANGE, buff=0.2, stroke_width=5, max_stroke_width_to_length_ratio=10,
+            max_tip_length_to_length_ratio=0.5, tip_length=0.15,
+        )
+
+        # Highlight the first 2 elements (orange + increase size)
+        self.play(
+            Create(left_pointer), Create(right_pointer),
+            left.labels[0].animate.set_color(ORANGE).scale(1.25),
+            right.labels[0].animate.set_color(ORANGE).scale(1.25),
+            run_time=0.5,
+        )
+        self.wait(0.2)
+
+        def move_smallest(l_index, r_index, res_index, run_time=0.5):
+            l_val = left.values[l_index] if l_index < len(left) else float('inf')
+            r_val = right.values[r_index] if r_index < len(right) else float('inf')
+            if l_val < r_val:
+                label = left.labels[l_index].copy()
+                self.play(label.animate.move_to(res.labels[res_index]).set_color(WHITE), run_time=run_time)
+                self.play(
+                    left.labels[l_index].animate.set_color(WHITE).scale(1 / 1.25),
+                    left_pointer.animate.shift((left.width + left.spacing) * RIGHT),
+                    *([left.labels[l_index + 1].animate.set_color(ORANGE).scale(1.25)] if l_index + 1 < len(left) else []),
+                    run_time=run_time,
+                )
+                self.remove(res.labels[res_index])
+                res.labels[res_index] = label
+                return l_index + 1, r_index
+            else:
+                label = right.labels[r_index].copy()
+                self.play(label.animate.move_to(res.labels[res_index]).set_color(WHITE), run_time=run_time)
+                self.play(
+                    right.labels[r_index].animate.set_color(WHITE).scale(1 / 1.25),
+                    right_pointer.animate.shift((right.width + right.spacing) * RIGHT),
+                    *([right.labels[r_index + 1].animate.set_color(ORANGE).scale(1.25)] if r_index + 1 < len(right) else []),
+                    run_time=run_time,
+                )
+                self.remove(res.labels[res_index])
+                res.labels[res_index] = label
+                return l_index, r_index + 1
+
+        l, r = 0, 0
+        l, r = move_smallest(l, r, 0, run_time=0.5)
+        l, r = move_smallest(l, r, 1, run_time=0.5)
+
+        # Highlight the second arrow
+        self.wait(0.5)
+        self.play(Indicate(right_pointer, scale_factor=1.5), run_time=1)
+
+        # Highlight the elements in a and b from smallest to largest
+        self.play(LaggedStart(
+            *[Indicate(label, color=YELLOW, scale_factor=1.8) for label in left.labels],
+            lag_ratio=0.6,
+            run_time=1,
+        ))
+        self.play(LaggedStart(
+            *[Indicate(label, color=YELLOW, scale_factor=1.8) for label in right.labels],
+            lag_ratio=0.6,
+            run_time=1,
+        ))
+        self.wait(0.2)
+
+        l, r = move_smallest(l, r, 2, run_time=0.2)
+        l, r = move_smallest(l, r, 3, run_time=0.2)
+        l, r = move_smallest(l, r, 4, run_time=0.2)
+        l, r = move_smallest(l, r, 5, run_time=0.2)
+        self.wait(0.5)
+        self.play(Indicate(right_pointer, color=YELLOW, scale_factor=1.5), run_time=1)
+        self.wait(0.5)
+        self.play(Indicate(left.labels[-1], color=YELLOW, scale_factor=1.8), run_time=1)
+        self.wait(1)
+        l, r = move_smallest(l, r, 6, run_time=0.2)
+        self.wait(0.2)
+
+        # Highlight all the elements in the resulting array from smallest to largest (LaggedStart)
+        self.play(LaggedStart(
+            *[Indicate(label, color=YELLOW, scale_factor=1.8) for label in res.labels],
+            lag_ratio=0.6,
+            run_time=1,
+        ))
+        self.wait(0.2)
+
+        # Transition to the next scene
+        self.play(FadeOut(left_pointer, right_pointer), run_time=0.2)
+        self.play(VGroup(left_text, right_text, left_mobj, right_mobj, res_mobj, left_arrow, right_arrow, *res.labels).animate.shift(1.2 * UP), run_time=1)
+        self.play(
+            *[item.animate.set_color(BLACK) for item in res.labels],
+            run_time=0.5,
+        )
+        # Move the left and right arrays up and adjust their corresponding arrows
+        self.play(
+            left_mobj.animate.shift(0.4 * UP),
+            right_mobj.animate.shift(0.4 * UP),
+            left_text.animate.shift(0.4 * UP),
+            right_text.animate.shift(0.4 * UP),
+            left_arrow.animate.become(Arrow(
+                start=left_mobj.get_top() + 0.4 * UP, end=res_mobj.get_bottom(),
+                color=ORANGE, buff=0.2, stroke_width=5, max_stroke_width_to_length_ratio=10,
+                max_tip_length_to_length_ratio=0.5, tip_length=0.15,
+            )),
+            right_arrow.animate.become(Arrow(
+                start=right_mobj.get_top() + 0.4 * UP, end=res_mobj.get_bottom(),
+                color=ORANGE, buff=0.2, stroke_width=5, max_stroke_width_to_length_ratio=10,
+                max_tip_length_to_length_ratio=0.5, tip_length=0.15,
+            )),
+            run_time=0.5,
+        )
+
+        self.wait(1)
+
+
+class MergeStepImplementation(Scene):
+    def construct(self):
+        title = Title('Merge Two Sorted Arrays', include_underline=False)
+        left = Array([3, 5, 12])
+        right = Array([1, 4, 7, 9])
+        res = Array(sorted(arr), color=BLACK)
+
+        res_mobj = res.get_mobject().center().shift(2.2 * UP)
+        left_mobj = left.get_mobject().next_to(res_mobj, DOWN, buff=0.4).align_to(res_mobj, LEFT).shift(0.8 * LEFT)
+        right_mobj = right.get_mobject().next_to(res_mobj, DOWN, buff=0.4).align_to(res_mobj, RIGHT).shift(1.2 * RIGHT)
+        left_text = Tex('a:').scale(0.9).next_to(left_mobj, LEFT)
+        right_text = Tex('b:').scale(0.9).next_to(right_mobj, LEFT)
+
+        # Create arrows that point from the center of left to the center of res and from the center of right to the center of res
+        left_arrow = Arrow(
+            start=left_mobj.get_top(), end=res_mobj.get_bottom(),
+            color=ORANGE, buff=0.2, stroke_width=5, max_stroke_width_to_length_ratio=10,
+            max_tip_length_to_length_ratio=0.5, tip_length=0.15,
+        )
+        right_arrow = Arrow(
+            start=right_mobj.get_top(), end=res_mobj.get_bottom(),
+            color=ORANGE, buff=0.2, stroke_width=5, max_stroke_width_to_length_ratio=10,
+            max_tip_length_to_length_ratio=0.5, tip_length=0.15,
+        )
+
+        self.add(title, left_mobj, right_mobj, res_mobj, left_text, right_text, left_arrow, right_arrow)
+        self.wait(1)
+
