@@ -870,3 +870,70 @@ class SplitMergeImplementation(Scene):
             run_time=0.5,
         )
         self.wait(1)
+
+
+class Simulation(Scene):
+    def construct(self):
+        title = Title('Merge Sort', include_underline=False)
+        array = Array(arr)
+        array_mobj = array.get_mobject().center().shift(2.2 * UP)
+        self.add(title, array_mobj)
+
+        merge_code = Code(
+            code=dedent('''
+                def merge(a, b):
+                    i, j, res = 0, 0, []
+                    while i < len(a) or j < len(b):
+                        ai = a[i] if i < len(a) else float('inf')
+                        bj = b[j] if j < len(b) else float('inf')
+
+                        if ai < bj:
+                            res.append(ai)
+                            i += 1
+                        else:
+                            res.append(bj)
+                            j += 1
+                    return res
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).scale(0.7).center().shift(1.7 * DOWN).shift(3 * LEFT).code
+        self.add(merge_code)
+
+        sort_code = Code(
+            code=dedent('''
+                def merge_sort(a):
+                    if len(a) <= 1:
+                        return a
+
+                    l = merge_sort(a[: len(a) // 2])
+                    r = merge_sort(a[len(a) // 2:])
+                    return merge(l, r)
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).scale(0.7).center().align_to(merge_code, DOWN).shift(3.5 * RIGHT).code
+        self.add(sort_code)
+
+        self.play(array_mobj.animate.scale(0.9).shift(2.5 * RIGHT), run_time=0.5)
+        self.wait(0.2)
+
+        merge_arrow = Arrow(
+            start=LEFT, end=RIGHT, color=RED, buff=0.1,
+            stroke_width=10, max_stroke_width_to_length_ratio=15,
+            max_tip_length_to_length_ratio=0.5, tip_length=0.2,
+        ).scale(0.3).next_to(merge_code, LEFT).align_to(merge_code, UP)
+
+        sort_arrow = Arrow(
+            start=LEFT, end=RIGHT, color=RED, buff=0.1,
+            stroke_width=10, max_stroke_width_to_length_ratio=15,
+            max_tip_length_to_length_ratio=0.5, tip_length=0.2,
+        ).scale(0.3).next_to(sort_code, LEFT).align_to(sort_code, UP)
+        self.play(Create(sort_arrow), run_time=0.5)
+        self.wait(1)
