@@ -804,7 +804,69 @@ class SplitMergeImplementation(Scene):
             Indicate(code.chars[5][5:15], scale_factor=1.5),
             run_time=1,
         )
-        self.wait(1)
+        self.wait(0.2)
 
         # Replace the labels of the left and right parts by their sorted versions
+        l_sorted = Array(sorted(l.values))
+        r_sorted = Array(sorted(r.values))
+        l_sorted_mobj = l_sorted.get_mobject().align_to(l_mobj, DOWN).align_to(l_mobj, LEFT)
+        r_sorted_mobj = r_sorted.get_mobject().align_to(r_mobj, DOWN).align_to(r_mobj, RIGHT)
+        self.play(
+            TransformMatchingShapes(l_mobj, l_sorted_mobj),
+            TransformMatchingShapes(r_mobj, r_sorted_mobj),
+            run_time=1,
+        )
+        self.wait(0.2)
 
+        self.play(
+            *[item.animate.set_color(BLACK) for item in array.labels],
+            l_arrow.animate.rotate(PI).set_color(ORANGE),
+            r_arrow.animate.rotate(PI).set_color(ORANGE),
+            run_time=0.5,
+        )
+        self.wait(0.2)
+
+        self.play(AddTextLetterByLetter(code.chars[6], run_time=0.1 * len(code.chars[6])))
+        self.wait(0.2)
+
+        merge_code = Code(
+            code=dedent('''
+                def merge(a, b):
+                    i, j, res = 0, 0, []
+                    while i < len(a) or j < len(b):
+                        ai = a[i] if i < len(a) else float('inf')
+                        bj = b[j] if j < len(b) else float('inf')
+                
+                        if ai < bj:
+                            res.append(ai)
+                            i += 1
+                        else:
+                            res.append(bj)
+                            j += 1
+                    return res
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).scale(0.7).center().shift(1.7 * DOWN).shift(3 * LEFT).code
+
+        # Move the code to the right
+        self.play(code.animate.scale(1 / 0.75 * 0.7).align_to(merge_code, UP).shift(3.5 * RIGHT), run_time=1)
+        self.wait(0.2)
+
+        for line in merge_code.chars:
+            if line:
+                self.play(AddTextLetterByLetter(line, run_time=0.01 * len(line)))
+        self.wait(0.2)
+
+        # Transition to the next scene
+        self.play(
+            ReplacementTransform(title, Title('Merge Sort', include_underline=False)),
+            code.animate.align_to(merge_code, DOWN),
+            FadeOut(l_arrow, r_arrow, l_sorted_mobj, r_sorted_mobj),
+            *[item.animate.set_color(WHITE) for item in array.labels],
+            run_time=0.5,
+        )
+        self.wait(1)
