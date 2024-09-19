@@ -1083,3 +1083,106 @@ class Simulation(Scene):
         merge_sort(array, array_mobj, run_time=0.25)
         self.play(FadeOut(sort_arrow), run_time=0.2)
         self.wait(1)
+
+
+class ComplexityAnalysis(Scene):
+    def construct(self):
+        title = Title('Merge Sort', include_underline=False)
+        self.add(title)
+        array = Array(arr)
+        array_mobj = array.get_mobject().center().shift(2.2 * UP).shift(2.8 * RIGHT).shift(0.3 * UP)
+        self.add(title, array_mobj)
+
+        merge_code = Code(
+            code=dedent('''
+                def merge(a, b):
+                    i, j, res = 0, 0, []
+                    while i < len(a) or j < len(b):
+                        ai = a[i] if i < len(a) else float('inf')
+                        bj = b[j] if j < len(b) else float('inf')
+
+                        if ai < bj:
+                            res.append(ai)
+                            i += 1
+                        else:
+                            res.append(bj)
+                            j += 1
+                    return res
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).scale(0.7).center().shift(1.7 * DOWN).shift(3 * LEFT).code
+        self.add(merge_code)
+
+        sort_code = Code(
+            code=dedent('''
+                def merge_sort(a):
+                    if len(a) <= 1:
+                        return a
+
+                    l = merge_sort(a[: len(a) // 2])
+                    r = merge_sort(a[len(a) // 2:])
+                    return merge(l, r)
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).scale(0.7).center().align_to(merge_code, DOWN).shift(0.25 * DOWN).shift(3.5 * RIGHT).code
+        self.add(sort_code)
+
+        self.wait(0.2)
+
+        all_mobjects = []
+        def merge_sort(a: Array, a_mobj: Mobject) -> tuple[Array, Mobject]:
+            nonlocal all_mobjects
+            if len(a) <= 1:
+                if a.values != [3] and a.values != [5] and a.values != [12]:
+                    all_mobjects.append(a_mobj)
+                return a, a_mobj
+
+            # Copy the left part of the array and place it on the bottom-left side of the current array => sort it
+            l = Array(a.values[: len(a) // 2], width=a.width, height=a.height, spacing=a.spacing, scale_text=a.scale_text, stroke_color=a.stroke_color)
+            l_mobj = l.get_mobject().next_to(a_mobj, DOWN, buff=0.4).align_to(a_mobj, LEFT).shift(0.4 * LEFT)
+            l_arrow = Arrow(
+                start=a_mobj.get_bottom(), end=l_mobj.get_top(),
+                color=ORANGE, buff=0.2, stroke_width=5, max_stroke_width_to_length_ratio=10,
+                max_tip_length_to_length_ratio=0.5, tip_length=0.15,
+            )
+            self.play(Create(l_mobj), Create(l_arrow), run_time=0.1)
+            left, left_mobj = merge_sort(l, l_mobj)
+
+            # Copy the right part of the array and place it on the bottom-right side of the current array => sort it
+            r = Array(a.values[len(a) // 2:], width=a.width, height=a.height, spacing=a.spacing, scale_text=a.scale_text, stroke_color=a.stroke_color)
+            r_mobj = r.get_mobject().next_to(a_mobj, DOWN, buff=0.4).align_to(a_mobj, RIGHT).shift(0.4 * RIGHT)
+            r_arrow = Arrow(
+                start=a_mobj.get_bottom(), end=r_mobj.get_top(),
+                color=ORANGE, buff=0.2, stroke_width=5, max_stroke_width_to_length_ratio=10,
+                max_tip_length_to_length_ratio=0.5, tip_length=0.15,
+            )
+            self.play(Create(r_mobj), Create(r_arrow), run_time=0.1)
+            right, right_mobj = merge_sort(r, r_mobj)
+
+            # Merge the sorted left and right parts and fade the parts out
+            res = Array(sorted(a.values), width=a.width, height=a.height, spacing=a.spacing, scale_text=a.scale_text, stroke_color=a.stroke_color)
+            res_mobj = res.get_mobject().align_to(a_mobj, DOWN).align_to(a_mobj, LEFT)
+            self.play(TransformMatchingShapes(a_mobj, res_mobj), run_time=0.2)
+            if res.values == [3, 5]:
+                self.remove(l_mobj, r_mobj)
+                self.play(FadeOut(left_mobj, right_mobj, l_arrow, r_arrow), run_time=0.1)
+            elif res.values == [3, 5, 12]:
+                self.remove(l_mobj, r_mobj)
+                self.play(FadeOut(left_mobj, right_mobj), run_time=0.1)
+                all_mobjects.extend([res_mobj, l_arrow, r_arrow])
+            else:
+                all_mobjects += [res_mobj, l_arrow, r_arrow]
+            return res, res_mobj
+
+        merge_sort(array, array_mobj)
+        self.wait(0.5)
+        self.play(*[mobj.animate.shift(0.2 * DOWN).shift(LEFT) for mobj in all_mobjects], run_time=0.5)
+        self.wait(1)
