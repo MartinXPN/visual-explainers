@@ -1136,7 +1136,6 @@ class ComplexityAnalysis(Scene):
         self.add(sort_code)
 
         self.wait(0.2)
-
         all_mobjects = []
         def merge_sort(a: Array, a_mobj: Mobject) -> tuple[Array, Mobject]:
             nonlocal all_mobjects
@@ -1177,12 +1176,27 @@ class ComplexityAnalysis(Scene):
             elif res.values == [3, 5, 12]:
                 self.remove(l_mobj, r_mobj)
                 self.play(FadeOut(left_mobj, right_mobj), run_time=0.1)
-                all_mobjects.extend([res_mobj, l_arrow, r_arrow])
+                all_mobjects += [res_mobj, l_arrow, r_arrow]
             else:
                 all_mobjects += [res_mobj, l_arrow, r_arrow]
             return res, res_mobj
 
         merge_sort(array, array_mobj)
         self.wait(0.5)
-        self.play(*[mobj.animate.shift(0.2 * DOWN).shift(LEFT) for mobj in all_mobjects], run_time=0.5)
+        self.play(*[mobj.animate.shift(0.4 * DOWN).shift(LEFT) for mobj in all_mobjects], run_time=0.5)
         self.wait(1)
+
+        self.play(LaggedStart(
+            ShowPassingFlash(all_mobjects[18].copy().set_color(WHITE), time_width=0.5),
+            ShowPassingFlash(all_mobjects[14].copy().set_color(WHITE), time_width=0.5),
+            ShowPassingFlash(all_mobjects[7].copy().set_color(WHITE), time_width=0.5),
+            lag_ratio=0.6,
+            run_time=2,
+        ))
+
+        # Bracket next to the depth of the tree (right side)
+        depth_bracket = Brace(VGroup(*all_mobjects), direction=RIGHT, stroke_width=1, buff=0.1, color=ORANGE)
+        depth_text = depth_bracket.get_tex(r'\mathcal{O}(\log{n})', buff=0).scale(0.6).shift(0.3 * LEFT).set_color(ORANGE)
+        self.play(Create(depth_bracket), Write(depth_text), run_time=1)
+
+        self.wait(0.2)
