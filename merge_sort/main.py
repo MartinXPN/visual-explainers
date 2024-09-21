@@ -1,4 +1,5 @@
 import random
+import string
 from itertools import chain
 from textwrap import dedent
 
@@ -1191,7 +1192,7 @@ class ComplexityAnalysis(Scene):
             ShowPassingFlash(all_mobjects[14].copy().set_color(WHITE), time_width=0.5),
             ShowPassingFlash(all_mobjects[7].copy().set_color(WHITE), time_width=0.5),
             lag_ratio=0.6,
-            run_time=2,
+            run_time=1,
         ))
 
         # Bracket next to the depth of the tree (right side)
@@ -1199,4 +1200,144 @@ class ComplexityAnalysis(Scene):
         depth_text = depth_bracket.get_tex(r'\mathcal{O}(\log{n})', buff=0).scale(0.6).shift(0.3 * LEFT).set_color(ORANGE)
         self.play(Create(depth_bracket), Write(depth_text), run_time=1)
 
+        # Circumscribe the first, second, and third levels
+        self.play(LaggedStart(
+            Circumscribe(VGroup(all_mobjects[3], all_mobjects[4], all_mobjects[8], all_mobjects[9]), buff=0.2),
+            Circumscribe(VGroup(all_mobjects[5], all_mobjects[10]), buff=0.2),
+            Circumscribe(VGroup(all_mobjects[13], all_mobjects[0]), buff=0.2),
+            Circumscribe(all_mobjects[16], buff=0.2),
+            lag_ratio=0.6,
+            run_time=3,
+        ))
+        self.wait(0.2)
+
+        # Highlight the `merge` function
+        self.play(Indicate(merge_code.chars[0][4: 9], scale_factor=1.8), run_time=1)
+        self.wait(0.2)
+
+        # Place O(n) next to the fist line
+        o_n_1 = MathTex(r'\mathcal{O}(n)', color=YELLOW).scale(0.6).next_to(all_mobjects[16], LEFT, buff=0.8)
+        o_n_2 = MathTex(r'\mathcal{O}(n)', color=YELLOW).scale(0.6).next_to(all_mobjects[13], LEFT).align_to(o_n_1, LEFT)
+        etc = MathTex(r'\cdots', color=YELLOW).scale(0.6).next_to(o_n_2, DOWN, buff=0.5).align_to(o_n_2, LEFT)
+        self.play(LaggedStart(
+            Write(o_n_1),
+            Write(o_n_2),
+            Write(etc),
+            run_time=1,
+        ))
+        self.wait(0.2)
+
+        # Brace at the top with O(n) ⇒ remove the O(n)s for each row
+        top_brace = Brace(VGroup(*all_mobjects), direction=UP, stroke_width=1, buff=0.1, color=YELLOW)
+        top_text = top_brace.get_tex(r'\mathcal{O}(n)', buff=0).scale(0.6).set_color(YELLOW)
+        self.play(
+            Create(top_brace),
+            ReplacementTransform(VGroup(o_n_1, o_n_2, etc), top_text),
+            run_time=1,
+        )
+        self.wait(0.2)
+
+        # Write Time Complexity:
+        time_complexity = Tex('Time Complexity:').scale(0.6).next_to(title, DOWN, buff=1.5).to_edge(LEFT).shift(0.2 * RIGHT)
+        self.play(Write(time_complexity), run_time=0.5)
+        self.wait(0.2)
+
+        time_o = MathTex(r'\mathcal{O}').scale(0.6).next_to(time_complexity, RIGHT, buff=0.2)
+        time_open = MathTex(r'(').scale(0.6).next_to(time_o, RIGHT, buff=0.05)
+        time_n = MathTex(r'n').scale(0.6).next_to(time_open, RIGHT, buff=0.05)
+        time_times = MathTex(r'\cdot').scale(0.6).next_to(time_n, RIGHT, buff=0.1)
+        time_log = MathTex(r'\log{n}').scale(0.6).next_to(time_times, RIGHT, buff=0.1)
+        time_close = MathTex(r')').scale(0.6).next_to(time_log, RIGHT, buff=0.05)
+        self.play(LaggedStart(
+            Write(time_o),
+            Write(time_open),
+            ReplacementTransform(top_text.copy(), time_n),
+            Write(time_times),
+            ReplacementTransform(depth_text.copy(), time_log),
+            Write(time_close),
+            run_time=3,
+        ))
+        self.wait(0.2)
+
+        # Highlight the res and res.append() calls in the merge function
+        self.play(LaggedStart(
+            Indicate(merge_code.chars[1][7:10], scale_factor=1.5),
+            Indicate(merge_code.chars[7], scale_factor=1.5),
+            Indicate(merge_code.chars[10], scale_factor=1.5),
+            lag_ratio=0.6,
+            run_time=1,
+        ))
+
+        self.play(LaggedStart(
+            Circumscribe(VGroup(all_mobjects[3], all_mobjects[4], all_mobjects[8], all_mobjects[9]), buff=0.2),
+            Circumscribe(VGroup(all_mobjects[5], all_mobjects[10]), buff=0.2),
+            Circumscribe(VGroup(all_mobjects[13], all_mobjects[0]), buff=0.2),
+            Circumscribe(all_mobjects[16], buff=0.2),
+            lag_ratio=0.6,
+            run_time=3,
+        ))
+        self.wait(0.2)
+
+        memory_complexity = Tex(
+            r'Memory Complexity: $\mathcal{O}(n)$',
+        ).scale(0.6).next_to(time_complexity, DOWN).align_to(time_complexity, LEFT)
+        self.play(Write(memory_complexity), run_time=0.5)
+        self.wait(0.2)
+
+
+        self.play(FadeOut(memory_complexity, time_complexity, top_brace, top_text, time_o, time_open, time_n, time_times, time_log, time_close), run_time=0.5)
+        self.wait(0.5)
+
+        self.play(Indicate(merge_code.chars[6]), run_time=0.5)
+        self.wait(0.2)
+
+        # Write “Radix Sort: Operates on Digits”
+        radix_sort = Tex('Radix Sort: Operates on Digits').scale(0.6).next_to(title, DOWN, buff=1.5).to_edge(LEFT).shift(0.2 * RIGHT)
+        self.play(Write(radix_sort), run_time=0.5)
+        self.wait(0.2)
+
+        merge_sort_text = Tex('Merge Sort: Comparison-Based').scale(0.6).next_to(radix_sort, DOWN, buff=0.2).align_to(radix_sort, LEFT)
+        self.play(Write(merge_sort_text), run_time=0.5)
+        self.wait(0.2)
+
+        self.play(Indicate(merge_code.chars[6]), run_time=0.5)
+        self.wait(1)
+
+        # Replace the numbers with letters
+        num2letters = []
+        for mobj in all_mobjects:
+            if isinstance(mobj, VGroup):
+                for item in mobj:
+                    if isinstance(item, Tex):
+                        letter = string.ascii_lowercase[int(item.tex_string.lower())]
+                        num2letters.append(item.animate.become(Tex(letter).scale(0.6), match_center=True))
+        self.play(LaggedStart(*num2letters, lag_ratio=0.6, run_time=2))
+        self.wait(1)
+
+        # Bring back the numbers
+        letters2num = []
+        for mobj in all_mobjects:
+            if isinstance(mobj, VGroup):
+                for item in mobj:
+                    if isinstance(item, Tex):
+                        letters2num.append(item.animate.become(Tex(item.tex_string).scale(0.6), match_center=True))
+        self.play(LaggedStart(*letters2num, lag_ratio=0.6, run_time=2))
+        self.wait(1)
+
+        # Final scene
+        self.play(merge_sort_text.animate.shift(0.55 * DOWN), run_time=0.2)
+        self.play(FadeIn(time_complexity, top_brace, top_text, time_o, time_open, time_n, time_times, time_log, time_close), run_time=0.2)
+        self.play(FadeIn(memory_complexity), run_time=0.2)
+
+        # Re-implement the algorithm
+        self.play(FadeOut(merge_code, radix_sort), run_time=0.5)
+        for line in merge_code.chars:
+            if line:
+                self.play(AddTextLetterByLetter(line, run_time=0.005 * len(line)))
+        self.wait(0.2)
+
+        self.play(FadeOut(sort_code), run_time=0.5)
+        for line in sort_code.chars:
+            if line:
+                self.play(AddTextLetterByLetter(line, run_time=0.005 * len(line)))
         self.wait(0.2)
