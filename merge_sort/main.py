@@ -575,8 +575,9 @@ class MergeStepImplementation(Scene):
             Create(left_pointer), Create(right_pointer),
             left.labels[0].animate.set_color(ORANGE).scale(1.25),
             right.labels[0].animate.set_color(ORANGE).scale(1.25),
-            run_time=0.5,
+            run_time=1,
         )
+        self.wait(2)
 
         code = Code(
             code=dedent('''
@@ -600,17 +601,18 @@ class MergeStepImplementation(Scene):
         ).scale(0.75).center().shift(1.75 * DOWN).code
 
         self.play(AddTextLetterByLetter(code.chars[0], run_time=0.1 * len(code.chars[0])))
-        self.wait(0.2)
+        self.wait(3)
         self.play(AddTextLetterByLetter(code.chars[1], run_time=0.1 * len(code.chars[1])))
-        self.wait(0.2)
+        self.wait(2.5)
         self.play(AddTextLetterByLetter(code.chars[2], run_time=0.1 * len(code.chars[2])))
-        self.wait(0.2)
+        self.wait(3)
         self.play(AddTextLetterByLetter(code.chars[3], run_time=0.1 * len(code.chars[3])))
 
         self.play(AddTextLetterByLetter(code.chars[5], run_time=0.1 * len(code.chars[5])))
+        self.wait(3)
         self.play(AddTextLetterByLetter(code.chars[6], run_time=0.1 * len(code.chars[6])))
         self.play(AddTextLetterByLetter(code.chars[7], run_time=0.1 * len(code.chars[7])))
-        self.wait(0.2)
+        self.wait(1)
 
         self.play(AddTextLetterByLetter(code.chars[8], run_time=0.1 * len(code.chars[8])))
         self.play(AddTextLetterByLetter(code.chars[9], run_time=0.1 * len(code.chars[9])))
@@ -646,27 +648,27 @@ class MergeStepImplementation(Scene):
                 return l_index, r_index + 1
         l, r = 0, 0
         l, r = move_smallest(l, r, 0, run_time=0.5)
-        l, r = move_smallest(l, r, 1, run_time=0.2)
-        l, r = move_smallest(l, r, 2, run_time=0.2)
-        l, r = move_smallest(l, r, 3, run_time=0.2)
-        l, r = move_smallest(l, r, 4, run_time=0.2)
-        l, r = move_smallest(l, r, 5, run_time=0.2)
-        l, r = move_smallest(l, r, 6, run_time=0.2)
-        self.wait(1)
+        l, r = move_smallest(l, r, 1, run_time=0.5)
+        l, r = move_smallest(l, r, 2, run_time=0.4)
+        l, r = move_smallest(l, r, 3, run_time=0.4)
+        l, r = move_smallest(l, r, 4, run_time=0.4)
+        l, r = move_smallest(l, r, 5, run_time=0.3)
+        l, r = move_smallest(l, r, 6, run_time=0.3)
 
         # Hide pointers and move the arrays down a bit
         self.play(FadeOut(left_pointer, right_pointer), run_time=0.2)
         self.play(VGroup(left_text, right_text, left_mobj, right_mobj, res_mobj, left_arrow, right_arrow, *res.labels).animate.shift(0.5 * DOWN), run_time=1)
-        self.wait(1)
 
-        # Highlight one cell in the result
+        # Highlight one cell in the result + arrows from a and b to the result (ShowPassingFlash)
+        self.wait(0.5)
         self.play(Indicate(res.rectangles[4], scale_factor=1.5, color=ORANGE), run_time=1)
-
-        # Highlight the arrows from a and b to the result (ShowPassingFlash)
+        self.wait(2)
         self.play(
             ShowPassingFlash(left_arrow.copy().set_color(WHITE), time_width=0.5, run_time=1),
             ShowPassingFlash(right_arrow.copy().set_color(WHITE), time_width=0.5, run_time=1),
         )
+        self.wait(2)
+
         # Draw an arrow at the top of the result & A+B at the top
         res_arrow = DoubleArrow(
             start=res_mobj.get_left() + 0.5 * UP, end=res_mobj.get_right() + 0.5 * UP,
@@ -674,17 +676,20 @@ class MergeStepImplementation(Scene):
             max_tip_length_to_length_ratio=0.5, tip_length=0.15,
         )
         a_plus_b = MathTex(r'\mathcal{O}(A + B)', color=ORANGE).scale(0.7).next_to(res_arrow, UP, buff=0.1)
-        self.play(Create(res_arrow), Write(a_plus_b), run_time=0.5)
+        self.play(Create(res_arrow), Write(a_plus_b), run_time=2)
         self.wait(1)
 
         # Highlight A from O(A+B) and the first array
         self.play(Indicate(a_plus_b[0][2], scale_factor=1.6), Indicate(left_mobj), run_time=1)
-        self.wait(0.2)
+        self.wait(0.5)
         self.play(Indicate(a_plus_b[0][4], scale_factor=1.6), Indicate(right_mobj), run_time=1)
-        self.wait(0.2)
+        self.wait(2)
 
         self.play(ApplyWave(code.chars, run_time=2))
-        self.wait(0.5)
+        self.wait(2)
+
+        self.play(ApplyWave(code.chars, run_time=2))
+        self.wait(3)
 
         # Transition to the next scene
         self.play(FadeOut(code, a_plus_b, res_arrow), run_time=0.5)
@@ -692,9 +697,9 @@ class MergeStepImplementation(Scene):
         self.play(
             ReplacementTransform(title, Title('Split and Merge', include_underline=False)),
             VGroup(left_mobj, right_mobj, res_mobj, left_text, right_text, left_arrow, right_arrow, *res.labels).animate.shift(0.5 * UP),
-            run_time=0.5,
+            run_time=1,
         )
-        self.wait(0.5)
+        self.wait(1)
 
         # Move the elements from a and b into the result
         self.play(
@@ -703,13 +708,14 @@ class MergeStepImplementation(Scene):
             run_time=0.5,
         )
         l, r = 0, 0
-        l, r = move_smallest(l, r, 0, run_time=0.5, move_pointer=False)
-        l, r = move_smallest(l, r, 1, run_time=0.2, move_pointer=False)
-        l, r = move_smallest(l, r, 2, run_time=0.2, move_pointer=False)
+        l, r = move_smallest(l, r, 0, run_time=0.3, move_pointer=False)
+        l, r = move_smallest(l, r, 1, run_time=0.3, move_pointer=False)
+        l, r = move_smallest(l, r, 2, run_time=0.3, move_pointer=False)
         l, r = move_smallest(l, r, 3, run_time=0.2, move_pointer=False)
         l, r = move_smallest(l, r, 4, run_time=0.2, move_pointer=False)
         l, r = move_smallest(l, r, 5, run_time=0.2, move_pointer=False)
         l, r = move_smallest(l, r, 6, run_time=0.2, move_pointer=False)
+        self.wait(1)
 
         # Fade out a and b
         self.play(FadeOut(
