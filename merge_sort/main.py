@@ -748,6 +748,8 @@ class SplitMergeImplementation(Scene):
         array = Array(arr)
         array_mobj = array.get_mobject().center().shift(2.2 * UP)
         self.add(array_mobj)
+        self.wait(2.5)
+        self.play(Circumscribe(array_mobj, buff=0.25), run_time=1.5)
 
         sorted_array = Array(sorted(arr))
         sorted_array_mobj = sorted_array.get_mobject().center().next_to(array_mobj, DOWN, buff=1)
@@ -757,7 +759,6 @@ class SplitMergeImplementation(Scene):
             max_tip_length_to_length_ratio=0.5, tip_length=0.15,
         )
         self.play(Create(sorted_array_mobj), Create(pointer_to_sorted), run_time=1)
-        self.wait(1)
 
         code = Code(
             code=dedent('''
@@ -776,12 +777,13 @@ class SplitMergeImplementation(Scene):
             style='monokai',
         ).scale(0.75).center().shift(1.75 * DOWN).code
 
-        self.play(AddTextLetterByLetter(code.chars[0], run_time=0.1 * len(code.chars[0])), FadeOut(pointer_to_sorted, sorted_array_mobj))
-        self.wait(0.2)
+        self.play(AddTextLetterByLetter(code.chars[0], run_time=0.1 * len(code.chars[0])))
+        self.wait(1)
 
-        self.play(AddTextLetterByLetter(code.chars[1], run_time=0.1 * len(code.chars[1])))
+        self.play(AddTextLetterByLetter(code.chars[1], run_time=0.1 * len(code.chars[1])), FadeOut(pointer_to_sorted, sorted_array_mobj, run_time=0.2))
+        self.wait(4)
         self.play(AddTextLetterByLetter(code.chars[2], run_time=0.1 * len(code.chars[2])))
-        self.wait(0.2)
+        self.wait(2)
 
         # Add left part (code + array)
         l = Array(array.values[: len(array) // 2])
@@ -798,8 +800,9 @@ class SplitMergeImplementation(Scene):
             Create(l_mobj, run_time=1),
             Create(l_arrow, run_time=1),
         )
+        self.wait(2)
 
-        # Add right aprt (code + array)
+        # Add right part (code + array)
         r = Array(array.values[len(array) // 2:])
         r_mobj = r.get_mobject().next_to(array_mobj, DOWN, buff=0.4).align_to(array_mobj, RIGHT).shift(0.4 * RIGHT)
         r_arrow = Arrow(
@@ -815,15 +818,15 @@ class SplitMergeImplementation(Scene):
             Create(r_mobj, run_time=1),
             Create(r_arrow, run_time=1),
         )
-        self.wait(0.2)
+        self.wait(1)
 
         # Highlight the merge_sort parts of the code
         self.play(
             Indicate(code.chars[4][5:15], scale_factor=1.5),
             Indicate(code.chars[5][5:15], scale_factor=1.5),
-            run_time=1,
+            run_time=2,
         )
-        self.wait(0.2)
+        self.wait(2.5)
 
         # Replace the labels of the left and right parts by their sorted versions
         l_sorted = Array(sorted(l.values))
@@ -835,18 +838,20 @@ class SplitMergeImplementation(Scene):
             TransformMatchingShapes(r_mobj, r_sorted_mobj),
             run_time=1,
         )
-        self.wait(0.2)
+        self.play(Indicate(l_sorted_mobj), run_time=1)
+        self.play(Indicate(r_sorted_mobj), run_time=1)
+        self.wait(2)
 
         self.play(
             *[item.animate.set_color(BLACK) for item in array.labels],
             l_arrow.animate.rotate(PI).set_color(ORANGE),
             r_arrow.animate.rotate(PI).set_color(ORANGE),
-            run_time=0.5,
+            run_time=1,
         )
-        self.wait(0.2)
+        self.wait(3)
 
         self.play(AddTextLetterByLetter(code.chars[6], run_time=0.1 * len(code.chars[6])))
-        self.wait(0.2)
+        self.wait(3)
 
         merge_code = Code(
             code=dedent('''
@@ -873,12 +878,12 @@ class SplitMergeImplementation(Scene):
 
         # Move the code to the right
         self.play(code.animate.scale(1 / 0.75 * 0.7).align_to(merge_code, UP).shift(3.5 * RIGHT), run_time=1)
-        self.wait(0.2)
+        self.wait(1)
 
         for line in merge_code.chars:
             if line:
-                self.play(AddTextLetterByLetter(line, run_time=0.01 * len(line)))
-        self.wait(0.2)
+                self.play(AddTextLetterByLetter(line, run_time=0.02 * len(line)))
+        self.wait(2)
 
         # Transition to the next scene
         self.play(
@@ -886,7 +891,7 @@ class SplitMergeImplementation(Scene):
             code.animate.align_to(merge_code, DOWN),
             FadeOut(l_arrow, r_arrow, l_sorted_mobj, r_sorted_mobj),
             *[item.animate.set_color(WHITE) for item in array.labels],
-            run_time=0.5,
+            run_time=1,
         )
         self.wait(1)
 
