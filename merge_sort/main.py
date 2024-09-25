@@ -945,8 +945,9 @@ class Simulation(Scene):
         ).scale(0.7).center().align_to(merge_code, DOWN).shift(0.25 * DOWN).shift(3.5 * RIGHT).code
         self.add(sort_code)
 
-        self.play(array_mobj.animate.shift(2.8 * RIGHT).shift(0.3 * UP), run_time=0.5)
-        self.wait(0.2)
+        self.wait(2)
+        self.play(array_mobj.animate.shift(2.8 * RIGHT).shift(0.3 * UP), run_time=1)
+        self.wait(2)
 
         merge_arrow = Arrow(
             start=LEFT, end=RIGHT, color=YELLOW, buff=0.1,
@@ -959,8 +960,8 @@ class Simulation(Scene):
             stroke_width=10, max_stroke_width_to_length_ratio=15,
             max_tip_length_to_length_ratio=0.5, tip_length=0.2,
         ).scale(0.3).next_to(sort_code, LEFT).align_to(sort_code, UP)
-        self.play(Create(sort_arrow), run_time=0.5)
-        self.wait(1)
+        self.play(Create(sort_arrow), run_time=1)
+        self.wait(2)
 
         def merge_sort(a: Array, a_mobj: Mobject, run_time) -> tuple[Array, Mobject]:
             sort_arrow.next_to(sort_code[0], LEFT)
@@ -1104,8 +1105,8 @@ class Simulation(Scene):
             self.play(FadeOut(left_mobj, right_mobj, l_arrow, r_arrow, merge_arrow, left_pointer, right_pointer), run_time=run_time)
             return res, res_mobj
 
-        merge_sort(array, array_mobj, run_time=0.25)
-        self.play(FadeOut(sort_arrow), run_time=0.2)
+        merge_sort(array, array_mobj, run_time=3)
+        self.play(FadeOut(sort_arrow), run_time=1)
         self.wait(1)
 
 
