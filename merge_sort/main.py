@@ -246,7 +246,7 @@ class IntroductionPlots(Scene):
             Create(graph_nlogn), Write(graph_nlogn_label),
             Create(graph_n), Write(graph_n_label),
             lag_ratio=0.7,
-            run_time=4,
+            run_time=6,
         ))
 
         self.wait(1)
@@ -350,45 +350,55 @@ class MergeStep(Scene):
         self.wait(0.2)
 
         self.play(Write(title), run_time=0.5)
-        self.wait(0.2)
+        self.wait(0.5)
 
-        self.play(Create(res_mobj), Create(left_arrow), Create(right_arrow), run_time=0.5)
+        self.play(Create(res_mobj), Create(left_arrow), Create(right_arrow), run_time=1)
         self.play(LaggedStart(
             *[item.animate.set_color(WHITE) for item in res.labels],
             lag_ratio=0.6,
-            run_time=1,
+            run_time=1.5,
         ))
-        self.wait(0.2)
+        self.wait(1)
+
+        self.play(Indicate(left_mobj, color=ORANGE), Indicate(left_text, color=ORANGE), run_time=0.5)
+        self.play(Indicate(right_mobj, color=ORANGE), Indicate(right_text, color=ORANGE), run_time=0.5)
+        self.wait(2)
+
+        self.play(Indicate(res_mobj), run_time=2)
 
         o_a_plus_b = MathTex(r'\mathcal{O}(A + B)').scale(0.9).center().shift(2 * DOWN)
-        self.play(Write(o_a_plus_b), run_time=0.5)
+        self.play(Write(o_a_plus_b), run_time=1)
+        self.wait(0.5)
 
-        self.play(Indicate(left_mobj, color=ORANGE), Indicate(left_text, color=ORANGE), Indicate(o_a_plus_b[0][2], color=ORANGE, scale_factor=1.6), run_time=1)
-        self.play(Indicate(right_mobj, color=ORANGE), Indicate(right_text, color=ORANGE), Indicate(o_a_plus_b[0][4], color=ORANGE, scale_factor=1.6), run_time=1)
-        self.wait(0.2)
+        self.play(Indicate(left_mobj, color=ORANGE), Indicate(left_text, color=ORANGE), Indicate(o_a_plus_b[0][2], color=ORANGE, scale_factor=1.6), run_time=2)
+        self.play(Indicate(right_mobj, color=ORANGE), Indicate(right_text, color=ORANGE), Indicate(o_a_plus_b[0][4], color=ORANGE, scale_factor=1.6), run_time=2)
+        self.wait(1)
 
         # Highlight the elements of the resulting array one by one and highlight the corresponding element in a or b.
         for i, value in enumerate(res.values):
             if value in left.values:
                 index = left.values.index(value)
-                self.play(Indicate(left.labels[index], color=ORANGE, scale_factor=1.8), Indicate(res.labels[i], color=ORANGE, scale_factor=1.8), run_time=0.5)
+                self.play(Indicate(left.labels[index], color=ORANGE, scale_factor=1.8), Indicate(res.labels[i], color=ORANGE, scale_factor=1.8), run_time=1.1)
             else:
                 index = right.values.index(value)
-                self.play(Indicate(right.labels[index], color=ORANGE, scale_factor=1.8), Indicate(res.labels[i], color=ORANGE, scale_factor=1.8), run_time=0.5)
-        self.wait(0.2)
+                self.play(Indicate(right.labels[index], color=ORANGE, scale_factor=1.8), Indicate(res.labels[i], color=ORANGE, scale_factor=1.8), run_time=1.1)
+        self.wait(1)
 
-        self.play(FadeOut(o_a_plus_b), run_time=0.5)
-        self.wait(0.2)
+        self.play(FadeOut(o_a_plus_b), run_time=1)
 
-        self.play(Indicate(left_mobj, color=ORANGE), Indicate(left_text, color=ORANGE), run_time=0.5)
-        self.play(Indicate(right_mobj, color=ORANGE), Indicate(right_text, color=ORANGE), run_time=0.5)
-        self.wait(0.2)
+        self.play(LaggedStart(
+            Indicate(VGroup(left_mobj, left_text), color=ORANGE),
+            Indicate(VGroup(right_mobj, right_text), color=ORANGE),
+            run_time=2,
+            lag_ratio=0.6,
+        ))
+        self.wait(0.5)
 
-        self.play(Circumscribe(res_mobj), run_time=0.5)
+        self.play(Circumscribe(res_mobj), run_time=1.5)
         self.play(LaggedStart(
             *[Indicate(item, color=ORANGE, scale_factor=1.8) for item in res.labels],
             lag_ratio=0.6,
-            run_time=1,
+            run_time=2,
         ))
         self.wait(0.2)
 
@@ -396,7 +406,7 @@ class MergeStep(Scene):
         self.play(LaggedStart(
             *[item.animate.set_color(BLACK) for item in res.labels],
             lag_ratio=0.6,
-            run_time=1,
+            run_time=0.5,
         ))
 
         # draw 2 arrows pointing to the first elements of the left and right arrays
@@ -413,13 +423,14 @@ class MergeStep(Scene):
         )
 
         # Highlight the first 2 elements (orange + increase size)
+        self.play(Create(left_pointer), Create(right_pointer), run_time=2)
+        self.wait(2)
         self.play(
-            Create(left_pointer), Create(right_pointer),
             left.labels[0].animate.set_color(ORANGE).scale(1.25),
             right.labels[0].animate.set_color(ORANGE).scale(1.25),
-            run_time=0.5,
+            run_time=1,
         )
-        self.wait(0.2)
+        self.wait(3)
 
         def move_smallest(l_index, r_index, res_index, run_time=0.5):
             l_val = left.values[l_index] if l_index < len(left) else float('inf')
@@ -450,12 +461,13 @@ class MergeStep(Scene):
                 return l_index, r_index + 1
 
         l, r = 0, 0
-        l, r = move_smallest(l, r, 0, run_time=0.5)
-        l, r = move_smallest(l, r, 1, run_time=0.5)
+        l, r = move_smallest(l, r, 0, run_time=2)
+        self.wait(2.5)
+        l, r = move_smallest(l, r, 1, run_time=1)
 
         # Highlight the second arrow
-        self.wait(0.5)
-        self.play(Indicate(right_pointer, scale_factor=1.5), run_time=1)
+        self.play(Indicate(right_pointer, scale_factor=1.5), run_time=2)
+        self.wait(2)
 
         # Highlight the elements in a and b from smallest to largest
         self.play(LaggedStart(
@@ -468,27 +480,27 @@ class MergeStep(Scene):
             lag_ratio=0.6,
             run_time=1,
         ))
-        self.wait(0.2)
+        self.wait(2)
 
-        l, r = move_smallest(l, r, 2, run_time=0.2)
-        l, r = move_smallest(l, r, 3, run_time=0.2)
-        l, r = move_smallest(l, r, 4, run_time=0.2)
-        l, r = move_smallest(l, r, 5, run_time=0.2)
+        l, r = move_smallest(l, r, 2, run_time=1)
+        l, r = move_smallest(l, r, 3, run_time=1)
+        l, r = move_smallest(l, r, 4, run_time=0.8)
+        l, r = move_smallest(l, r, 5, run_time=0.8)
         self.wait(0.5)
-        self.play(Indicate(right_pointer, color=YELLOW, scale_factor=1.5), run_time=1)
-        self.wait(0.5)
+        self.play(Indicate(right_pointer, color=YELLOW, scale_factor=1.5), run_time=2)
+        self.wait(3)
         self.play(Indicate(left.labels[-1], color=YELLOW, scale_factor=1.8), run_time=1)
         self.wait(1)
-        l, r = move_smallest(l, r, 6, run_time=0.2)
-        self.wait(0.2)
+        l, r = move_smallest(l, r, 6, run_time=0.8)
+        self.wait(3)
 
         # Highlight all the elements in the resulting array from smallest to largest (LaggedStart)
         self.play(LaggedStart(
             *[Indicate(label, color=YELLOW, scale_factor=1.8) for label in res.labels],
             lag_ratio=0.6,
-            run_time=1,
+            run_time=2,
         ))
-        self.wait(0.2)
+        self.wait(1)
 
         # Transition to the next scene
         self.play(FadeOut(left_pointer, right_pointer), run_time=0.2)
