@@ -947,7 +947,7 @@ class Simulation(Scene):
 
         self.wait(2)
         self.play(array_mobj.animate.shift(2.8 * RIGHT).shift(0.3 * UP), run_time=1)
-        self.wait(2)
+        self.wait(3)
 
         merge_arrow = Arrow(
             start=LEFT, end=RIGHT, color=YELLOW, buff=0.1,
@@ -960,8 +960,6 @@ class Simulation(Scene):
             stroke_width=10, max_stroke_width_to_length_ratio=15,
             max_tip_length_to_length_ratio=0.5, tip_length=0.2,
         ).scale(0.3).next_to(sort_code, LEFT).align_to(sort_code, UP)
-        self.play(Create(sort_arrow), run_time=1)
-        self.wait(2)
 
         def merge_sort(a: Array, a_mobj: Mobject, run_time) -> tuple[Array, Mobject]:
             sort_arrow.next_to(sort_code[0], LEFT)
@@ -1001,9 +999,10 @@ class Simulation(Scene):
                 color=ORANGE, buff=0.2, stroke_width=5, max_stroke_width_to_length_ratio=10,
                 max_tip_length_to_length_ratio=0.5, tip_length=0.15,
             )
+            sort_arrow.next_to(sort_code[5], LEFT).shift(0.1 * DOWN),
             self.play(
+                FadeIn(sort_arrow),
                 l_arrow.animate.set_color(DARK_GRAY),
-                sort_arrow.animate.next_to(sort_code[5], LEFT).shift(0.1 * DOWN),
                 *[item.animate.set_color(DARK_GRAY).scale(1 / 1.25) for item in a.labels[: len(a) // 2]],
                 *[item.animate.set_color(ORANGE).scale(1.25) for item in a.labels[len(a) // 2:]],
                 run_time=run_time,
@@ -1019,8 +1018,9 @@ class Simulation(Scene):
 
             # Merge the left and right into res by moving each number along the straight path from left/right to res cell
             # Hide all the labels of the current array + Reverse the arrows (make pointers direct in the opposite direction)
+            sort_arrow.next_to(sort_code[6], LEFT).shift(0.1 * DOWN),
             self.play(
-                sort_arrow.animate.next_to(sort_code[6], LEFT).shift(0.1 * DOWN),
+                FadeIn(sort_arrow),
                 *[item.animate.set_color(BLACK) for item in a.labels],
                 l_arrow.animate.rotate(PI).set_color(ORANGE),
                 r_arrow.animate.rotate(PI).set_color(ORANGE),
@@ -1105,7 +1105,7 @@ class Simulation(Scene):
             self.play(FadeOut(left_mobj, right_mobj, l_arrow, r_arrow, merge_arrow, left_pointer, right_pointer), run_time=run_time)
             return res, res_mobj
 
-        merge_sort(array, array_mobj, run_time=3)
+        merge_sort(array, array_mobj, run_time=1)
         self.play(FadeOut(sort_arrow), run_time=1)
         self.wait(1)
 
@@ -1160,7 +1160,7 @@ class ComplexityAnalysis(Scene):
         ).scale(0.7).center().align_to(merge_code, DOWN).shift(0.25 * DOWN).shift(3.5 * RIGHT).code
         self.add(sort_code)
 
-        self.wait(0.2)
+        self.wait(1)
         all_mobjects = []
         def merge_sort(a: Array, a_mobj: Mobject) -> tuple[Array, Mobject]:
             nonlocal all_mobjects
@@ -1177,7 +1177,7 @@ class ComplexityAnalysis(Scene):
                 color=ORANGE, buff=0.2, stroke_width=5, max_stroke_width_to_length_ratio=10,
                 max_tip_length_to_length_ratio=0.5, tip_length=0.15,
             )
-            self.play(Create(l_mobj), Create(l_arrow), run_time=0.1)
+            self.play(Create(l_mobj), Create(l_arrow), run_time=0.5)
             left, left_mobj = merge_sort(l, l_mobj)
 
             # Copy the right part of the array and place it on the bottom-right side of the current array => sort it
@@ -1188,27 +1188,27 @@ class ComplexityAnalysis(Scene):
                 color=ORANGE, buff=0.2, stroke_width=5, max_stroke_width_to_length_ratio=10,
                 max_tip_length_to_length_ratio=0.5, tip_length=0.15,
             )
-            self.play(Create(r_mobj), Create(r_arrow), run_time=0.1)
+            self.play(Create(r_mobj), Create(r_arrow), run_time=0.5)
             right, right_mobj = merge_sort(r, r_mobj)
 
             # Merge the sorted left and right parts and fade the parts out
             res = Array(sorted(a.values), width=a.width, height=a.height, spacing=a.spacing, scale_text=a.scale_text, stroke_color=a.stroke_color)
             res_mobj = res.get_mobject().align_to(a_mobj, DOWN).align_to(a_mobj, LEFT)
-            self.play(TransformMatchingShapes(a_mobj, res_mobj), run_time=0.2)
+            self.play(TransformMatchingShapes(a_mobj, res_mobj), run_time=1)
             if res.values == [3, 5]:
                 self.remove(l_mobj, r_mobj)
-                self.play(FadeOut(left_mobj, right_mobj, l_arrow, r_arrow), run_time=0.1)
+                self.play(FadeOut(left_mobj, right_mobj, l_arrow, r_arrow), run_time=0.5)
             elif res.values == [3, 5, 12]:
                 self.remove(l_mobj, r_mobj)
-                self.play(FadeOut(left_mobj, right_mobj), run_time=0.1)
+                self.play(FadeOut(left_mobj, right_mobj), run_time=0.5)
                 all_mobjects += [res_mobj, l_arrow, r_arrow]
             else:
                 all_mobjects += [res_mobj, l_arrow, r_arrow]
             return res, res_mobj
 
         merge_sort(array, array_mobj)
-        self.wait(0.5)
-        self.play(*[mobj.animate.shift(0.4 * DOWN).shift(LEFT) for mobj in all_mobjects], run_time=0.5)
+        self.wait(1)
+        self.play(*[mobj.animate.shift(0.4 * DOWN).shift(LEFT) for mobj in all_mobjects], run_time=1)
         self.wait(1)
 
         self.play(LaggedStart(
@@ -1216,7 +1216,7 @@ class ComplexityAnalysis(Scene):
             ShowPassingFlash(all_mobjects[14].copy().set_color(WHITE), time_width=0.5),
             ShowPassingFlash(all_mobjects[7].copy().set_color(WHITE), time_width=0.5),
             lag_ratio=0.6,
-            run_time=1,
+            run_time=2,
         ))
 
         # Bracket next to the depth of the tree (right side)
@@ -1233,11 +1233,11 @@ class ComplexityAnalysis(Scene):
             lag_ratio=0.6,
             run_time=3,
         ))
-        self.wait(0.2)
+        self.wait(1)
 
         # Highlight the `merge` function
         self.play(Indicate(merge_code.chars[0][4: 9], scale_factor=1.8), run_time=1)
-        self.wait(0.2)
+        self.wait(1)
 
         # Place O(n) next to the fist line
         o_n_1 = MathTex(r'\mathcal{O}(n)', color=YELLOW).scale(0.6).next_to(all_mobjects[16], LEFT, buff=0.8)
@@ -1247,9 +1247,9 @@ class ComplexityAnalysis(Scene):
             Write(o_n_1),
             Write(o_n_2),
             Write(etc),
-            run_time=1,
+            run_time=2,
         ))
-        self.wait(0.2)
+        self.wait(1)
 
         # Brace at the top with O(n) ⇒ remove the O(n)s for each row
         top_brace = Brace(VGroup(*all_mobjects), direction=UP, stroke_width=1, buff=0.1, color=YELLOW)
@@ -1257,14 +1257,14 @@ class ComplexityAnalysis(Scene):
         self.play(
             Create(top_brace),
             ReplacementTransform(VGroup(o_n_1, o_n_2, etc), top_text),
-            run_time=1,
+            run_time=2,
         )
-        self.wait(0.2)
+        self.wait(1)
 
         # Write Time Complexity:
         time_complexity = Tex('Time Complexity:').scale(0.6).next_to(title, DOWN, buff=1.5).to_edge(LEFT).shift(0.2 * RIGHT)
-        self.play(Write(time_complexity), run_time=0.5)
-        self.wait(0.2)
+        self.play(Write(time_complexity), run_time=2)
+        self.wait(1)
 
         time_o = MathTex(r'\mathcal{O}').scale(0.6).next_to(time_complexity, RIGHT, buff=0.2)
         time_open = MathTex(r'(').scale(0.6).next_to(time_o, RIGHT, buff=0.05)
@@ -1279,17 +1279,17 @@ class ComplexityAnalysis(Scene):
             Write(time_times),
             ReplacementTransform(depth_text.copy(), time_log),
             Write(time_close),
-            run_time=3,
+            run_time=5,
         ))
-        self.wait(0.2)
+        self.wait(1)
 
         # Highlight the res and res.append() calls in the merge function
         self.play(LaggedStart(
             Indicate(merge_code.chars[1][7:10], scale_factor=1.5),
-            Indicate(merge_code.chars[7], scale_factor=1.5),
-            Indicate(merge_code.chars[10], scale_factor=1.5),
+            Indicate(merge_code.chars[7][3:], scale_factor=1.5),
+            Indicate(merge_code.chars[10][3:], scale_factor=1.5),
             lag_ratio=0.6,
-            run_time=1,
+            run_time=4,
         ))
 
         self.play(LaggedStart(
@@ -1298,33 +1298,33 @@ class ComplexityAnalysis(Scene):
             Circumscribe(VGroup(all_mobjects[13], all_mobjects[0]), buff=0.2),
             Circumscribe(all_mobjects[16], buff=0.2),
             lag_ratio=0.6,
-            run_time=3,
+            run_time=5,
         ))
-        self.wait(0.2)
+        self.wait(1)
 
         memory_complexity = Tex(
             r'Memory Complexity: $\mathcal{O}(n)$',
         ).scale(0.6).next_to(time_complexity, DOWN).align_to(time_complexity, LEFT)
-        self.play(Write(memory_complexity), run_time=0.5)
-        self.wait(0.2)
+        self.play(Write(memory_complexity), run_time=2)
+        self.wait(1)
 
 
-        self.play(FadeOut(memory_complexity, time_complexity, top_brace, top_text, time_o, time_open, time_n, time_times, time_log, time_close), run_time=0.5)
-        self.wait(0.5)
+        self.play(FadeOut(memory_complexity, time_complexity, top_brace, top_text, time_o, time_open, time_n, time_times, time_log, time_close), run_time=1)
+        self.wait(1)
 
-        self.play(Indicate(merge_code.chars[6]), run_time=0.5)
-        self.wait(0.2)
+        self.play(Indicate(merge_code.chars[6][2:]), run_time=2)
+        self.wait(1)
 
         # Write “Radix Sort: Operates on Digits”
         radix_sort = Tex('Radix Sort: Operates on Digits').scale(0.6).next_to(title, DOWN, buff=1.5).to_edge(LEFT).shift(0.2 * RIGHT)
-        self.play(Write(radix_sort), run_time=0.5)
-        self.wait(0.2)
+        self.play(Write(radix_sort), run_time=1)
+        self.wait(1)
 
         merge_sort_text = Tex('Merge Sort: Comparison-Based').scale(0.6).next_to(radix_sort, DOWN, buff=0.2).align_to(radix_sort, LEFT)
-        self.play(Write(merge_sort_text), run_time=0.5)
-        self.wait(0.2)
+        self.play(Write(merge_sort_text), run_time=1)
+        self.wait(1)
 
-        self.play(Indicate(merge_code.chars[6]), run_time=0.5)
+        self.play(Indicate(merge_code.chars[6][2:]), run_time=2)
         self.wait(1)
 
         # Replace the numbers with letters
@@ -1335,7 +1335,7 @@ class ComplexityAnalysis(Scene):
                     if isinstance(item, Tex):
                         letter = string.ascii_lowercase[int(item.tex_string.lower())]
                         num2letters.append(item.animate.become(Tex(letter).scale(0.6), match_center=True))
-        self.play(LaggedStart(*num2letters, lag_ratio=0.6, run_time=2))
+        self.play(LaggedStart(*num2letters, lag_ratio=0.6, run_time=4))
         self.wait(1)
 
         # Bring back the numbers
@@ -1345,23 +1345,24 @@ class ComplexityAnalysis(Scene):
                 for item in mobj:
                     if isinstance(item, Tex):
                         letters2num.append(item.animate.become(Tex(item.tex_string).scale(0.6), match_center=True))
-        self.play(LaggedStart(*letters2num, lag_ratio=0.6, run_time=2))
+        self.play(LaggedStart(*letters2num, lag_ratio=0.6, run_time=4))
         self.wait(1)
 
         # Final scene
-        self.play(merge_sort_text.animate.shift(0.55 * DOWN), run_time=0.2)
-        self.play(FadeIn(time_complexity, top_brace, top_text, time_o, time_open, time_n, time_times, time_log, time_close), run_time=0.2)
-        self.play(FadeIn(memory_complexity), run_time=0.2)
+        self.play(merge_sort_text.animate.shift(0.55 * DOWN), FadeOut(radix_sort), run_time=1)
+        self.play(FadeIn(time_complexity, top_brace, top_text, time_o, time_open, time_n, time_times, time_log, time_close), run_time=1)
+        self.play(FadeIn(memory_complexity), run_time=1)
+        self.wait(0.5)
 
         # Re-implement the algorithm
-        self.play(FadeOut(merge_code, radix_sort), run_time=0.5)
+        self.play(FadeOut(merge_code), run_time=0.5)
         for line in merge_code.chars:
             if line:
-                self.play(AddTextLetterByLetter(line, run_time=0.005 * len(line)))
-        self.wait(0.2)
+                self.play(AddTextLetterByLetter(line, run_time=0.05 * len(line)))
+        self.wait(1)
 
-        self.play(FadeOut(sort_code), run_time=0.5)
+        self.play(FadeOut(sort_code), run_time=1)
         for line in sort_code.chars:
             if line:
-                self.play(AddTextLetterByLetter(line, run_time=0.005 * len(line)))
-        self.wait(0.2)
+                self.play(AddTextLetterByLetter(line, run_time=0.05 * len(line)))
+        self.wait(1)
