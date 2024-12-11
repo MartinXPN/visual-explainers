@@ -6,40 +6,59 @@ from manim import *
 ORANGE = ManimColor('#fa541c')
 random.seed(42)
 
+g = [
+    [2],
+    [2],
+    [0, 1, 9],
+    [5],
+    [9, 8, 5],
+    [3, 4, 8, 6, 7],
+    [5, 7, 10],
+    [5, 6],
+    [4, 5, 9, 10],
+    [4, 8, 2],
+    [8, 6, 11],
+    [10],
+    [13, 14],
+    [12, 14],
+    [12, 13],
+    [16],
+    [15],
+]
+
 
 class Introduction(Scene):
     def construct(self):
-        vertices = [i for i in range(10)]
-        edges = [
-            (0, 1), (1, 2), (2, 3), (3, 0),  # Cycle: 0-1-2-3-0
-            (3, 4), (4, 5), (5, 6), (6, 3),  # Cycle: 3-4-5-6-3
-            (2, 7), (7, 8), (8, 9), (9, 2),  # Cycle: 2-7-8-9-2
-            (1, 7), (5, 9),                  # Cross connections
-        ]
+        vertices = list(range(len(g)))
+        edges = [(i, j) for i, neighbors in enumerate(g) for j in neighbors]
 
-        # Define a custom layout for the graph
         layout = {
-            0: [-2, 2, 0],
-            1: [0, 2, 0],
-            2: [2, 2, 0],
-            3: [0, 0, 0],
-            4: [2, 0, 0],
-            5: [2, -2, 0],
-            6: [0, -2, 0],
-            7: [4, 2, 0],
-            8: [4, 0, 0],
-            9: [4, -2, 0],
+            0: [-5.5, -1.5, 0],
+            1: [-3.5, -1.5, 0],
+            2: [-4.5, 0, 0],
+            3: [1, -1.5, 0],
+            4: [-0.5, 0, 0],
+            5: [4, -1.5, 0],
+            6: [4, 2, 0],
+            7: [6, 0, 0],
+            8: [2, 0, 0],
+            9: [0.5, 3, 0],
+            10: [3, 4, 0],
+            11: [5, 4, 0],
+            12: [-3.5, 4, 0],
+            13: [-4.5, 2, 0],
+            14: [-1, 4, 0],
+            15: [-2.5, 0, 0],
+            16: [-1.5, -1.5, 0],
         }
 
-        # Create the graph with the specified layout
         graph = Graph(
             vertices, edges,
             layout=layout,
             labels=True,
-            vertex_config={'radius': 0.4, 'stroke_width': 2, 'fill_color': BLUE},
-            edge_config={'stroke_width': 2},
-        )
+            vertex_config={'radius': 0.4, 'stroke_width': 2, 'fill_color': WHITE},
+            edge_config={'stroke_width': 4},
+        ).shift(DOWN)
 
-        # Animate the creation of the graph
-        self.play(Create(graph))
+        self.add(graph)
         self.wait(1)
