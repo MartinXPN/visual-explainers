@@ -1,3 +1,4 @@
+import math
 import random
 
 from manim import *
@@ -61,4 +62,115 @@ class Introduction(Scene):
         ).shift(DOWN)
 
         self.add(graph)
-        self.wait(1)
+        for label in graph._labels.values():
+            label.set_z_index(10)
+        self.wait(0.2)
+
+
+        def update_fire(mobj, dt):
+            if not hasattr(mobj, 'initialized'):
+                mobj.initialized = True
+
+                # The 3 small flames are the last 3 submobjects
+                mobj.small_flames = mobj.submobjects[-3:]
+                mobj.initial_positions = [f.get_center() for f in mobj.small_flames]
+
+                mobj.original_height = mobj.height
+                mobj.time_elapsed = 0.0
+
+                # Initialize small flame data
+                mobj.flame_data = []
+                for i, f in enumerate(mobj.small_flames):
+                    f.move_to(mobj.initial_positions[i] + np.array([random.uniform(-0.1, 0.1), 0, 0]))
+                    f.set_fill(opacity=1.0)
+                    f.set_stroke(opacity=1.0)
+
+                    upward_speed = random.uniform(0.5, 1.0)
+                    fade_speed = random.uniform(0.5, 1.0)
+                    mobj.flame_data.append({
+                        'upward_speed': upward_speed,
+                        'fade_speed': fade_speed,
+                    })
+
+                # The 3 main flames are the first 3 submobjects
+                mobj.main_flames = mobj.submobjects[0:3]
+
+                # Initialize independent flicker parameters for each main flame layer
+                mobj.main_flame_data = []
+                for mf in mobj.main_flames:
+                    mobj.main_flame_data.append({
+                        'center': mf.get_center(),
+                        'amplitude': random.uniform(0.01, 0.03),
+                        'frequency': random.uniform(1.5, 3.0),
+                        'phase': random.uniform(0, 2 * math.pi),
+                        'current_angle': 0,
+                        'time_since_flip': 0.0,
+                        'next_flip_time': random.uniform(0.3, 1.0),
+                        'flipped': False,
+                    })
+
+            mobj.time_elapsed += dt
+
+            # Update the three main flame layers with independent rotations
+            for i, (mf, mf_data) in enumerate(zip(mobj.main_flames, mobj.main_flame_data)):
+                # Compute this flame's flicker angle
+                local_time = mobj.time_elapsed
+                angle = mf_data['amplitude'] * math.sin(local_time * mf_data['frequency'] * TAU + mf_data['phase'])
+
+                # Rotate this flame about its own center
+                delta = angle - mf_data['current_angle']
+                mf.rotate(delta, about_point=mf_data['center'])
+                mf_data['current_angle'] = angle
+
+                # Update flipping only for the inner main flames (i.e., not the topmost one)
+                if i in (1,):
+                    mf_data['time_since_flip'] += dt
+                    if mf_data['time_since_flip'] > mf_data['next_flip_time']:
+                        # Time to flip horizontally => Flip about its center by scaling in X by -1
+                        mf.scale([-1, 1, 1], about_point=mf_data['center'])
+                        mf_data['flipped'] = not mf_data['flipped']
+                        mf_data['time_since_flip'] = 0.0
+                        mf_data['next_flip_time'] = (3 - i) * random.uniform(0.3, 1.0)
+
+
+            # Update each small flame
+            for i, f in enumerate(mobj.small_flames):
+                data = mobj.flame_data[i]
+
+                # Move upward
+                f.shift(UP * data['upward_speed'] * dt)
+
+                current_opacity = f.get_fill_opacity()
+                new_opacity = current_opacity - data['fade_speed'] * dt
+
+                f.set_fill(opacity=new_opacity)
+                f.set_stroke(opacity=new_opacity)
+
+                flame_pos = f.get_center()
+                if new_opacity <= 0.0 or (flame_pos[1] - mobj.initial_positions[i][1]) > 0.5:
+                    new_x = mobj.initial_positions[i][0] + random.uniform(-0.1, 0.1)
+                    new_y = mobj.initial_positions[i][1] - random.uniform(0.05, 0.15)
+                    f.move_to([new_x, new_y, 0])
+
+                    f.set_fill(opacity=1.0)
+                    f.set_stroke(opacity=1.0)
+
+                    data['upward_speed'] = random.uniform(0.5, 1.0)
+                    data['fade_speed'] = random.uniform(0.5, 1.0)
+
+
+        def burn(vertex: int, run_time: float = 0.5):
+            # Set node on fire (🔥)
+            fire_icon = SVGMobject('bfs/fire.svg').scale(0.7).move_to(graph.vertices[vertex]).shift(UP * 0.25)
+            fire_icon.set_z_index(5)
+            self.play(ShowIncreasingSubsets(fire_icon, run_time=run_time))
+
+            # Add updater to the fire
+            fire_icon.add_updater(update_fire)
+            return fire_icon
+
+        seven = burn(7)
+        self.wait(5)
+        five = burn(5)
+        six = burn(6)
+        self.wait(5)
