@@ -11,6 +11,7 @@ setup(
     install_requires=[
         'manim>=0.18.0',
         'numpy>=1.26.4',
+        'networkx>=3.2.1',
     ],
     include_package_data=True,
     license='MIT',
