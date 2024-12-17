@@ -1,5 +1,6 @@
 import math
 import random
+from textwrap import dedent
 
 from manim import *
 
@@ -200,4 +201,31 @@ class Introduction(Scene):
         self.wait(0.5)
         spread_fire(2, 0, run_time=0.3)
         spread_fire(2, 1, run_time=0.3)
+        self.wait(2)
+
+
+class IntroductionImplementation(Scene):
+    def construct(self):
+        code = Code(
+            code=dedent('''
+                used[start] = True
+                q = deque([start])
+
+                while q:
+                    v = q.popleft()
+                    for to in g[v]:
+                        if not used[to]:
+                            q.append(to)
+                            used[to] = True
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).center().code
+
+        for line in code.chars:
+            if line:
+                self.play(AddTextLetterByLetter(line, run_time=0.1 * len(line)))
         self.wait(2)
