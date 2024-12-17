@@ -57,12 +57,12 @@ class Introduction(Scene):
             labels=True,
             vertex_config={'radius': 0.4, 'stroke_width': 0, 'fill_color': WHITE},
             edge_config={'stroke_width': 5},
-        ).shift(DOWN)
+        ).shift(1.5 * DOWN)
 
         self.add(graph)
         for label in graph._labels.values():
             label.set_z_index(10)
-        self.wait(0.2)
+        self.wait(1)
 
 
         def update_fire(mobj, dt):
@@ -167,10 +167,7 @@ class Introduction(Scene):
             fire_icon.add_updater(update_fire)
             return fire_icon
 
-        burn(7)
-        self.wait(1)
-
-        def spread_fire(source: int, target: int):
+        def spread_fire(source: int, target: int, run_time: float = 0.5):
             sparkler = SVGMobject('bfs/sparks.svg').scale(0.3).move_to(graph.vertices[source], DOWN).set_fill('#ff9d33')
             sparkler.set_z_index(5)
 
@@ -181,20 +178,26 @@ class Introduction(Scene):
             ).set_color(DARK_GRAY)))
             self.add(sparkler, burned_edge)
 
-            self.play(MoveAlongPath(sparkler, edge, run_time=0.6, rate_func=linear))
+            self.play(MoveAlongPath(sparkler, edge, run_time=run_time, rate_func=linear))
             self.remove(sparkler)
-            burning_target = burn(target)
+            burning_target = burn(target, run_time=run_time / 2)
             return burning_target
 
-        spread_fire(7, 5)
-        spread_fire(7, 6)
-        spread_fire(5, 8)
-        spread_fire(5, 3)
-        spread_fire(5, 4)
-        spread_fire(6, 10)
-        spread_fire(8, 9)
-        spread_fire(10, 11)
-        spread_fire(9, 2)
-        spread_fire(2, 0)
-        spread_fire(2, 1)
-        self.wait(3)
+        burn(7)
+        self.wait(1)
+        spread_fire(7, 5, run_time=0.5)
+        spread_fire(7, 6, run_time=0.5)
+        self.wait(1)
+        spread_fire(5, 8, run_time=0.4)
+        spread_fire(5, 3, run_time=0.4)
+        spread_fire(5, 4, run_time=0.4)
+        self.wait(1)
+        spread_fire(6, 10, run_time=0.4)
+        spread_fire(8, 9, run_time=0.4)
+        self.wait(0.5)
+        spread_fire(10, 11, run_time=0.5)
+        spread_fire(9, 2, run_time=0.5)
+        self.wait(0.5)
+        spread_fire(2, 0, run_time=0.3)
+        spread_fire(2, 1, run_time=0.3)
+        self.wait(2)
