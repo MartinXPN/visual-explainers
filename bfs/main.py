@@ -3,7 +3,6 @@ import random
 
 from manim import *
 
-
 ORANGE = ManimColor('#fa541c')
 random.seed(42)
 
@@ -26,7 +25,6 @@ g = [
     [16],
     [15],
 ]
-
 
 class Introduction(Scene):
     def construct(self):
@@ -57,8 +55,8 @@ class Introduction(Scene):
             vertices, edges,
             layout=layout,
             labels=True,
-            vertex_config={'radius': 0.4, 'stroke_width': 2, 'fill_color': WHITE},
-            edge_config={'stroke_width': 4},
+            vertex_config={'radius': 0.4, 'stroke_width': 0, 'fill_color': WHITE},
+            edge_config={'stroke_width': 5},
         ).shift(DOWN)
 
         self.add(graph)
@@ -161,7 +159,7 @@ class Introduction(Scene):
 
         def burn(vertex: int, run_time: float = 0.5):
             # Set node on fire (🔥)
-            fire_icon = SVGMobject('bfs/fire.svg').scale(0.7).move_to(graph.vertices[vertex]).shift(UP * 0.25)
+            fire_icon = SVGMobject('bfs/fire.svg').scale(0.7).move_to(graph.vertices[vertex], DOWN)
             fire_icon.set_z_index(5)
             self.play(ShowIncreasingSubsets(fire_icon, run_time=run_time))
 
@@ -169,8 +167,34 @@ class Introduction(Scene):
             fire_icon.add_updater(update_fire)
             return fire_icon
 
-        seven = burn(7)
-        self.wait(5)
-        five = burn(5)
-        six = burn(6)
-        self.wait(5)
+        burn(7)
+        self.wait(1)
+
+        def spread_fire(source: int, target: int):
+            sparkler = SVGMobject('bfs/sparks.svg').scale(0.3).move_to(graph.vertices[source], DOWN).set_fill('#ff9d33')
+            sparkler.set_z_index(5)
+
+            edge = Line(graph.vertices[source].get_center(), graph.vertices[target].get_center(), buff=0.4)
+            burned_edge = VMobject()
+            burned_edge.add_updater(lambda x: x.become(Line(
+                edge.get_start(), sparkler.get_center(), stroke_width=6,
+            ).set_color(DARK_GRAY)))
+            self.add(sparkler, burned_edge)
+
+            self.play(MoveAlongPath(sparkler, edge, run_time=0.6, rate_func=linear))
+            self.remove(sparkler)
+            burning_target = burn(target)
+            return burning_target
+
+        spread_fire(7, 5)
+        spread_fire(7, 6)
+        spread_fire(5, 8)
+        spread_fire(5, 3)
+        spread_fire(5, 4)
+        spread_fire(6, 10)
+        spread_fire(8, 9)
+        spread_fire(10, 11)
+        spread_fire(9, 2)
+        spread_fire(2, 0)
+        spread_fire(2, 1)
+        self.wait(3)
