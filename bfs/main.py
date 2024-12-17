@@ -2,6 +2,7 @@ import math
 import random
 from textwrap import dedent
 
+import networkx as nx
 from manim import *
 
 ORANGE = ManimColor('#fa541c')
@@ -229,3 +230,32 @@ class IntroductionImplementation(Scene):
             if line:
                 self.play(AddTextLetterByLetter(line, run_time=0.1 * len(line)))
         self.wait(2)
+
+
+class DisplayMultipleGraphs(Scene):
+    def construct(self):
+        graphs = [
+            (nx.complete_graph(5), 'Complete Graph K5'),
+            (nx.cycle_graph(6), 'Cycle Graph C6'),
+            (nx.star_graph(5), 'Star Graph'),
+            (nx.wheel_graph(6), 'Wheel Graph W6'),
+            (nx.path_graph(6), 'Path Graph P6'),
+            (nx.erdos_renyi_graph(10, 0.4, seed=42), 'Erdős-Rényi Graph'),
+        ]
+
+        for graph, name in graphs:
+            title = Text(name).scale(0.7).to_edge(UP)
+            g = Graph(
+                list(graph.nodes),
+                list(graph.edges),
+                layout='spring',
+                labels=True,
+                layout_scale=3,
+                vertex_config={'radius': 0.4, 'stroke_width': 0, 'fill_color': WHITE},
+                edge_config={'stroke_width': 5},
+            ).next_to(title, DOWN)
+
+            self.play(Create(g), Write(title))
+            self.wait(2)
+            self.play(FadeOut(g), FadeOut(title), run_time=0.2)
+            self.wait(0.5)
