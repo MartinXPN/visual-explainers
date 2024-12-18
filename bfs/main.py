@@ -338,3 +338,184 @@ class GraphDefinition(Scene):
         self.play(Create(directed_graph), run_time=1)
         self.wait(2)
 
+
+class Motivation(Scene):
+    def construct(self):
+        title = Title('Graph Applications', include_underline=False)
+        self.play(Write(title), run_time=0.2)
+
+        # Draw a graph with one node in the center and 5 nodes around it (friends)
+        vertices = list(range(6))
+        edges = [(0, i) for i in range(1, 6)]
+        graph = Graph(
+            vertices, edges,
+            layout='spring',
+            layout_scale=3,
+            vertex_config={'radius': 0.6, 'stroke_width': 4, 'fill_color': BLACK, 'stroke_color': WHITE},
+            edge_config={'stroke_width': 5},
+        ).shift(0.2 * DOWN).scale(0.8)
+
+        person = SVGMobject('bfs/person.svg').scale(0.2)
+        central = person.copy().move_to(graph.vertices[0]).set_fill(ORANGE)
+        friends = VGroup(*[person.copy().move_to(graph.vertices[i]).set_fill(WHITE) for i in range(1, 6)])
+
+        self.play(
+            Create(graph),
+            Create(central),
+            *[Create(p) for p in friends],
+            run_time=0.5,
+        )
+        self.wait(0.5)
+
+        # Draw a graph of web page documents
+        vertices = list(range(10))
+        edges = [(0, i) for i in range(1, 6)]
+        edges += [(1, 9), (0, 7), (5, 6), (5, 8), (8, 9), (9, 2)]
+        web_graph = Graph(
+            vertices, edges,
+            layout='kamada_kawai',
+            layout_scale=3,
+            vertex_config={'radius': 0.6, 'stroke_width': 4, 'fill_color': BLACK, 'stroke_color': WHITE},
+            edge_config={'stroke_width': 5},
+        ).scale(0.8)
+        webpage_icon = SVGMobject('bfs/webpage.svg').scale(0.2)
+        webpages = [
+            webpage_icon.copy().set_fill(ORANGE if i == 0 else YELLOW).move_to(web_graph.vertices[i])
+            for i in range(10)
+        ]
+
+        self.play(
+            ReplacementTransform(graph, web_graph),
+            *[Create(p) for p in webpages],
+            FadeOut(central, *friends),
+            run_time=0.5,
+        )
+        self.wait(1)
+
+        vertices = list(range(len(g)))
+        edges = [(i, j) for i, neighbors in enumerate(g) for j in neighbors]
+        shortest_path_graph = Graph(
+            vertices, edges,
+            layout=layout,
+            labels=True,
+            vertex_config={'radius': 0.4, 'stroke_width': 0, 'fill_color': WHITE},
+            edge_config={'stroke_width': 5},
+        ).shift(1.5 * DOWN)
+
+        self.play(
+            ReplacementTransform(web_graph, shortest_path_graph),
+            FadeOut(*webpages),
+            run_time=0.5,
+        )
+        self.wait(0.5)
+
+        # Highlight node 7 with yellow
+        self.play(
+            shortest_path_graph.vertices[7].animate.set_fill(YELLOW),
+            shortest_path_graph._labels[7].animate.set_z_index(100000),
+            run_time=0.2,
+        )
+
+        # Draw a dotted circle around node 2
+        target = DashedVMobject(Circle(radius=0.6, color=ORANGE)).move_to(shortest_path_graph.vertices[2])
+        self.play(Create(target), run_time=0.2)
+        self.wait(1)
+
+        # Show pass-through animation going through nodes 7 -> 5 -> 8 -> 9 -> 2
+        path = [7, 5, 8, 9, 2]
+        dot = Dot().set_fill(YELLOW).move_to(shortest_path_graph.vertices[7])
+        for i in range(len(path) - 1):
+            cur = path[i]
+            to = path[i + 1]
+            edge = Line(
+                shortest_path_graph.vertices[cur].get_center(),
+                shortest_path_graph.vertices[to].get_center(),
+                buff=0.4,
+            )
+            burned_edge = VMobject()
+            burned_edge.add_updater(lambda x: x.become(Line(
+                edge.get_start(), dot.get_center(), stroke_width=6,
+            ).set_color(YELLOW)))
+            self.add(dot, burned_edge)
+
+            self.play(MoveAlongPath(dot, edge, run_time=0.2, rate_func=linear))
+            self.play(
+                shortest_path_graph.vertices[to].animate.set_fill(YELLOW),
+                shortest_path_graph._labels[to].animate.set_z_index(100000),
+                shortest_path_graph.edges[cur, to].animate.set_color(YELLOW),
+                shortest_path_graph.edges[to, cur].animate.set_color(YELLOW),
+                run_time=0.2,
+            )
+            self.remove(burned_edge, edge)
+
+
+        self.play(FadeOut(dot), run_time=0.2)
+        self.wait(1)
+
+        # Walk the path 7 -> 6 -> 10 -> 8 -> 9
+        # Highlight node 7 with orange
+        self.play(
+            shortest_path_graph.vertices[7].animate.set_fill(ORANGE),
+            shortest_path_graph._labels[7].animate.set_z_index(100000),
+            run_time=0.2,
+        )
+        path = [7, 6, 10, 8, 9]
+        dot = Dot().set_fill(ORANGE).move_to(shortest_path_graph.vertices[7])
+        for i in range(len(path) - 1):
+            cur = path[i]
+            to = path[i + 1]
+            edge = Line(
+                shortest_path_graph.vertices[cur].get_center(),
+                shortest_path_graph.vertices[to].get_center(),
+                buff=0.4,
+            )
+            burned_edge = VMobject()
+            burned_edge.add_updater(lambda x: x.become(Line(
+                edge.get_start(), dot.get_center(), stroke_width=6,
+            ).set_color(ORANGE)))
+            self.add(dot, burned_edge)
+
+            self.play(MoveAlongPath(dot, edge, run_time=0.2, rate_func=linear))
+            self.play(
+                shortest_path_graph.vertices[to].animate.set_fill(ORANGE),
+                shortest_path_graph._labels[to].animate.set_z_index(100000),
+                shortest_path_graph.edges[cur, to].animate.set_color(ORANGE),
+                shortest_path_graph.edges[to, cur].animate.set_color(ORANGE),
+                run_time=0.2,
+            )
+            self.remove(burned_edge, edge)
+
+        self.play(FadeOut(dot), run_time=0.2)
+        # Show a search icon and drop it on node 9
+        search = (SVGMobject('bfs/search.svg')
+                  .move_to(shortest_path_graph.vertices[9])
+                  .shift(0.25 * DOWN).shift(0.25 * RIGHT)
+                  .set_fill(RED).set_z_index(1000000))
+        self.play(FadeIn(search), run_time=0.5)
+        self.wait(1)
+
+        self.play(FadeOut(search), run_time=0.2)
+
+        # Draw a dotted line between node 9 and 14
+        connection = DashedLine(
+            shortest_path_graph.vertices[9].get_center(),
+            shortest_path_graph.vertices[14].get_center(),
+            dashed_ratio=0.5,
+            dash_length=0.1,
+            buff=0.4,
+            color=RED,
+        )
+        self.play(Create(connection), run_time=0.2)
+        self.wait(0.5)
+
+        # Transition to the next scene
+        self.play(
+            *[edge.animate.set_color(WHITE) for edge in shortest_path_graph.edges.values()],
+            *[vertex.animate.set_fill(WHITE) for vertex in shortest_path_graph.vertices.values()],
+            *[label.animate.set_z_index(10) for label in shortest_path_graph._labels.values()],
+            FadeOut(connection, target),
+            ReplacementTransform(title, Title('Breadth First Search', include_underline=False)),
+            run_time=0.2,
+        )
+        self.wait(1)
+
