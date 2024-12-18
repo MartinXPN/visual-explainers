@@ -639,3 +639,20 @@ class BFSState(Scene):
         for label in graph._labels.values():
             label.set_z_index(10)
         self.wait(0.1)
+
+        self.play(graph.animate.scale(0.2).next_to(title, DOWN, buff=0.5), run_time=0.2)
+        self.wait(0.2)
+
+        # Split the screen into 3 sections (below the graph)
+        screen_width = config.frame_width
+        section_width = screen_width / 3
+        left = Line(
+            start=section_width * LEFT / 2 + 3 * DOWN,
+            end=section_width * LEFT / 2 + UP / 2,
+        ).set_stroke(WHITE, 2)
+        right = Line(
+            start=section_width * RIGHT / 2 + 3 * DOWN,
+            end=section_width * RIGHT / 2 + UP / 2,
+        ).set_stroke(WHITE, 2)
+        self.play(Create(left), Create(right), run_time=0.2)
+        self.wait(1)
