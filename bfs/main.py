@@ -688,7 +688,7 @@ class BFSState(Scene):
             sparkler = SVGMobject('bfs/sparks.svg').scale(0.3 * 0.25).move_to(graph.vertices[source], DOWN).set_fill('#ff9d33')
             sparkler.set_z_index(5)
 
-            edge = Line(graph.vertices[source].get_center(), graph.vertices[target].get_center(), buff=0.4)
+            edge = Line(graph.vertices[source].get_center(), graph.vertices[target].get_center(), buff=0.4 * 0.25)
             burned_edge = VMobject()
             burned_edge.add_updater(lambda x: x.become(Line(
                 edge.get_start(), sparkler.get_center(), stroke_width=6,
