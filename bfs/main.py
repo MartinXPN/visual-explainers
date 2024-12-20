@@ -780,11 +780,52 @@ class BFSState(Scene):
         self.play(LaggedStart(
             FadeOut(burning_title, burning_nodes_title, left, right, slash, burning, untouched, *queue, *queue_texts),
             FadeOut(title, graph, *[icon[0] for icon in burning_icons.values()], *[icon[1] for icon in burning_icons.values()]),
-            graph_title.animate.align_to(new_graph_title, UP).align_to(new_graph_title, LEFT).scale(1.3),
-            code.animate.shift(LEFT).shift(1.5 * UP).scale(1.5),
-            graph_copy.animate.scale(2.5).shift(7.5 * LEFT).shift(2 * UP),
+            graph_title.animate.align_to(new_graph_title, UP).align_to(new_graph_title, LEFT).scale(1.1),
+            code.scale(1.2).animate.next_to(new_graph_title, DOWN, buff=1).shift(2.5 * RIGHT),
+            graph_copy.animate.scale(2.5).next_to(new_graph_title, DOWN, buff=1).to_edge(LEFT, buff=1),
             lag_ratio=0.5,
             run_time=1,
         ))
 
         self.wait(1)
+
+
+class GraphRepresentation(Scene):
+    def construct(self):
+        title = Title('Graph', include_underline=False)
+        vertices = list(range(len(g)))
+        edges = [(i, j) for i, neighbors in enumerate(g) for j in neighbors]
+        graph = Graph(
+            vertices, edges,
+            layout=layout,
+            labels=True,
+            vertex_config={'radius': 0.4, 'stroke_width': 0, 'fill_color': WHITE},
+            edge_config={'stroke_width': 5},
+        ).scale(0.25 * 0.9 * 2.5).next_to(title, DOWN, buff=1).to_edge(LEFT, buff=1)
+
+        self.add(title, graph)
+        for label in graph._labels.values():
+            label.set_z_index(10)
+
+        code = Code(
+            code=dedent('''
+                g = [
+
+
+
+
+
+
+
+
+                ]
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).scale(0.7).code.scale(1.2).next_to(title, DOWN, buff=1).shift(2.5 * RIGHT)
+        self.add(code)
+        self.wait(0.1)
+
