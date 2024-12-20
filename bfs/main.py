@@ -1040,4 +1040,96 @@ class UsedState(Scene):
         for label in graph._labels.values():
             label.set_z_index(10)
 
+        code = Code(
+            code=dedent('''
+                used = [
+                    False,  # 0
+                    False,  # 1
+                    False,  # 2
+                    False,  # 3
+                    False,  # 4
+                    False,  # 5
+                    False,  # 6
+                    False,  # 7
+                    False,  # 8
+                    False,  # 9
+                    # ...
+                    False,  # 14
+                    False,  # 15
+                    False,  # 16
+                ]
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).scale(0.7).code.scale(1.2).to_edge(LEFT, buff=1.5).to_edge(DOWN, buff=0.7)
+        self.play(AddTextLetterByLetter(code[0], run_time=0.01 * len(code[0])))
         self.wait(0.1)
+        self.play(AddTextLetterByLetter(code[-1], run_time=0.01 * len(code[-1])))
+        self.wait(0.1)
+
+        for line in code.chars[1:-1]:
+            self.play(AddTextLetterByLetter(line, run_time=0.01 * len(line)))
+        self.wait(0.1)
+
+
+        def burn(vertex: int, run_time: float = 0.5):
+            fire_icon = SVGMobject('bfs/fire.svg').scale(0.7 * 0.6).move_to(graph.vertices[vertex], DOWN)
+            fire_icon.set_z_index(5)
+            self.play(ShowIncreasingSubsets(fire_icon, run_time=run_time))
+            fire_icon.add_updater(update_fire)
+            return fire_icon
+
+        def spread_fire(source: int, target: int, run_time: float = 0.5):
+            sparkler = SVGMobject('bfs/sparks.svg').scale(0.3 * 0.6).move_to(graph.vertices[source], DOWN).set_fill('#ff9d33')
+            sparkler.set_z_index(5)
+
+            edge = Line(graph.vertices[source].get_center(), graph.vertices[target].get_center(), buff=0.4 * 0.6)
+            burned_edge = VMobject()
+            burned_edge.add_updater(lambda x: x.become(Line(
+                edge.get_start(), sparkler.get_center(), stroke_width=6,
+            ).set_color(DARK_GRAY)))
+            self.add(sparkler, burned_edge)
+
+            self.play(MoveAlongPath(sparkler, edge, run_time=run_time, rate_func=linear))
+            self.remove(sparkler)
+            burning_target = burn(target, run_time=run_time / 2)
+            return burning_target, burned_edge
+
+        self.play(Circumscribe(code.chars[8], buff=0.02), run_time=0.2)
+        burning_icons = {}
+        burning_icons[7] = burn(7)
+        self.wait(0.5)
+
+        true_code = Code(
+            code=dedent('''
+                used = [
+                    True,   # 0
+                    True,   # 1
+                    True,   # 2
+                    True,   # 3
+                    True,   # 4
+                    True,   # 5
+                    True,   # 6
+                    True,   # 7
+                    True,   # 8
+                    True,   # 9
+                    # ...
+                    True,   # 14
+                    True,   # 15
+                    True,   # 16
+                ]
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).scale(0.7).code.scale(1.2).to_edge(LEFT, buff=1.5).to_edge(DOWN, buff=0.7)
+
+        self.play(RemoveTextLetterByLetter(code[8], run_time=0.1 * len(code[8])))
+        self.play(AddTextLetterByLetter(true_code[8], run_time=0.1 * len(true_code[8])))
+
+        self.wait(1)
