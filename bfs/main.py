@@ -698,7 +698,7 @@ class BFSState(Scene):
             self.play(MoveAlongPath(sparkler, edge, run_time=run_time, rate_func=linear))
             self.remove(sparkler)
             burning_target = burn(target, run_time=run_time / 2)
-            return burning_target
+            return burning_target, burned_edge
 
         burning_icons = {}
         burning_icons[7] = burn(7)
@@ -714,6 +714,7 @@ class BFSState(Scene):
 
         # Draw a queue with the burning nodes (8, 4, 3, 10)
         queue = []
+        queue_texts = []
         def add2queue(vertex: int):
             nonlocal queue
             fire_icon = SVGMobject('bfs/fire.svg').scale(0.3)
@@ -721,6 +722,7 @@ class BFSState(Scene):
             fire_icon.set_z_index(5)
             queue.append(fire_icon)
             vertex_text = Text(str(vertex)).scale(0.4).set_color(BLACK).move_to(queue[-1]).shift(0.12 * DOWN).set_z_index(10)
+            queue_texts.append(vertex_text)
             self.play(ShowIncreasingSubsets(queue[-1]), Write(vertex_text), run_time=0.1)
             queue[-1].add_updater(update_fire)
 
@@ -771,5 +773,18 @@ class BFSState(Scene):
         self.wait(0.5)
 
         # Transition to the next scene
-        ...
+        # Move the graph copy to the left (and make it bigger) + fade out the top graph
+        # Move the graph_title to the top (make it the title)
+        # Fade out the rest
+        new_graph_title = Title('Graph', include_underline=False)
+        self.play(LaggedStart(
+            FadeOut(burning_title, burning_nodes_title, left, right, slash, burning, untouched, *queue, *queue_texts),
+            FadeOut(title, graph, *[icon[0] for icon in burning_icons.values()], *[icon[1] for icon in burning_icons.values()]),
+            graph_title.animate.align_to(new_graph_title, UP).align_to(new_graph_title, LEFT).scale(1.3),
+            code.animate.shift(LEFT).shift(1.5 * UP).scale(1.5),
+            graph_copy.animate.scale(2.5).shift(7.5 * LEFT).shift(2 * UP),
+            lag_ratio=0.5,
+            run_time=1,
+        ))
+
         self.wait(1)
