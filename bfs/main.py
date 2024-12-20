@@ -988,7 +988,56 @@ class GraphRepresentation(Scene):
         slash = Text('/').scale(1.5).next_to(untouched, RIGHT)
         burning = SVGMobject('bfs/fire.svg').scale(0.3).next_to(slash, RIGHT).shift(0.05 * UP)
 
-        self.play(LaggedStart(Create(untouched), Write(slash), ShowIncreasingSubsets(burning), lag_ratio=0.5), run_time=0.5)
+        self.add(untouched, slash, burning)
         burning.add_updater(update_fire)
-        self.wait(1)
 
+        queue = []
+        queue_texts = []
+        def add2queue(vertex: int):
+            nonlocal queue
+            fire_icon = SVGMobject('bfs/fire.svg').scale(0.3)
+            fire_icon.next_to(burning_nodes_title if len(queue) == 0 else queue[-1], DOWN, buff=0.4 if len(queue) == 0 else 0.2)
+            fire_icon.set_z_index(5)
+            queue.append(fire_icon)
+            vertex_text = Text(str(vertex)).scale(0.4).set_color(BLACK).move_to(queue[-1]).shift(0.12 * DOWN).set_z_index(10)
+            queue_texts.append(vertex_text)
+            self.add(queue[-1], vertex_text)
+            queue[-1].add_updater(update_fire)
+
+        add2queue(8)
+        add2queue(4)
+        add2queue(3)
+        add2queue(10)
+        self.wait(0.1)
+
+        # Move "Burning State" to be the title
+        self.play(LaggedStart(
+            FadeOut(scene_title),
+            burning_title.animate.scale(1.1).center().align_to(scene_title, UP),
+            FadeOut(burning_nodes_title, left, right, code_list, *queue_texts, *queue),
+            graph.animate.scale(2.5).next_to(scene_title, DOWN, buff=1).to_edge(RIGHT, buff=1),
+            FadeOut(untouched, slash, burning),
+            lag_ratio=0.5,
+            run_time=1,
+        ))
+        self.wait(0.5)
+
+
+class UsedState(Scene):
+    def construct(self):
+        title = Title('Burning State', include_underline=False)
+        vertices = list(range(len(g)))
+        edges = [(i, j) for i, neighbors in enumerate(g) for j in neighbors]
+        graph = Graph(
+            vertices, edges,
+            layout=layout,
+            labels=True,
+            vertex_config={'radius': 0.4, 'stroke_width': 0, 'fill_color': WHITE},
+            edge_config={'stroke_width': 5},
+        ).scale(0.25 * 2.5).next_to(title, DOWN, buff=1).to_edge(RIGHT, buff=1)
+
+        self.add(title, graph)
+        for label in graph._labels.values():
+            label.set_z_index(10)
+
+        self.wait(0.1)
