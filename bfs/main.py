@@ -1095,7 +1095,7 @@ class UsedState(Scene):
 
             self.play(MoveAlongPath(sparkler, edge, run_time=run_time, rate_func=linear))
             self.remove(sparkler)
-            burning_target = burn(target, run_time=run_time / 2)
+            burning_target = burn(target, run_time=run_time / 2, scale=scale)
             return burning_target, burned_edge
 
         self.play(Circumscribe(code.chars[8], buff=0.02), run_time=0.2)
@@ -1177,7 +1177,7 @@ class UsedState(Scene):
             graph.animate.scale(0.45).next_to(title, DOWN, buff=0.5),
             ReplacementTransform(title, scene_title),
             FadeIn(left, right),
-            lag_ratio=0.2,
+            lag_ratio=0.5,
             run_time=1,
         ))
 
@@ -1189,15 +1189,82 @@ class UsedState(Scene):
         queue_texts = []
         def add2queue(vertex: int):
             nonlocal queue
-            fire_icon = SVGMobject('bfs/fire.svg').scale(0.3)
+            fire_icon = SVGMobject('bfs/fire.svg').scale(0.2)
             fire_icon.next_to(burning_nodes_title if len(queue) == 0 else queue[-1], DOWN, buff=0.4 if len(queue) == 0 else 0.2)
             fire_icon.set_z_index(5)
             queue.append(fire_icon)
-            vertex_text = Text(str(vertex)).scale(0.4).set_color(BLACK).move_to(queue[-1]).shift(0.12 * DOWN).set_z_index(10)
+            vertex_text = Text(str(vertex)).scale(0.3).set_color(BLACK).move_to(queue[-1]).shift(0.08 * DOWN).set_z_index(10)
             queue_texts.append(vertex_text)
             self.add(queue[-1], vertex_text)
             queue[-1].add_updater(update_fire)
 
         burning_icons[7] = burn(7, scale=0.3)
+        used = {7: True}
         add2queue(7)
         self.wait(1)
+
+        def spread_from_source(vertex: int):
+            # Circle around the queue front
+            circle = DashedVMobject(Circle(radius=0.3, color=ORANGE)).move_to(queue_texts[0]).shift(0.1 * UP)
+            self.play(Create(circle), run_time=0.2)
+            self.wait(0.2)
+
+            for to in g[vertex]:
+                if used.get(to, False):
+                    continue
+                used[to] = True
+                spread_fire(vertex, to, scale=0.3)
+                add2queue(to)
+                self.wait(0.2)
+
+            # Remove vertex from the queue front
+            self.play(FadeOut(queue[0], queue_texts[0], circle), run_time=0.2)
+            queue.pop(0)
+            queue_texts.pop(0)
+            animations = []
+            for icon, text in zip(queue, queue_texts):
+                icon.clear_updaters()
+                delattr(icon, 'initialized')
+                animations.append(AnimationGroup(
+                    icon.animate.shift(0.6 * UP),
+                    text.animate.shift(0.6 * UP),
+                ))
+            self.play(LaggedStart(*animations, lag_ratio=0.2, run_time=0.5))
+            # Add updaters to burning queue elements
+            for icon in queue:
+                icon.add_updater(update_fire)
+
+        spread_from_source(7)
+        self.wait(0.2)
+        spread_from_source(5)
+        self.wait(0.2)
+        spread_from_source(6)
+        self.wait(0.2)
+
+        # Replace the "burning nodes" text with Queue
+        queue_title = Text('Queue').scale(0.7).move_to(burning_nodes_title)
+        self.play(ReplacementTransform(burning_nodes_title, queue_title), run_time=0.2)
+        self.wait(0.5)
+
+        queue_code = Code(
+            code=dedent('''
+                from collections import deque
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).scale(0.7).code.scale(0.95).move_to(queue_title)
+        self.play(ReplacementTransform(queue_title, queue_code), run_time=0.2)
+        self.wait(0.1)
+
+        spread_from_source(3)
+        self.wait(0.2)
+        spread_from_source(4)
+        self.wait(0.2)
+        spread_from_source(10)
+        self.wait(0.2)
+
+        # Transition to the next scene
+        ...
