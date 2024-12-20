@@ -781,7 +781,7 @@ class BFSState(Scene):
             FadeOut(burning_title, burning_nodes_title, left, right, slash, burning, untouched, *queue, *queue_texts),
             FadeOut(title, graph, *[icon[0] for icon in burning_icons.values()], *[icon[1] for icon in burning_icons.values()]),
             graph_title.animate.align_to(new_graph_title, UP).align_to(new_graph_title, LEFT).scale(1.1),
-            code.scale(1.2).animate.next_to(new_graph_title, DOWN, buff=1).shift(2.5 * RIGHT),
+            code.animate.scale(1.2).next_to(new_graph_title, DOWN, buff=1).shift(2.5 * RIGHT),
             graph_copy.animate.scale(2.5).next_to(new_graph_title, DOWN, buff=1).to_edge(LEFT, buff=1),
             lag_ratio=0.5,
             run_time=1,
@@ -807,7 +807,7 @@ class GraphRepresentation(Scene):
         for label in graph._labels.values():
             label.set_z_index(10)
 
-        code = Code(
+        old_code = Code(
             code=dedent('''
                 g = [
 
@@ -826,6 +826,169 @@ class GraphRepresentation(Scene):
             font='Monospace',
             style='monokai',
         ).scale(0.7).code.scale(1.2).next_to(title, DOWN, buff=1).shift(2.5 * RIGHT)
-        self.add(code)
+        self.add(old_code)
         self.wait(0.1)
+
+        code = Code(
+            code=dedent('''
+                g = [
+                    # Connections of 0
+                    # Connections of 1
+                    # Connections of 2
+                    # Connections of 3
+                    # Connections of 4
+                    # Connections of 5
+                    # Connections of 6
+                    # Connections of 7
+                    # Connections of 8
+                    # Connections of 9
+                    # ...
+                    # Connections of 14
+                    # Connections of 15
+                    # Connections of 16
+                ]
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).scale(0.7).code.scale(1.2).align_to(old_code, LEFT).align_to(old_code, UP)
+        self.wait(0.1)
+
+        self.play(FadeOut(old_code[-1]), run_time=0.1)
+        for line in code.chars:
+            self.play(AddTextLetterByLetter(line, run_time=0.01 * len(line)))
+        self.play(FadeOut(old_code[:-1]), run_time=0.1)
+        self.wait(0.1)
+
+        self.play(Indicate(code.chars[0][0], scale_factor=2.5), run_time=0.2)
+        self.wait(0.1)
+
+        code_list = Code(
+            code=dedent('''
+                g = [
+                    [2],              # 0
+                    [2],              # 1
+                    [0, 1, 9],        # 2
+                    [5],              # 3
+                    [9, 8, 5],        # 4
+                    [3, 4, 8, 6, 7],  # 5
+                    [5, 7, 10],       # 6
+                    [5, 6],           # 7
+                    [4, 5, 9, 10],    # 8
+                    [4, 8, 2],        # 9
+                    # ...
+                    [12, 13],         # 14
+                    [16],             # 15
+                    [15],             # 16
+                ]
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).scale(0.7).code.scale(1.2).align_to(old_code, LEFT).align_to(old_code, UP)
+
+        self.play(RemoveTextLetterByLetter(code[1], run_time=0.01 * len(code[1])))
+        self.play(AddTextLetterByLetter(code_list[1], run_time=0.01 * len(code_list[1])))
+        self.wait(0.2)
+
+        for i in range(2, 9):
+            self.play(RemoveTextLetterByLetter(code[i], run_time=0.01 * len(code[i])))
+            self.play(AddTextLetterByLetter(code_list[i], run_time=0.01 * len(code_list[i])))
+        self.wait(0.5)
+
+        for i in range(9, 11):
+            self.play(RemoveTextLetterByLetter(code[i], run_time=0.01 * len(code[i])))
+            self.play(AddTextLetterByLetter(code_list[i], run_time=0.01 * len(code_list[i])))
+        self.wait(0.2)
+
+        for i in range(-4, -1):
+            self.play(RemoveTextLetterByLetter(code[i], run_time=0.01 * len(code[i])))
+            self.play(AddTextLetterByLetter(code_list[i], run_time=0.01 * len(code_list[i])))
+        self.wait(0.5)
+
+        # Highlight node 8 and node 9 + their connection
+        connection_8_9 = DashedVMobject(Circle(radius=0.3, color=ORANGE)).move_to(code_list[9][8])
+        connection_9_8 = DashedVMobject(Circle(radius=0.3, color=ORANGE)).move_to(code_list[10][5])
+        self.play(LaggedStart(
+            graph.vertices[8].animate.set_fill(ORANGE),
+            graph._labels[8].animate.set_z_index(100000),
+            Create(connection_8_9),
+            graph.edges[8, 9].animate.set_color(ORANGE),
+            graph.edges[9, 8].animate.set_color(ORANGE),
+            graph.vertices[9].animate.set_fill(ORANGE),
+            graph._labels[9].animate.set_z_index(100000),
+            Create(connection_9_8),
+            lag_ratio=0.5,
+            run_time=1,
+        ))
+        self.wait(0.5)
+
+        # Move from node 8 to node 9 and back
+        dot = Dot().set_fill(YELLOW).move_to(graph.vertices[8])
+        line_8_9 = Line(graph.vertices[8].get_center(), graph.vertices[9].get_center(), buff=0.22)
+        line_9_8 = Line(graph.vertices[9].get_center(), graph.vertices[8].get_center(), buff=0.22)
+        self.play(MoveAlongPath(dot, line_8_9, run_time=0.2, rate_func=linear))
+        self.wait(0.1)
+        self.play(MoveAlongPath(dot, line_9_8, run_time=0.2, rate_func=linear))
+        self.remove(dot)
+        self.wait(0.1)
+
+        # Draw an arrow from 8 to 9
+        arrow = Arrow(
+            graph.vertices[8].get_center(),
+            graph.vertices[9].get_center(),
+            buff=0.22,
+            color=YELLOW,
+        )
+        self.play(Create(arrow), run_time=0.2)
+        self.wait(0.2)
+
+        # Transition to the next scene
+        scene_title = Title('BFS State', include_underline=False)
+        screen_width = config.frame_width
+        section_width = screen_width / 3
+        left = Line(start=section_width * LEFT / 2 + 3 * DOWN, end=section_width * LEFT / 2 + UP / 2).set_stroke(WHITE, 2)
+        right = Line(start=section_width * RIGHT / 2 + 3 * DOWN, end=section_width * RIGHT / 2 + UP / 2).set_stroke(WHITE, 2)
+
+        self.play(LaggedStart(
+            FadeOut(arrow),
+            graph.vertices[8].animate.set_fill(WHITE),
+            graph._labels[8].animate.set_z_index(100000),
+            FadeOut(connection_8_9),
+            graph.edges[8, 9].animate.set_color(WHITE),
+            graph.edges[9, 8].animate.set_color(WHITE),
+            graph.vertices[9].animate.set_fill(WHITE),
+            graph._labels[9].animate.set_z_index(100000),
+            FadeOut(connection_9_8),
+            FadeOut(code),
+            lag_ratio=0.5,
+            run_time=1,
+        ))
+
+        self.play(LaggedStart(
+            code_list.animate.scale(0.8).to_edge(RIGHT, buff=1).to_edge(DOWN, buff=0.3),
+            graph.animate.scale(0.45).next_to(title, DOWN, buff=0.5),
+            ReplacementTransform(title, scene_title),
+            FadeIn(left, right),
+            lag_ratio=0.5,
+            run_time=1,
+        ))
+
+        burning_title = Text('Burning State').scale(0.7).next_to(left, LEFT, buff=0.5).align_to(left, UP)
+        burning_nodes_title = Text('Burning Nodes').scale(0.7).next_to(right, LEFT, buff=1).align_to(right, UP)
+        self.play(Write(burning_title), Write(burning_nodes_title), run_time=0.2)
+        self.wait(0.2)
+
+        # Draw an untouched node and a burning node (O/🔥)
+        untouched = Circle(radius=0.2, color=WHITE, fill_opacity=1).next_to(burning_title, 2 * DOWN).shift(LEFT)
+        slash = Text('/').scale(1.5).next_to(untouched, RIGHT)
+        burning = SVGMobject('bfs/fire.svg').scale(0.3).next_to(slash, RIGHT).shift(0.05 * UP)
+
+        self.play(LaggedStart(Create(untouched), Write(slash), ShowIncreasingSubsets(burning), lag_ratio=0.5), run_time=0.5)
+        burning.add_updater(update_fire)
+        self.wait(1)
 
