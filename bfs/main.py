@@ -1513,3 +1513,136 @@ class Implementation(Scene):
             run_time=1,
         ))
         self.wait(1)
+
+
+class Simulation(Scene):
+    def construct(self):
+        title = Title('Breadth First Search', include_underline=False)
+        vertices = list(range(len(g)))
+        edges = [(i, j) for i, neighbors in enumerate(g) for j in neighbors]
+        graph = Graph(
+            vertices, edges,
+            layout=layout,
+            labels=True,
+            vertex_config={'radius': 0.4, 'stroke_width': 0, 'fill_color': WHITE},
+            edge_config={'stroke_width': 5},
+        ).scale(0.39375).next_to(title, DOWN, buff=0.5).to_edge(LEFT, buff=1)
+
+        self.add(title, graph)
+        for label in graph._labels.values():
+            label.set_z_index(10)
+        queue_title = Text('Queue:').scale(0.5).next_to(graph, DOWN, buff=0.25)
+        self.add(queue_title)
+
+        code = Code(
+            code=dedent('''
+                from collections import deque
+
+                used[7] = True
+                q = deque([7])
+
+                while q:
+                    v = q.popleft()
+                    for to in g[v]:
+                        if not used[to]:
+                            q.append(to)
+                            used[to] = True
+
+                for node in range(len(g)):
+                    if used[node]:
+                        print(node)
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).scale(0.7).code.scale(1.14).next_to(title, DOWN, buff=0.5).align_to(ORIGIN, LEFT)
+        self.add(code)
+        self.wait(0.1)
+
+        # Arrow to show which part of the code is being executed
+        arrow = Arrow(
+            start=LEFT, end=RIGHT, color=RED, buff=0.1,
+            stroke_width=10, max_stroke_width_to_length_ratio=15,
+            max_tip_length_to_length_ratio=0.5, tip_length=0.2,
+        ).scale(0.3).next_to(code, LEFT).align_to(code, UP).shift(0.66 * DOWN)
+        self.play(Create(arrow), run_time=0.2)
+
+        def burn(vertex: int, run_time: float = 0.5, scale: float = 0.6):
+            fire_icon = SVGMobject('bfs/fire.svg').scale(0.7 * scale).move_to(graph.vertices[vertex], DOWN)
+            fire_icon.set_z_index(5)
+            self.play(ShowIncreasingSubsets(fire_icon, run_time=run_time))
+            fire_icon.add_updater(update_fire)
+            return fire_icon
+
+        def spread_fire(source: int, target: int, run_time: float = 0.5, scale: float = 0.6):
+            sparkler = SVGMobject('bfs/sparks.svg').scale(0.3 * scale).move_to(graph.vertices[source], DOWN).set_fill('#ff9d33')
+            sparkler.set_z_index(5)
+
+            edge = Line(graph.vertices[source].get_center(), graph.vertices[target].get_center(), buff=0.4 * scale)
+            burned_edge = VMobject()
+            burned_edge.add_updater(lambda x: x.become(Line(
+                edge.get_start(), sparkler.get_center(), stroke_width=6,
+            ).set_color(DARK_GRAY)))
+            self.add(sparkler, burned_edge)
+
+            self.play(MoveAlongPath(sparkler, edge, run_time=run_time, rate_func=linear))
+            self.remove(sparkler)
+            burning_target = burn(target, run_time=run_time / 2, scale=scale)
+            return burning_target, burned_edge
+
+        queue = []
+        queue_texts = []
+        def add2queue(vertex: int):
+            nonlocal queue
+            fire_icon = SVGMobject('bfs/fire.svg').scale(0.25)
+            fire_icon.next_to(queue_title if len(queue) == 0 else queue[-1], DOWN, buff=0.3 if len(queue) == 0 else 0.15)
+            fire_icon.set_z_index(5)
+            queue.append(fire_icon)
+            vertex_text = Text(str(vertex)).scale(0.33).set_color(BLACK).move_to(queue[-1]).shift(0.08 * DOWN).set_z_index(10)
+            queue_texts.append(vertex_text)
+            self.add(queue[-1], vertex_text)
+            queue[-1].add_updater(update_fire)
+
+        burning_icons: dict[int, tuple[SVGMobject, VMobject | None]] = {
+            7: (burn(7, scale=0.4), None),
+        }
+        used = {7: True}
+        add2queue(7)
+        self.wait(0.2)
+
+        def spread_from_source(vertex: int):
+            # Circle around the queue front
+            circle = DashedVMobject(Circle(radius=0.4, color=ORANGE)).move_to(queue_texts[0]).shift(0.1 * UP)
+            self.play(Create(circle), run_time=0.2)
+            self.wait(0.2)
+
+            for to in g[vertex]:
+                if used.get(to, False):
+                    continue
+                used[to] = True
+                burning_icons[to] = spread_fire(vertex, to, scale=0.4)
+                add2queue(to)
+                self.wait(0.2)
+
+            # Remove vertex from the queue front
+            self.play(FadeOut(queue[0], queue_texts[0], circle), run_time=0.2)
+            queue.pop(0)
+            queue_texts.pop(0)
+            animations = []
+            for icon, text in zip(queue, queue_texts):
+                icon.clear_updaters()
+                delattr(icon, 'initialized')
+                animations.append(AnimationGroup(
+                    icon.animate.shift(0.65 * UP),
+                    text.animate.shift(0.65 * UP),
+                ))
+            self.play(LaggedStart(*animations, lag_ratio=0.2, run_time=0.2))
+            # Add updaters to burning queue elements
+            for icon in queue:
+                icon.add_updater(update_fire)
+
+        # Move the arrow to the while loop
+        self.play(arrow.animate.shift(0.96 * DOWN), run_time=0.2)
+        self.wait(0.2)
