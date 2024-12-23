@@ -1265,6 +1265,8 @@ class UsedState(Scene):
         self.wait(0.2)
         spread_from_source(4)
         self.wait(0.2)
+        spread_from_source(8)
+        self.wait(0.2)
         spread_from_source(10)
         self.wait(0.2)
 
@@ -1325,8 +1327,189 @@ class Implementation(Scene):
             style='monokai',
         ).scale(0.7).code.scale(1.14).next_to(title, DOWN, buff=0.5).align_to(ORIGIN, LEFT)
 
-
         self.add(title, graph, graph_code)
         for label in graph._labels.values():
             label.set_z_index(10)
         self.wait(0.1)
+
+        used_init_code = Code(
+            code=dedent('''
+                used = [False] * len(g)
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).scale(0.7).code.scale(1.14).next_to(graph_code, DOWN, buff=0.2).align_to(ORIGIN, LEFT)
+        self.play(AddTextLetterByLetter(used_init_code[0], run_time=0.01 * len(used_init_code[0])))
+        self.wait(0.1)
+
+
+        bfs_code = Code(
+            code=dedent('''
+                from collections import deque
+                
+                used[7] = True
+                q = deque([7])
+                
+                while q:
+                    v = q.popleft()
+                    for to in g[v]:
+                        if not used[to]:
+                            q.append(to)
+                            used[to] = True
+                            
+                for node in range(len(g)):
+                    if used[node]:
+                        print(node)
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).scale(0.7).code.scale(1.14).next_to(title, DOWN, buff=0.5).align_to(ORIGIN, LEFT)
+
+        def burn(vertex: int, run_time: float = 0.5, scale: float = 0.6):
+            fire_icon = SVGMobject('bfs/fire.svg').scale(0.7 * scale).move_to(graph.vertices[vertex], DOWN)
+            fire_icon.set_z_index(5)
+            self.play(ShowIncreasingSubsets(fire_icon, run_time=run_time))
+            fire_icon.add_updater(update_fire)
+            return fire_icon
+
+        def spread_fire(source: int, target: int, run_time: float = 0.5, scale: float = 0.6):
+            sparkler = SVGMobject('bfs/sparks.svg').scale(0.3 * scale).move_to(graph.vertices[source], DOWN).set_fill('#ff9d33')
+            sparkler.set_z_index(5)
+
+            edge = Line(graph.vertices[source].get_center(), graph.vertices[target].get_center(), buff=0.4 * scale)
+            burned_edge = VMobject()
+            burned_edge.add_updater(lambda x: x.become(Line(
+                edge.get_start(), sparkler.get_center(), stroke_width=6,
+            ).set_color(DARK_GRAY)))
+            self.add(sparkler, burned_edge)
+
+            self.play(MoveAlongPath(sparkler, edge, run_time=run_time, rate_func=linear))
+            self.remove(sparkler)
+            burning_target = burn(target, run_time=run_time / 2, scale=scale)
+            return burning_target, burned_edge
+
+        queue = []
+        queue_texts = []
+        burning_nodes_title = Text('Queue:').scale(0.5).next_to(graph, DOWN, buff=0.25)
+        def add2queue(vertex: int):
+            nonlocal queue
+            fire_icon = SVGMobject('bfs/fire.svg').scale(0.25)
+            fire_icon.next_to(burning_nodes_title if len(queue) == 0 else queue[-1], DOWN, buff=0.3 if len(queue) == 0 else 0.15)
+            fire_icon.set_z_index(5)
+            queue.append(fire_icon)
+            vertex_text = Text(str(vertex)).scale(0.33).set_color(BLACK).move_to(queue[-1]).shift(0.08 * DOWN).set_z_index(10)
+            queue_texts.append(vertex_text)
+            self.add(queue[-1], vertex_text)
+            queue[-1].add_updater(update_fire)
+
+        burning_icons: dict[int, tuple[SVGMobject, VMobject | None]] = {
+            7: (burn(7, scale=0.4), None),
+        }
+        used = {7: True}
+        # Remove the code by moving it up
+        self.play(
+            graph_code.animate.shift(7 * UP),
+            used_init_code.animate.shift(7 * UP),
+            run_time=0.5,
+        )
+        self.wait(0.1)
+        self.play(AddTextLetterByLetter(bfs_code[2], run_time=0.01 * len(bfs_code[2])))
+        self.wait(0.1)
+
+        self.play(AddTextLetterByLetter(bfs_code[0], run_time=0.01 * len(bfs_code[0])))
+        self.play(AddTextLetterByLetter(bfs_code[3], run_time=0.01 * len(bfs_code[3])))
+        self.wait(0.1)
+
+        self.play(Write(burning_nodes_title), run_time=0.2)
+        add2queue(7)
+        self.wait(0.2)
+
+        def spread_from_source(vertex: int):
+            # Circle around the queue front
+            circle = DashedVMobject(Circle(radius=0.4, color=ORANGE)).move_to(queue_texts[0]).shift(0.1 * UP)
+            self.play(Create(circle), run_time=0.2)
+            self.wait(0.2)
+
+            for to in g[vertex]:
+                if used.get(to, False):
+                    continue
+                used[to] = True
+                burning_icons[to] = spread_fire(vertex, to, scale=0.4)
+                add2queue(to)
+                self.wait(0.2)
+
+            # Remove vertex from the queue front
+            self.play(FadeOut(queue[0], queue_texts[0], circle), run_time=0.2)
+            queue.pop(0)
+            queue_texts.pop(0)
+            animations = []
+            for icon, text in zip(queue, queue_texts):
+                icon.clear_updaters()
+                delattr(icon, 'initialized')
+                animations.append(AnimationGroup(
+                    icon.animate.shift(0.65 * UP),
+                    text.animate.shift(0.65 * UP),
+                ))
+            self.play(LaggedStart(*animations, lag_ratio=0.2, run_time=0.2))
+            # Add updaters to burning queue elements
+            for icon in queue:
+                icon.add_updater(update_fire)
+
+        spread_from_source(7)
+        self.wait(0.2)
+
+        for line in bfs_code[5:11]:
+            self.play(AddTextLetterByLetter(line, run_time=0.01 * len(line)))
+        self.wait(0.1)
+
+        # Indicate the burning nodes (5 and 6)
+        self.play(
+            Indicate(burning_icons[5][0], scale_factor=1.5),
+            Indicate(burning_icons[6][0], scale_factor=1.5),
+            run_time=0.5,
+        )
+        self.wait(0.1)
+
+        # Circumscribe the `if not used[to]` line
+        self.play(Circumscribe(bfs_code[8].copy().shift(0.1 * DOWN), buff=0.02, stroke_width=6), run_time=1)
+        self.wait(0.1)
+        spread_from_source(5)
+        spread_from_source(6)
+        spread_from_source(3)
+        spread_from_source(4)
+        spread_from_source(8)
+        spread_from_source(10)
+        spread_from_source(9)
+        spread_from_source(11)
+        spread_from_source(2)
+        spread_from_source(0)
+        spread_from_source(1)
+        self.wait(0.2)
+
+        # Write the last 3 lines of code
+        for line in bfs_code[-3:]:
+            self.play(AddTextLetterByLetter(line, run_time=0.01 * len(line)))
+        self.wait(0.1)
+        # Indicate all the burned nodes
+        self.play(*[
+            Indicate(burning_icons[node][0], scale_factor=1.5)
+            for node in used.keys()
+        ], run_time=1)
+        self.wait(0.1)
+
+        # Transition to the next scene
+        self.play(LaggedStart(
+            # Clear the graph burning nodes
+            AnimationGroup(*[FadeOut(icon[0]) for icon in burning_icons.values()]),
+            AnimationGroup(*[FadeOut(icon[1]) for icon in burning_icons.values() if icon[1] is not None]),
+            ReplacementTransform(title, Title('Breadth First Search', include_underline=False)),
+            lag_ratio=0.5,
+            run_time=1,
+        ))
+        self.wait(1)
