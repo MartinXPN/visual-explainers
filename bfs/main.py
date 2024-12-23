@@ -1198,7 +1198,9 @@ class UsedState(Scene):
             self.add(queue[-1], vertex_text)
             queue[-1].add_updater(update_fire)
 
-        burning_icons[7] = burn(7, scale=0.3)
+        burning_icons: dict[int, tuple[SVGMobject, VMobject | None]] = {
+            7: (burn(7, scale=0.3), None),
+        }
         used = {7: True}
         add2queue(7)
         self.wait(1)
@@ -1213,7 +1215,7 @@ class UsedState(Scene):
                 if used.get(to, False):
                     continue
                 used[to] = True
-                spread_fire(vertex, to, scale=0.3)
+                burning_icons[to] = spread_fire(vertex, to, scale=0.3)
                 add2queue(to)
                 self.wait(0.2)
 
@@ -1267,4 +1269,64 @@ class UsedState(Scene):
         self.wait(0.2)
 
         # Transition to the next scene
-        ...
+        self.play(LaggedStart(
+            FadeOut(code, true_code[8]),
+            FadeOut(queue_code, *queue, *queue_texts),
+            FadeOut(
+                *[icon[0] for icon in burning_icons.values()],
+                *[icon[1] for icon in burning_icons.values() if icon[1] is not None],
+            ),
+            FadeOut(left, right),
+            graph.animate.scale(1.4).next_to(scene_title, DOWN, buff=0.5).to_edge(LEFT, buff=1),
+            code_list.animate.scale(1.2).next_to(scene_title, DOWN, buff=0.5).align_to(ORIGIN, LEFT),
+            ReplacementTransform(scene_title, Title('BFS Implementation', include_underline=False)),
+            run_time=2,
+            lag_ratio=0.5,
+        ))
+        self.wait(1)
+
+
+class Implementation(Scene):
+    def construct(self):
+        title = Title('BFS Implementation', include_underline=False)
+        vertices = list(range(len(g)))
+        edges = [(i, j) for i, neighbors in enumerate(g) for j in neighbors]
+        graph = Graph(
+            vertices, edges,
+            layout=layout,
+            labels=True,
+            vertex_config={'radius': 0.4, 'stroke_width': 0, 'fill_color': WHITE},
+            edge_config={'stroke_width': 5},
+        ).scale(0.39375).next_to(title, DOWN, buff=0.5).to_edge(LEFT, buff=1)
+
+        graph_code = Code(
+            code=dedent('''
+                g = [
+                    [2],              # 0
+                    [2],              # 1
+                    [0, 1, 9],        # 2
+                    [5],              # 3
+                    [9, 8, 5],        # 4
+                    [3, 4, 8, 6, 7],  # 5
+                    [5, 7, 10],       # 6
+                    [5, 6],           # 7
+                    [4, 5, 9, 10],    # 8
+                    [4, 8, 2],        # 9
+                    # ...
+                    [12, 13],         # 14
+                    [16],             # 15
+                    [15],             # 16
+                ]
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).scale(0.7).code.scale(1.14).next_to(title, DOWN, buff=0.5).align_to(ORIGIN, LEFT)
+
+
+        self.add(title, graph, graph_code)
+        for label in graph._labels.values():
+            label.set_z_index(10)
+        self.wait(0.1)
