@@ -1566,7 +1566,7 @@ class Simulation(Scene):
             start=LEFT, end=RIGHT, color=RED, buff=0.1,
             stroke_width=10, max_stroke_width_to_length_ratio=15,
             max_tip_length_to_length_ratio=0.5, tip_length=0.2,
-        ).scale(0.3).next_to(code, LEFT).align_to(code, UP).shift(0.66 * DOWN)
+        ).scale(0.3).next_to(code[2], LEFT)
         self.play(Create(arrow), run_time=0.2)
 
         def burn(vertex: int, run_time: float = 0.5, scale: float = 0.6):
@@ -1644,5 +1644,5 @@ class Simulation(Scene):
                 icon.add_updater(update_fire)
 
         # Move the arrow to the while loop
-        self.play(arrow.animate.shift(0.96 * DOWN), run_time=0.2)
+        self.play(arrow.animate.next_to(code[5], LEFT), run_time=0.2)
         self.wait(0.2)
