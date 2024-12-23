@@ -1716,3 +1716,10 @@ class Simulation(Scene):
             lag_ratio=0.5,
         ))
         self.wait(1)
+
+
+class BFSOnGrids(Scene):
+    def construct(self):
+        title = Title('BFS on Grids', include_underline=False)
+        self.add(title)
+        self.wait(0.1)
