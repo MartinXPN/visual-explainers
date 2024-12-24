@@ -1875,3 +1875,27 @@ class BFSOnGrids(Scene):
         )
         self.wait(1)
 
+
+class BFSOnGridsImplementation(Scene):
+    def construct(self):
+        title = Title('BFS on Grids', include_underline=False)
+        grid_code = Code(
+            code=dedent('''
+                g = [
+                    '~~~~~~~~#~',
+                    '~##~~~~###',
+                    '~#~~~~~~~~',
+                    '~~~~~~###~',
+                    '~~~~#####~',
+                    '~#~~~##~~~',
+                    '#~~~~~#~~~',
+                ]
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).code.scale(1.2).next_to(title, DOWN, buff=1)
+        self.add(title, grid_code)
+        self.wait(0.1)
