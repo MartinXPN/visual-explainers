@@ -1,5 +1,6 @@
 import math
 import random
+from collections import deque
 from textwrap import dedent
 
 import networkx as nx
@@ -1723,3 +1724,154 @@ class BFSOnGrids(Scene):
         title = Title('BFS on Grids', include_underline=False)
         self.add(title)
         self.wait(0.1)
+
+        grid_code = Code(
+            code=dedent('''
+                g = [
+                    '~~~~~~~~#~',
+                    '~##~~~~###',
+                    '~#~~~~~~~~',
+                    '~~~~~~###~',
+                    '~~~~#####~',
+                    '~#~~~##~~~',
+                    '#~~~~~#~~~',
+                ]
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).code.scale(1.2).next_to(title, DOWN, buff=1)
+        self.play(Write(grid_code), run_time=0.5)
+        self.wait(0.1)
+
+        grid = [
+            '~~~~~~~~#~',
+            '~##~~~~###',
+            '~#~~~~~~~~',
+            '~~~~~~###~',
+            '~~~~#####~',
+            '~#~~~##~~~',
+            '#~~~~~#~~~',
+        ]
+        used = [[False] * len(grid[0]) for _ in range(len(grid))]
+
+        # Indicate the hashtags
+        hashtags = [(r + 1, c + 2) for r in range(len(grid)) for c in range(len(grid[0])) if grid[r][c] == '#']
+        tildas = [(r + 1, c + 2) for r in range(len(grid)) for c in range(len(grid[0])) if grid[r][c] == '~']
+        self.play(*[Indicate(grid_code[r][c], scale_factor=1.5, color=ORANGE) for r, c in hashtags], run_time=1)
+        self.wait(0.1)
+        self.play(*[Indicate(grid_code[r][c], scale_factor=1.5, color=BLUE) for r, c in tildas], run_time=1)
+        self.wait(0.1)
+
+        self.play(LaggedStart(
+            Indicate(grid_code[5][8], scale_factor=1.5, color=YELLOW),
+            AnimationGroup(
+                Indicate(grid_code[6][8], scale_factor=1.5, color=ORANGE),
+                Indicate(grid_code[4][8], scale_factor=1.5, color=ORANGE),
+                Indicate(grid_code[5][9], scale_factor=1.5, color=ORANGE),
+                Indicate(grid_code[5][7], scale_factor=1.5, color=ORANGE),
+            ),
+            lag_ratio=0.1,
+            run_time=1,
+        ))
+        self.wait(0.1)
+
+        left_question_mark = Text('?', font_size=100).next_to(grid_code, LEFT, buff=1).rotate(PI / 8)
+        right_question_mark = Text('?', font_size=100).next_to(grid_code, RIGHT, buff=2).rotate(-PI / 8)
+        self.play(Wiggle(left_question_mark), Wiggle(right_question_mark), run_time=1)
+        self.play(FadeOut(left_question_mark, right_question_mark), run_time=0.5)
+        self.wait(0.1)
+
+        # Animate the BFS process on the bottom island
+        self.play(LaggedStart(
+            Indicate(grid_code[5][8], scale_factor=1.5, color=ORANGE),
+            AnimationGroup(
+                Indicate(grid_code[6][8], scale_factor=1.5, color=ORANGE),
+                Indicate(grid_code[4][8], scale_factor=1.5, color=ORANGE),
+                Indicate(grid_code[5][9], scale_factor=1.5, color=ORANGE),
+                Indicate(grid_code[5][7], scale_factor=1.5, color=ORANGE),
+            ),
+            AnimationGroup(
+                Indicate(grid_code[7][8], scale_factor=1.5, color=ORANGE),
+                Indicate(grid_code[6][7], scale_factor=1.5, color=ORANGE),
+                Indicate(grid_code[5][6], scale_factor=1.5, color=ORANGE),
+                Indicate(grid_code[5][10], scale_factor=1.5, color=ORANGE),
+                Indicate(grid_code[4][9], scale_factor=1.5, color=ORANGE),
+            ),
+            AnimationGroup(
+                Indicate(grid_code[4][10], scale_factor=1.5, color=ORANGE),
+            ),
+            lag_ratio=0.2,
+            run_time=1,
+        ))
+        self.wait(0.1)
+
+        self.play(*[
+            Wiggle(grid_code[i][j], scale_value=1.3, rotation_angle=0.04 * TAU, n_wiggles=5)
+            for i in range(1, len(grid) + 1)
+            for j in range(2, len(grid[0]) + 2)
+        ], run_time=2)
+        self.wait(0.1)
+        # hashtags = [(r + 1, c + 2) for r in range(len(grid)) for c in range(len(grid[0])) if grid[r][c] == '#']
+
+        def burn(row: int, col: int):
+            fire_icon = SVGMobject('bfs/fire.svg').scale(0.2).move_to(grid_code[row + 1][col + 2])
+            fire_icon.set_z_index(5)
+            self.add(fire_icon)
+            fire_icon.add_updater(update_fire)
+            return fire_icon
+
+        def spread_fire(row: int, col: int):
+            """ Perform a BFS starting from the given cell """
+            q = deque([(row, col)])
+            fire_icons = []
+            while q:
+                r, c = q.popleft()
+                # Add circle around the current cell
+                # circle = DashedVMobject(Circle(radius=0.25, color=ORANGE)).move_to(grid_code[r + 1][c + 2])
+                # self.play(Create(circle), run_time=0.2)
+                # self.wait(0.1)
+                for dr, dc in ((0, 1), (0, -1), (1, 0), (-1, 0)):
+                    nr, nc = r + dr, c + dc
+                    if 0 <= nr < len(grid) and 0 <= nc < len(grid[0]) and grid[nr][nc] == '#' and not used[nr][nc]:
+                        used[nr][nc] = True
+                        q.append((nr, nc))
+                        fire_icons.append(burn(nr, nc))
+                        self.wait(0.1)
+                # self.play(FadeOut(circle), run_time=0.1)
+            return fire_icons
+
+        # Iterate through the grid and perform BFS from each island cell
+        all_fire_icons = []
+        iteration_animations = []
+        for r in range(len(grid)):
+            for c in range(len(grid[0])):
+                iteration_animations.append(Indicate(grid_code[r + 1][c + 2], scale_factor=1.5, color=YELLOW))
+                if grid[r][c] == '#' and not used[r][c]:
+                    self.play(LaggedStart(
+                        *iteration_animations,
+                        lag_ratio=0.3,
+                        run_time=0.1 * len(iteration_animations),
+                    ))
+                    used[r][c] = True
+                    all_fire_icons.append(burn(r, c))
+                    all_fire_icons += spread_fire(r, c)
+                    iteration_animations.clear()
+                    self.wait(0.5)
+        self.play(LaggedStart(
+            *iteration_animations,
+            lag_ratio=0.3,
+            run_time=0.1 * len(iteration_animations),
+        ))
+        iteration_animations.clear()
+        self.wait(0.1)
+
+        # Transition to the next scene
+        self.play(
+            FadeOut(*all_fire_icons),
+            run_time=0.5,
+        )
+        self.wait(1)
+
