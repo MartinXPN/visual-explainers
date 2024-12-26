@@ -2412,3 +2412,10 @@ class BFSOnGridsSimulation(Scene):
 
         self.play(LaggedStart(FadeOut(title), FadeOut(islands_counter_mobj), lag_ratio=0.5, run_time=0.5))
         self.wait(0.1)
+
+
+class ShortestPath(Scene):
+    def construct(self):
+        title = Title('Shortest Path', include_underline=False)
+        self.play(Write(title), run_time=0.5)
+        self.wait(0.1)
