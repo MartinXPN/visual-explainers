@@ -1898,4 +1898,258 @@ class BFSOnGridsImplementation(Scene):
             style='monokai',
         ).code.scale(1.2).next_to(title, DOWN, buff=1)
         self.add(title, grid_code)
+        self.play(grid_code.animate.scale(1 / 1.2).next_to(title, DOWN, buff=1).shift(2 * LEFT))
+
+        def get_initialization_code(counter: int):
+            return Code(
+            code=dedent(f'''
+                used = [[False] * len(line) for line in g]
+                islands = {counter}
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).code.next_to(grid_code, DOWN, buff=0.2).align_to(grid_code, LEFT)
+
+        initialization_code = {i: get_initialization_code(i) for i in range(6)}
+        self.play(AddTextLetterByLetter(initialization_code[0][0], run_time=0.01 * len(initialization_code[0][0])))
+        self.wait(0.1)
+        self.play(AddTextLetterByLetter(initialization_code[0][1], run_time=0.01 * len(initialization_code[0][1])))
+        self.wait(0.1)
+
+        # Highlight each island one by one and increment the islands counter
+        self.play(LaggedStart(
+            LaggedStart(
+                Indicate(grid_code[1][10], scale_factor=1.5, color=ORANGE),
+                Indicate(grid_code[2][10], scale_factor=1.5, color=ORANGE),
+                AnimationGroup(
+                    Indicate(grid_code[2][9], scale_factor=1.5, color=ORANGE),
+                    Indicate(grid_code[2][11], scale_factor=1.5, color=ORANGE),
+                ),
+                lag_ratio=0.1,
+            ),
+            TransformMatchingShapes(initialization_code[0], initialization_code[1]),
+            lag_ratio=0.1,
+            run_time=0.5,
+        ))
+
+        self.play(LaggedStart(
+            LaggedStart(
+                Indicate(grid_code[2][3], scale_factor=1.5, color=ORANGE),
+                AnimationGroup(
+                    Indicate(grid_code[2][4], scale_factor=1.5, color=ORANGE),
+                    Indicate(grid_code[3][3], scale_factor=1.5, color=ORANGE),
+                ),
+                lag_ratio=0.1,
+            ),
+            TransformMatchingShapes(initialization_code[1], initialization_code[2]),
+            lag_ratio=0.1,
+            run_time=0.5,
+        ))
+
+        self.play(LaggedStart(
+            LaggedStart(
+                Indicate(grid_code[5][8], scale_factor=1.5, color=ORANGE),
+                AnimationGroup(
+                    Indicate(grid_code[6][8], scale_factor=1.5, color=ORANGE),
+                    Indicate(grid_code[4][8], scale_factor=1.5, color=ORANGE),
+                    Indicate(grid_code[5][9], scale_factor=1.5, color=ORANGE),
+                    Indicate(grid_code[5][7], scale_factor=1.5, color=ORANGE),
+                ),
+                AnimationGroup(
+                    Indicate(grid_code[7][8], scale_factor=1.5, color=ORANGE),
+                    Indicate(grid_code[6][7], scale_factor=1.5, color=ORANGE),
+                    Indicate(grid_code[5][6], scale_factor=1.5, color=ORANGE),
+                    Indicate(grid_code[5][10], scale_factor=1.5, color=ORANGE),
+                    Indicate(grid_code[4][9], scale_factor=1.5, color=ORANGE),
+                ),
+                Indicate(grid_code[4][10], scale_factor=1.5, color=ORANGE),
+                lag_ratio=0.1,
+            ),
+            TransformMatchingShapes(initialization_code[2], initialization_code[3]),
+            lag_ratio=0.1,
+            run_time=1,
+        ))
+
+        self.play(LaggedStart(
+            Indicate(grid_code[6][3], scale_factor=1.5, color=ORANGE),
+            TransformMatchingShapes(initialization_code[3], initialization_code[4]),
+            lag_ratio=0.1,
+            run_time=0.5,
+        ))
+
+        self.play(LaggedStart(
+            Indicate(grid_code[7][2], scale_factor=1.5, color=ORANGE),
+            TransformMatchingShapes(initialization_code[4], initialization_code[5]),
+            lag_ratio=0.1,
+            run_time=1,
+        ))
+        self.wait(0.1)
+
+        # Reset the counter to 0
+        self.play(TransformMatchingShapes(initialization_code[5], initialization_code[0]), run_time=0.5)
+        self.wait(0.1)
+
+        self.play(
+            grid_code.animate.scale(0.75).next_to(title, DOWN, buff=0.5).to_edge(RIGHT, buff=2),
+            FadeOut(initialization_code[0]),
+            run_time=0.5,
+        )
+        self.wait(0.1)
+
+        loops_code = Code(
+            code=dedent('''
+                for i in range(len(g)):
+                    for j in range(len(g[i])):
+                        if g[i][j] == '#' and not used[i][j]:
+                            bfs(i, j)
+                            islands += 1
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).code.scale(0.75).next_to(title, DOWN, buff=0.5).to_edge(LEFT, buff=1)
+        iteration_animations = []
+        grid = [
+            '~~~~~~~~#~',
+            '~##~~~~###',
+            '~#~~~~~~~~',
+            '~~~~~~###~',
+            '~~~~#####~',
+            '~#~~~##~~~',
+            '#~~~~~#~~~',
+        ]
+        for c in range(len(grid[0])):
+            iteration_animations.append(Indicate(grid_code[1][c + 2], scale_factor=1.5, color=YELLOW))
+            if grid[0][c] == '#':
+                break
+        self.play(AddTextLetterByLetter(loops_code[0], run_time=0.01 * len(loops_code[0])))
+        self.play(AddTextLetterByLetter(loops_code[1], run_time=0.01 * len(loops_code[1])))
+        self.wait(0.1)
+        self.play(LaggedStart(*iteration_animations, lag_ratio=0.1), run_time=1)
+        self.wait(0.1)
+        self.play(AddTextLetterByLetter(loops_code[2], run_time=0.01 * len(loops_code[2])))
+        self.wait(0.1)
+        self.play(AddTextLetterByLetter(loops_code[3], run_time=0.01 * len(loops_code[3])))
+        self.play(AddTextLetterByLetter(loops_code[4], run_time=0.01 * len(loops_code[4])))
+        self.wait(0.1)
+
+
+        bfs_code = Code(
+            code=dedent('''
+                def bfs(row, col):
+                    from collections import deque
+                    
+                    used[row][col] = True
+                    q = deque([(row, col)])
+                    
+                    while q:
+                        r, c = q.popleft()
+                        
+                        if 0 <= r - 1 < len(g) and g[r - 1][c] == '#' and not used[r - 1][c]:
+                            used[r - 1][c] = True
+                            q.append((r - 1, c))
+                        if 0 <= r + 1 < len(g) and g[r + 1][c] == '#' and not used[r + 1][c]:
+                            used[r + 1][c] = True
+                            q.append((r + 1, c))
+                        if 0 <= c - 1 < len(g[r]) and g[r][c - 1] == '#' and not used[r][c - 1]:
+                            used[r][c - 1] = True
+                            q.append((r, c - 1))
+                        if 0 <= c + 1 < len(g[r]) and g[r][c + 1] == '#' and not used[r][c + 1]:
+                            used[r][c + 1] = True
+                            q.append((r, c + 1))
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).code.scale(0.75).next_to(loops_code, DOWN, buff=0.5).to_edge(LEFT, buff=1)
+        self.play(AddTextLetterByLetter(bfs_code[0], run_time=0.01 * len(bfs_code[0])))
+        self.play(AddTextLetterByLetter(bfs_code[1], run_time=0.01 * len(bfs_code[1])))
+        self.wait(0.1)
+
+        self.play(AddTextLetterByLetter(bfs_code[3], run_time=0.01 * len(bfs_code[3])))
+        self.play(AddTextLetterByLetter(bfs_code[4], run_time=0.01 * len(bfs_code[4])))
+        self.wait(0.1)
+
+        self.play(FadeOut(loops_code), run_time=0.5)
+        self.play(
+            VGroup(*bfs_code[0: 5]).animate.next_to(title, DOWN, buff=0.5).to_edge(LEFT, buff=1),
+            run_time=0.5,
+        )
+        VGroup(*bfs_code[5:]).next_to(bfs_code[4], DOWN, buff=0).align_to(bfs_code[4], LEFT)
+        self.wait(0.1)
+
+        self.play(AddTextLetterByLetter(bfs_code[6], run_time=0.01 * len(bfs_code[6])))
+        self.play(AddTextLetterByLetter(bfs_code[7], run_time=0.01 * len(bfs_code[7])))
+        self.wait(0.1)
+
+        self.play(AddTextLetterByLetter(bfs_code[9], run_time=0.01 * len(bfs_code[9])))
+        self.wait(0.1)
+        self.play(AddTextLetterByLetter(bfs_code[10], run_time=0.01 * len(bfs_code[10])))
+        self.play(AddTextLetterByLetter(bfs_code[11], run_time=0.01 * len(bfs_code[11])))
+        self.wait(0.1)
+
+        self.play(AddTextLetterByLetter(bfs_code[12], run_time=0.01 * len(bfs_code[12])))
+        self.play(AddTextLetterByLetter(bfs_code[13], run_time=0.01 * len(bfs_code[13])))
+        self.play(AddTextLetterByLetter(bfs_code[14], run_time=0.01 * len(bfs_code[14])))
+        self.wait(0.1)
+
+        self.play(AddTextLetterByLetter(bfs_code[15], run_time=0.01 * len(bfs_code[15])))
+        self.play(AddTextLetterByLetter(bfs_code[16], run_time=0.01 * len(bfs_code[16])))
+        self.play(AddTextLetterByLetter(bfs_code[17], run_time=0.01 * len(bfs_code[17])))
+        self.wait(0.1)
+
+        self.play(AddTextLetterByLetter(bfs_code[18], run_time=0.01 * len(bfs_code[18])))
+        self.play(AddTextLetterByLetter(bfs_code[19], run_time=0.01 * len(bfs_code[19])))
+        self.play(AddTextLetterByLetter(bfs_code[20], run_time=0.01 * len(bfs_code[20])))
+        self.wait(0.1)
+
+        # Highlight the diagonal neighbors
+        self.play(LaggedStart(
+            Indicate(grid_code[5][8], scale_factor=1.5, color=ORANGE),
+            AnimationGroup(
+                Indicate(grid_code[6][8], scale_factor=1.5, color=YELLOW),
+                Indicate(grid_code[4][8], scale_factor=1.5, color=YELLOW),
+                Indicate(grid_code[5][9], scale_factor=1.5, color=YELLOW),
+                Indicate(grid_code[5][7], scale_factor=1.5, color=YELLOW),
+            ),
+            AnimationGroup(
+                Indicate(grid_code[6][9], scale_factor=1.5, color=RED),
+                Indicate(grid_code[4][7], scale_factor=1.5, color=RED),
+                Indicate(grid_code[4][9], scale_factor=1.5, color=RED),
+                Indicate(grid_code[6][7], scale_factor=1.5, color=RED),
+            ),
+            lag_ratio=0.1,
+            run_time=3,
+        ))
+
+        # Indicate the if statements
+        self.play(LaggedStart(
+            Indicate(bfs_code[9]),
+            Indicate(bfs_code[12]),
+            Indicate(bfs_code[15]),
+            Indicate(bfs_code[18]),
+            lag_ratio=0.2,
+            run_time=1,
+        ))
+
+        # Wave the if statements
+        self.play(LaggedStart(
+            ApplyWave(bfs_code[9]),
+            ApplyWave(bfs_code[12]),
+            ApplyWave(bfs_code[15]),
+            ApplyWave(bfs_code[18]),
+            lag_ratio=0.2,
+            run_time=1,
+        ))
+
+
+
+
         self.wait(0.1)
