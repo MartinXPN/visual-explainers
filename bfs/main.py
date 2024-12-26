@@ -1993,7 +1993,7 @@ class BFSOnGridsImplementation(Scene):
         self.wait(0.1)
 
         self.play(
-            grid_code.animate.scale(0.75).next_to(title, DOWN, buff=0.5).to_edge(RIGHT, buff=2),
+            grid_code.animate.scale(0.8).next_to(title, DOWN, buff=0.5).to_edge(RIGHT, buff=2),
             FadeOut(initialization_code[0]),
             run_time=0.5,
         )
@@ -2077,8 +2077,8 @@ class BFSOnGridsImplementation(Scene):
         self.play(AddTextLetterByLetter(bfs_code[4], run_time=0.01 * len(bfs_code[4])))
         self.wait(0.1)
 
-        self.play(FadeOut(loops_code), run_time=0.5)
         self.play(
+            loops_code.animate.shift(2 * UP).set_opacity(0),
             VGroup(*bfs_code[0: 5]).animate.next_to(title, DOWN, buff=0.5).to_edge(LEFT, buff=1),
             run_time=0.5,
         )
@@ -2126,8 +2126,9 @@ class BFSOnGridsImplementation(Scene):
                 Indicate(grid_code[6][7], scale_factor=1.5, color=RED),
             ),
             lag_ratio=0.1,
-            run_time=3,
+            run_time=1,
         ))
+        self.wait(0.1)
 
         # Indicate the if statements
         self.play(LaggedStart(
@@ -2136,8 +2137,10 @@ class BFSOnGridsImplementation(Scene):
             Indicate(bfs_code[15]),
             Indicate(bfs_code[18]),
             lag_ratio=0.2,
-            run_time=1,
+            run_time=0.5,
         ))
+        self.wait(0.1)
+
 
         # Wave the if statements
         self.play(LaggedStart(
@@ -2146,10 +2149,77 @@ class BFSOnGridsImplementation(Scene):
             ApplyWave(bfs_code[15]),
             ApplyWave(bfs_code[18]),
             lag_ratio=0.2,
-            run_time=1,
+            run_time=0.5,
         ))
+        self.wait(0.1)
+
+        # Transition to the next scene
+        init = get_initialization_code(0).scale(0.75).next_to(title, DOWN, buff=0.5).to_edge(LEFT, buff=1).shift(2 * UP)
+        self.play(
+            bfs_code.animate.shift(2 * DOWN).set_opacity(0),
+            init.animate.shift(2 * DOWN),
+            loops_code.animate.next_to(init, DOWN, buff=0.5).align_to(init, LEFT).shift(2 * DOWN).set_opacity(1),
+            run_time=0.5,
+        )
+        self.wait(0.1)
 
 
+class BFSOnGridsSimulation(Scene):
+    def construct(self):
+        title = Title('BFS on Grids', include_underline=False)
+        grid_code = Code(
+            code=dedent('''
+                g = [
+                    '~~~~~~~~#~',
+                    '~##~~~~###',
+                    '~#~~~~~~~~',
+                    '~~~~~~###~',
+                    '~~~~#####~',
+                    '~#~~~##~~~',
+                    '#~~~~~#~~~',
+                ]
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).code.scale(0.8).next_to(title, DOWN, buff=0.5).to_edge(RIGHT, buff=2)
+        self.add(title, grid_code)
 
+        init_code = Code(
+            code=dedent(f'''
+                used = [[False] * len(line) for line in g]
+                islands = 0
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).code.scale(0.75).next_to(title, DOWN, buff=0.5).to_edge(LEFT, buff=1)
 
+        loops_code = Code(
+            code=dedent('''
+                for i in range(len(g)):
+                    for j in range(len(g[i])):
+                        if g[i][j] == '#' and not used[i][j]:
+                            bfs(i, j)
+                            islands += 1
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).code.scale(0.75).next_to(init_code, DOWN, buff=0.5).to_edge(LEFT, buff=1)
+        self.add(init_code, loops_code)
+        self.wait(0.1)
+
+        arrow = Arrow(
+            start=LEFT, end=RIGHT, color=RED, buff=0.1,
+            stroke_width=10, max_stroke_width_to_length_ratio=15,
+            max_tip_length_to_length_ratio=0.5, tip_length=0.2,
+        ).scale(0.3).next_to(init_code[0], LEFT)
+        self.play(Create(arrow), run_time=0.2)
         self.wait(0.1)
