@@ -2419,3 +2419,137 @@ class ShortestPath(Scene):
         title = Title('Shortest Path', include_underline=False)
         self.play(Write(title), run_time=0.5)
         self.wait(0.1)
+
+        vertices = list(range(len(g)))
+        edges = [(i, j) for i, neighbors in enumerate(g) for j in neighbors]
+        graph = Graph(
+            vertices, edges,
+            layout=layout,
+            vertex_config={'radius': 0.4, 'stroke_width': 0, 'fill_color': WHITE},
+            edge_config={'stroke_width': 5},
+        ).scale(0.9).shift(1.5 * DOWN)
+
+        clock = SVGMobject('bfs/clock.svg').scale(0.3)
+        clocks = VGroup(*[
+            clock.copy().move_to(graph.vertices[i]).set_fill(ORANGE if i == 7 else BLACK) for i in range(len(g))
+        ])
+        burning_times = {7: 0}
+        burning_times_mobjects = {}
+        burned_edges = []
+
+        self.play(Create(graph), *[Create(p) for p in clocks], run_time=0.5)
+        self.wait(0.2)
+
+        def burn(vertex: int, run_time: float = 0.5):
+            fire_icon = SVGMobject('bfs/fire.svg').scale(0.6).move_to(graph.vertices[vertex], DOWN)
+            fire_icon.set_z_index(5)
+            self.play(ShowIncreasingSubsets(fire_icon, run_time=run_time))
+            fire_icon.add_updater(update_fire)
+            self.wait(run_time)
+
+            burning_times_mobjects[vertex] = Text(f'{burning_times[vertex]}').scale(0.8).move_to(graph.vertices[vertex]).set_z_index(100000).set_color(ORANGE)
+            self.play(FadeOut(clocks[vertex]), ReplacementTransform(fire_icon, burning_times_mobjects[vertex]), run_time=run_time)
+
+        def spread_fire(source: int, target: int, run_time: float = 0.5):
+            sparkler = SVGMobject('bfs/sparks.svg').scale(0.2).move_to(graph.vertices[source], DOWN).set_fill('#ff9d33')
+            sparkler.set_z_index(5)
+            burning_times[target] = burning_times[source] + 1
+
+            edge = Line(graph.vertices[source].get_center(), graph.vertices[target].get_center(), buff=0.36)
+            burned_edge = VMobject()
+            burned_edge.add_updater(lambda x: x.become(Line(
+                edge.get_start(), sparkler.get_center(), stroke_width=6,
+            ).set_color(DARK_GRAY)))
+            self.add(sparkler, burned_edge)
+            burned_edges.append(burned_edge)
+
+            self.play(MoveAlongPath(sparkler, edge, run_time=run_time, rate_func=linear))
+            self.remove(sparkler)
+            burn(target, run_time=run_time / 2)
+
+        burn(7)
+        self.wait(0.5)
+        spread_fire(7, 5, run_time=0.3)
+        spread_fire(7, 6, run_time=0.3)
+        self.wait(0.5)
+        spread_fire(5, 8, run_time=0.2)
+        spread_fire(5, 4, run_time=0.2)
+        spread_fire(5, 3, run_time=0.2)
+        self.wait(0.5)
+        spread_fire(6, 10, run_time=0.2)
+        spread_fire(8, 9, run_time=0.2)
+        self.wait(0.2)
+        spread_fire(10, 11, run_time=0.3)
+        spread_fire(9, 2, run_time=0.3)
+        self.wait(0.2)
+        spread_fire(2, 0, run_time=0.1)
+        spread_fire(2, 1, run_time=0.1)
+        self.wait(0.5)
+
+        # Highlight the path 7 -> 5 -> 8 -> 9 -> 2 with ShowPassingFlash with LaggedStart
+        path = [7, 5, 8, 9, 2]
+        path_edges = [(path[i], path[i + 1]) for i in range(len(path) - 1)]
+        self.play(LaggedStart(*[
+            ShowPassingFlash(edge.copy().set_z_index(100000).set_color(ORANGE).set_stroke(width=9), time_width=0.5)
+            for edge in VGroup(*[graph.edges[edge] for edge in path_edges])
+        ],
+            lag_ratio=0.4,
+            run_time=2,
+        ))
+        self.wait(0.5)
+
+        # Transition to the next scene
+        grid_code = Code(
+            code=dedent('''
+                g = [
+                    '#####...#',
+                    '#..#..#.E',
+                    '#.##....#',
+                    '#..#.#...',
+                    '.....##.#',
+                    '#...#...#',
+                    '#.S...###',
+                ]
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).code.scale(1.2).next_to(title, DOWN, buff=1)
+
+        self.play(LaggedStart(
+            FadeOut(*burning_times_mobjects.values()),
+            FadeOut(*[clocks[vertex] for vertex in range(len(g)) if vertex not in burning_times]),
+            FadeOut(*burned_edges),
+            FadeOut(graph),
+            Write(grid_code),
+            lag_ratio=0.2,
+            run_time=1,
+        ))
+        self.wait(0.1)
+
+
+class ShortestPathOnGrids(Scene):
+    def construct(self):
+        title = Title('Shortest Path', include_underline=False)
+        grid_code = Code(
+            code=dedent('''
+                g = [
+                    '#####...#',
+                    '#..#..#.E',
+                    '#.##....#',
+                    '#..#.#...',
+                    '.....##.#',
+                    '#...#...#',
+                    '#.S...###',
+                ]
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).code.scale(1.2).next_to(title, DOWN, buff=1)
+        self.add(title, grid_code)
+        self.wait(0.1)
