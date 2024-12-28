@@ -2553,3 +2553,22 @@ class ShortestPathOnGrids(Scene):
         ).code.scale(1.2).next_to(title, DOWN, buff=1)
         self.add(title, grid_code)
         self.wait(0.1)
+
+        grid = [
+            '#####...#',
+            '#..#..#.E',
+            '#.##....#',
+            '#..#.#...',
+            '.....##.#',
+            '#...#...#',
+            '#.S...###',
+        ]
+        used = [[False] * len(grid[0]) for _ in range(len(grid))]
+
+        paths = [(r + 1, c + 2) for r in range(len(grid)) for c in range(len(grid[0])) if grid[r][c] == '.']
+        walls = [(r + 1, c + 2) for r in range(len(grid)) for c in range(len(grid[0])) if grid[r][c] == '#']
+        self.play(*[Indicate(grid_code[r][c], scale_factor=1.5, color=YELLOW) for r, c in paths], run_time=1)
+        self.wait(0.1)
+        self.play(*[Indicate(grid_code[r][c], scale_factor=1.5, color=RED) for r, c in walls], run_time=1)
+        self.wait(0.1)
+
