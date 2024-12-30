@@ -2758,3 +2758,60 @@ class ShortestPathOnGrids(Scene):
 
         self.play(AddTextLetterByLetter(init_code[2]), run_time=0.01 * len(init_code[2]))
         self.wait(0.1)
+
+        wide_grid_code = Code(
+            code=dedent('''
+                g = [
+                    ' #   #   #   #   #   .   .   .   #',
+                    ' #   .   .   #   .   .   #   .   E',
+                    ' #   .   #   #   .   .   .   .   #',
+                    ' #   .   .   #   .   #   .   .   .',
+                    ' .   .   .   .   .   #   #   .   #',
+                    ' #   .   .   .   #   .   .   .   #',
+                    ' #   .   S   .   .   .   #   #   #',
+                ]
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).code.scale(0.8).next_to(title, DOWN, buff=0.5).to_edge(RIGHT, buff=0.7)
+        self.play(FadeOut(dist_grid[7][10:12]), run_time=0.01)
+        self.play(
+            TransformMatchingShapes(grid_code, wide_grid_code),
+            init_code.animate.scale(0.8).next_to(title, DOWN, buff=0.5).to_edge(LEFT, buff=0.7),
+            dist_initial_grid.animate.scale(0.8).to_edge(RIGHT, buff=0.7).to_edge(DOWN, buff=1),
+            run_time=0.5,
+        )
+        self.wait(0.1)
+
+        bfs_code = Code(
+            code=dedent('''
+                while q:
+                    r, c = q.popleft()
+                    if 0 <= r - 1 < len(g) and g[r - 1][c] == '.' and d[r - 1][c] == -1:
+                        d[r - 1][c] = d[r][c] + 1
+                        q.append((r - 1, c))
+                    if 0 <= r + 1 < len(g) and g[r + 1][c] == '.' and d[r + 1][c] == -1:
+                        d[r + 1][c] = d[r][c] + 1
+                        q.append((r + 1, c))
+                    if 0 <= c - 1 < len(g[r]) and g[r][c - 1] == '.' and d[r][c - 1] == -1:
+                        d[r][c - 1] = d[r][c] + 1
+                        q.append((r, c - 1))
+                    if 0 <= c + 1 < len(g[r]) and g[r][c + 1] == '.' and d[r][c + 1] == -1:
+                        d[r][c + 1] = d[r][c] + 1
+                        q.append((r, c + 1))
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).code.scale(0.8).next_to(init_code, DOWN, buff=0.5).align_to(init_code, LEFT)
+
+        self.play(AddTextLetterByLetter(bfs_code[0], run_time=0.01 * len(bfs_code[0])))
+        self.wait(0.1)
+        self.play(AddTextLetterByLetter(bfs_code[1], run_time=0.01 * len(bfs_code[1])))
+        self.wait(0.1)
+
