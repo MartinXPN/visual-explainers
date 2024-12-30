@@ -1829,10 +1829,6 @@ class BFSOnGrids(Scene):
             fire_icons = []
             while q:
                 r, c = q.popleft()
-                # Add circle around the current cell
-                # circle = DashedVMobject(Circle(radius=0.25, color=ORANGE)).move_to(grid_code[r + 1][c + 2])
-                # self.play(Create(circle), run_time=0.2)
-                # self.wait(0.1)
                 for dr, dc in ((0, 1), (0, -1), (1, 0), (-1, 0)):
                     nr, nc = r + dr, c + dc
                     if 0 <= nr < len(grid) and 0 <= nc < len(grid[0]) and grid[nr][nc] == '#' and not used[nr][nc]:
@@ -1840,7 +1836,6 @@ class BFSOnGrids(Scene):
                         q.append((nr, nc))
                         fire_icons.append(burn(nr, nc))
                         self.wait(0.1)
-                # self.play(FadeOut(circle), run_time=0.1)
             return fire_icons
 
         # Iterate through the grid and perform BFS from each island cell
@@ -2551,6 +2546,24 @@ class ShortestPathOnGrids(Scene):
             font='Monospace',
             style='monokai',
         ).code.scale(1.2).next_to(title, DOWN, buff=1)
+        dist_code = Code(
+            code=dedent('''
+                d = [
+                    '#####9ⅩⅪ#',
+                    '#67#78#ⅩⅪ',
+                    '#5##6789#',
+                    '#43#5#989',
+                    '43234##7#',
+                    '#212#456#',
+                    '#10123###',
+                ]
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).code.scale(1.2).next_to(title, DOWN, buff=1)
         self.add(title, grid_code)
         self.wait(0.1)
 
@@ -2563,12 +2576,153 @@ class ShortestPathOnGrids(Scene):
             '#...#...#',
             '#.S...###',
         ]
-        used = [[False] * len(grid[0]) for _ in range(len(grid))]
 
         paths = [(r + 1, c + 2) for r in range(len(grid)) for c in range(len(grid[0])) if grid[r][c] == '.']
         walls = [(r + 1, c + 2) for r in range(len(grid)) for c in range(len(grid[0])) if grid[r][c] == '#']
-        self.play(*[Indicate(grid_code[r][c], scale_factor=1.5, color=YELLOW) for r, c in paths], run_time=1)
+        self.play(*[Indicate(grid_code[r][c], scale_factor=2.5, color=YELLOW) for r, c in paths], run_time=0.2)
         self.wait(0.1)
-        self.play(*[Indicate(grid_code[r][c], scale_factor=1.5, color=RED) for r, c in walls], run_time=1)
+        self.play(*[Indicate(grid_code[r][c], scale_factor=1.5, color=RED) for r, c in walls], run_time=0.2)
         self.wait(0.1)
 
+        # Highlight the starting coordinate and then the ending one
+        self.play(Indicate(grid_code[7][4], scale_factor=1.5, color=ORANGE), run_time=0.2)
+        self.wait(0.1)
+        self.play(Indicate(grid_code[2][10], scale_factor=1.5, color=ORANGE), run_time=0.2)
+        self.wait(0.1)
+
+        # Pass-through (ShowPassingFlash) from start to end
+        path = [(7, 4), (6, 4), (5, 4), (5, 5), (5, 6), (4, 6), (3, 6), (3, 7), (3, 8), (3, 9), (2, 9), (2, 10)]
+        self.play(LaggedStart(*[
+            ShowPassingFlash(Line(grid_code[u[0]][u[1]].get_center(), grid_code[v[0]][v[1]].get_center(), color=ORANGE, stroke_width=10), time_width=0.9)
+            for u, v in zip(path, path[1:])
+        ], lag_ratio=0.2, run_time=0.5))
+        self.wait(0.1)
+
+        def burn(row: int, col: int, shift: float = 0):
+            fire_icon = SVGMobject('bfs/fire.svg').scale(0.2).move_to(grid_code[row + 1][col + 2])
+            fire_icon.set_z_index(5)
+            animations = [ShowIncreasingSubsets(fire_icon.shift(shift * UP))]
+            return fire_icon, animations
+
+
+        dist = [[-1] * len(grid[0]) for _ in range(len(grid))]
+        def spread_fire(row: int, col: int, max_dist: int = 2):
+            """ Perform a BFS starting from the given cell """
+            dist[row][col] = 0
+            q = deque([(row, col)])
+            fire_icons, all_animations = {}, []
+            fire, animations = burn(row, col, shift=0)
+            fire_icons[(row, col)] = fire
+            all_animations += animations
+            while q:
+                r, c = q.popleft()
+                for dr, dc in ((0, 1), (0, -1), (1, 0), (-1, 0)):
+                    nr, nc = r + dr, c + dc
+                    if 0 <= nr < len(grid) and 0 <= nc < len(grid[0]) and (grid[nr][nc] == '.' or grid[nr][nc] == 'E') and dist[nr][nc] == -1:
+                        dist[nr][nc] = dist[r][c] + 1
+                        if dist[nr][nc] > max_dist:
+                            continue
+                        q.append((nr, nc))
+                        fire, animations = burn(nr, nc, shift=0.1 if grid[nr][nc] != 'E' else 0)
+                        fire_icons[(nr, nc)] = fire
+                        all_animations += animations
+                all_animations += [
+                    FadeOut(grid_code[r + 1][c + 2]),
+                    FadeIn(dist_code[r + 1][c + 2]),
+                    FadeOut(fire_icons[(r, c)]),
+                ]
+
+            return fire_icons, all_animations
+
+        all_fires, all_anims = spread_fire(6, 2, max_dist=2)
+        self.play(LaggedStart(*all_anims, lag_ratio=0.7, run_time=1))
+        self.wait(0.5)
+
+        dist_initial_grid = Code(
+            code=dedent('''
+                d = [
+                    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+                    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+                    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+                    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+                    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+                    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+                    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+                ]
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).code.next_to(title, DOWN, buff=1).to_edge(RIGHT, buff=1)
+
+        dist_grid = Code(
+            code=dedent('''
+                d = [
+                    [-1, -1, -1, -1, -1,  9, 10, 11, -1],
+                    [-1,  6,  7, -1,  7,  8, -1, 10, 11],
+                    [-1,  5, -1, -1,  6,  7,  8,  9, -1],
+                    [-1,  4,  3, -1,  5, -1,  9,  8,  9],
+                    [ 4,  3,  2,  3,  4, -1, -1,  7, -1],
+                    [-1,  2,  1,  2, -1,  4,  5,  6, -1],
+                    [-1,  1,  0,  1,  2,  3, -1, -1, -1],
+                ]
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).code.next_to(title, DOWN, buff=1).to_edge(RIGHT, buff=1)
+
+        self.remove(
+            dist_code[7][3], dist_code[7][4], dist_code[7][5], dist_code[7][6],
+            dist_code[6][3], dist_code[6][4], dist_code[6][5],
+            dist_code[5][4],
+        )
+        self.play(grid_code.animate.scale(1 / 1.2).next_to(title, DOWN, buff=1).to_edge(LEFT, buff=1), run_time=0.2)
+        self.wait(0.1)
+
+        self.play(Indicate(grid_code[7][4], color=ORANGE, scale_factor=1.5), run_time=0.2)
+        self.wait(0.1)
+
+        self.play(Write(dist_initial_grid), run_time=0.2)
+        self.wait(0.1)
+
+        # Wiggle all the -1 cells
+        self.play(*[
+            Wiggle(VGroup(line[i], line[i + 1]), scale_value=1.5, rotation_angle=0.02 * TAU)
+            for line in dist_initial_grid[1:-1]
+            for i in range(2, len(line) - 1, 4)
+        ], run_time=0.5)
+        self.wait(0.1)
+
+        # Replace the -1 of the starting coordinate with 0
+        self.play(ReplacementTransform(dist_initial_grid[7][10:12], dist_grid[7][10:12]), run_time=0.5)
+        self.wait(0.1)
+
+        # Indicate the neighbors
+        self.play(
+            Indicate(dist_initial_grid[7][6:8], scale_factor=1.5),
+            Indicate(dist_initial_grid[6][10:12], scale_factor=1.5),
+            Indicate(dist_initial_grid[7][14:16], scale_factor=1.5),
+            run_time=0.2,
+        )
+        self.wait(0.1)
+
+        # Set the neighbor values to 1 (dist_grid)
+        self.play(
+            ReplacementTransform(dist_initial_grid[7][6:8], dist_grid[7][6:8]),
+            ReplacementTransform(dist_initial_grid[6][10:12], dist_grid[6][10:12]),
+            ReplacementTransform(dist_initial_grid[7][14:16], dist_grid[7][14:16]),
+            run_time=0.2,
+        )
+        self.wait(0.1)
+
+        # Pass-through (ShowPassingFlash) from start to end
+        self.play(LaggedStart(*[
+            ShowPassingFlash(Line(grid_code[u[0]][u[1]].get_center(), grid_code[v[0]][v[1]].get_center(), color=ORANGE, stroke_width=10), time_width=0.9)
+            for u, v in zip(path, path[1:])
+        ], lag_ratio=0.2, run_time=0.5))
+        self.wait(0.1)
