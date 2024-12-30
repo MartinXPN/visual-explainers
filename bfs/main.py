@@ -2699,6 +2699,7 @@ class ShortestPathOnGrids(Scene):
         self.wait(0.1)
 
         # Replace the -1 of the starting coordinate with 0
+        dist_initial_grid.save_state()
         self.play(ReplacementTransform(dist_initial_grid[7][10:12], dist_grid[7][10:12]), run_time=0.5)
         self.wait(0.1)
 
@@ -2725,4 +2726,35 @@ class ShortestPathOnGrids(Scene):
             ShowPassingFlash(Line(grid_code[u[0]][u[1]].get_center(), grid_code[v[0]][v[1]].get_center(), color=ORANGE, stroke_width=10), time_width=0.9)
             for u, v in zip(path, path[1:])
         ], lag_ratio=0.2, run_time=0.5))
+        self.wait(0.1)
+
+
+        init_code = Code(
+            code=dedent('''
+                d = [[-1] * len(line) for line in g]
+                d[6][2] = 0
+                q = deque([(6, 2)])
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).code.to_edge(DOWN, buff=1)
+
+        # Bring back the distance code
+        self.play(AddTextLetterByLetter(init_code[0]), run_time=0.01 * len(init_code[0]))
+        self.play(
+            FadeOut(dist_grid[7][10:12], dist_grid[7][6:8], dist_grid[6][10:12], dist_grid[7][14:16]),
+            Restore(dist_initial_grid),
+            run_time=0.1,
+        )
+        self.wait(0.1)
+
+        # Replace the -1 of the starting coordinate with 0
+        self.play(AddTextLetterByLetter(init_code[1]), run_time=0.01 * len(init_code[1]))
+        self.play(ReplacementTransform(dist_initial_grid[7][10:12], dist_grid[7][10:12]), run_time=0.5)
+        self.wait(0.1)
+
+        self.play(AddTextLetterByLetter(init_code[2]), run_time=0.01 * len(init_code[2]))
         self.wait(0.1)
