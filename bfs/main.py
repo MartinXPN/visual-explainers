@@ -2787,21 +2787,18 @@ class ShortestPathOnGrids(Scene):
         self.wait(0.1)
 
         bfs_code = Code(
-            code=dedent('''
+            code=dedent(r'''
                 while q:
                     r, c = q.popleft()
-                    if 0 <= r - 1 < len(g) and g[r - 1][c] == '.' and d[r - 1][c] == -1:
+                    if 0 <= r - 1 < len(g) and \
+                            g[r - 1][c] == '.' and \
+                            d[r - 1][c] == -1:
                         d[r - 1][c] = d[r][c] + 1
                         q.append((r - 1, c))
-                    if 0 <= r + 1 < len(g) and g[r + 1][c] == '.' and d[r + 1][c] == -1:
-                        d[r + 1][c] = d[r][c] + 1
-                        q.append((r + 1, c))
-                    if 0 <= c - 1 < len(g[r]) and g[r][c - 1] == '.' and d[r][c - 1] == -1:
-                        d[r][c - 1] = d[r][c] + 1
-                        q.append((r, c - 1))
-                    if 0 <= c + 1 < len(g[r]) and g[r][c + 1] == '.' and d[r][c + 1] == -1:
-                        d[r][c + 1] = d[r][c] + 1
-                        q.append((r, c + 1))
+                        
+                    if 0 <= r + 1 < len(g) and    ...
+                    if 0 <= c - 1 < len(g[r]) and ...
+                    if 0 <= c + 1 < len(g[r]) and ...
             ''').strip(),
             tab_width=4,
             language='Python',
@@ -2815,3 +2812,22 @@ class ShortestPathOnGrids(Scene):
         self.play(AddTextLetterByLetter(bfs_code[1], run_time=0.01 * len(bfs_code[1])))
         self.wait(0.1)
 
+        # Write the first if statement
+        self.play(AddTextLetterByLetter(bfs_code[2], run_time=0.01 * len(bfs_code[2])))
+        self.wait(0.1)
+        self.play(AddTextLetterByLetter(bfs_code[3], run_time=0.01 * len(bfs_code[3])))
+        self.wait(0.1)
+        self.play(AddTextLetterByLetter(bfs_code[4], run_time=0.01 * len(bfs_code[4])))
+        self.wait(0.1)
+        self.play(AddTextLetterByLetter(bfs_code[5], run_time=0.01 * len(bfs_code[5])))
+        self.wait(0.1)
+        self.play(AddTextLetterByLetter(bfs_code[6], run_time=0.01 * len(bfs_code[6])))
+        self.wait(0.1)
+
+        # Write the other 3 if statements
+        self.play(AddTextLetterByLetter(bfs_code[8], run_time=0.01 * len(bfs_code[8])))
+        self.wait(0.1)
+        self.play(AddTextLetterByLetter(bfs_code[9], run_time=0.01 * len(bfs_code[9])))
+        self.wait(0.1)
+        self.play(AddTextLetterByLetter(bfs_code[10], run_time=0.01 * len(bfs_code[10])))
+        self.wait(0.1)
