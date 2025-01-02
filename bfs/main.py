@@ -2831,3 +2831,114 @@ class ShortestPathOnGrids(Scene):
         self.wait(0.1)
         self.play(AddTextLetterByLetter(bfs_code[10], run_time=0.01 * len(bfs_code[10])))
         self.wait(0.1)
+
+        self.play(
+            init_code.animate.scale(0.9).next_to(title, DOWN, buff=0.5).to_edge(LEFT, buff=0.7),
+            bfs_code.animate.scale(0.9).next_to(init_code, DOWN, buff=0.5).to_edge(LEFT, buff=0.7),
+            wide_grid_code.animate.scale(0.9).next_to(title, DOWN, buff=0.5).to_edge(RIGHT, buff=0.7),
+            dist_initial_grid.animate.scale(0.9).to_edge(RIGHT, buff=0.7).to_edge(DOWN, buff=1),
+            run_time=0.2,
+        )
+        self.wait(0.1)
+
+        # Create the queue
+        vline1 = DashedLine(3 * UP, 3 * DOWN).next_to(init_code, RIGHT, buff=0.5).align_to(init_code, UP).set_color(ORANGE)
+        vline2 = DashedLine(3 * UP, 3 * DOWN).next_to(wide_grid_code, LEFT, buff=0.2).align_to(wide_grid_code, UP).set_color(ORANGE)
+        queue_text = Text('Queue:').scale(0.4).next_to(vline1, RIGHT, buff=0.2).align_to(vline1, UP)
+        self.play(Create(vline1), Create(vline2), Write(queue_text), run_time=0.5)
+
+        # Highlight the starting coordinate (both in the grid and the distance grid) and add it to the queue
+        queue_texts = []
+        q = deque()
+        def add2queue(row: int, col: int):
+            vertex_text = Text(f'({row}, {col})').scale(0.4).next_to(queue_text if len(queue_texts) == 0 else queue_texts[-1], DOWN, buff=0.2 if len(queue_texts) == 0 else 0.1)
+            queue_texts.append(vertex_text)
+            q.append((row, col))
+            self.play(Write(queue_texts[-1]), run_time=0.1)
+
+        def remove_from_queue():
+            animations = []
+            for text, prev_text in zip(queue_texts[1:], queue_texts):
+                animations.append(text.animate.move_to(prev_text))
+            self.play(LaggedStart(FadeOut(queue_texts[0]), *animations, lag_ratio=0.3, run_time=0.2))
+            queue_texts.pop(0)
+
+        add2queue(6, 2)
+        self.wait(0.2)
+
+        # Redefine the `burn` function to use the wide_grid_code
+        def burn(row: int, col: int, shift: float = 0):
+            fire_icon = SVGMobject('bfs/fire.svg').scale(0.2).move_to(wide_grid_code[row + 1][4 * col + 6])
+            fire_icon.set_z_index(50)
+            animations = [ShowIncreasingSubsets(fire_icon.shift(shift * UP))]
+            return fire_icon, animations
+
+        arrow = Arrow(
+            start=LEFT, end=RIGHT, color=RED, buff=0.1,
+            stroke_width=10, max_stroke_width_to_length_ratio=15,
+            max_tip_length_to_length_ratio=0.5, tip_length=0.2,
+        ).scale(0.3).next_to(bfs_code[1], LEFT).shift(0.1 * DOWN)
+        dist_grid.scale(0.9).move_to(dist_initial_grid)
+        distance = [[-1] * len(grid[0]) for _ in range(len(grid))]
+
+        def bfs_step(r: int, c: int):
+            # Add circle around the current cell
+            grid_circle = DashedVMobject(Circle(radius=0.2, color=ORANGE)).move_to(wide_grid_code[r + 1][4 * c + 6])
+            distance_circle = DashedVMobject(Circle(radius=0.2, color=ORANGE)).move_to(dist_initial_grid[r + 1][4 * c + 3])
+            self.play(LaggedStart(
+                arrow.animate.next_to(bfs_code[1], LEFT).shift(0.08 * DOWN),
+                queue_texts[0].animate.set_color(ORANGE),
+                Create(grid_circle), Create(distance_circle),
+                lag_ratio=0.5,
+                run_time=0.2,
+            ))
+            self.wait(0.1)
+
+            for statement, (dr, dc) in enumerate([(-1, 0), (1, 0), (0, -1), (0, 1)]):
+                nr, nc = r + dr, c + dc
+                to_grid_mobj = None
+                to_dist_mobj = None
+                line = 1 + statement + (1 if statement == 0 else 6)
+                self.play(arrow.animate.next_to(bfs_code[line], LEFT).shift(0.06 * DOWN), run_time=0.1)
+                if 0 <= nr < len(grid) and 0 <= nc < len(grid[0]):
+                    to_grid_mobj = wide_grid_code[nr + 1][4 * nc + 3 : 4 * nc + 5]
+                    to_dist_mobj = dist_initial_grid[nr + 1][4 * nc + 2 : 4 * nc + 4]
+                    to_grid_mobj.save_state()
+                    to_dist_mobj.save_state()
+                    self.play(
+                        to_grid_mobj.animate.set_color(WHITE).scale(4).set_z_index(100000),
+                        to_dist_mobj.animate.set_color(WHITE).scale(1.5).set_z_index(100000),
+                        run_time=0.1,
+                    )
+                    self.wait(0.1)
+                if 0 <= nr < len(grid) and 0 <= nc < len(grid[0]) and grid[nr][nc] == '.' and distance[nr][nc] == -1:
+                    if statement == 0:
+                        self.play(arrow.animate.next_to(bfs_code[line + 3], LEFT).shift(0.12 * DOWN), run_time=0.1)
+                        self.wait(0.1)
+                        distance[nr][nc] = distance[r][c] + 1
+                        to_dist_mobj = None
+                        self.play(arrow.animate.next_to(bfs_code[line + 4], LEFT).shift(0.12 * DOWN), run_time=0.1)
+                        self.wait(0.2)
+                    self.play(
+                        ReplacementTransform(
+                            dist_initial_grid[nr + 1][4 * nc + 2: 4 * nc + 4],
+                            dist_grid[nr + 1][4 * nc + 2: 4 * nc + 4]
+                        ),
+                        run_time=0.1,
+                    )
+                    add2queue(nr, nc)
+                    q.append((nr, nc))
+                    self.wait(0.2)
+                if to_grid_mobj is not None:
+                    self.play(Restore(to_grid_mobj), run_time=0.1)
+                if to_dist_mobj is not None:
+                    self.play(Restore(to_dist_mobj), run_time=0.1)
+
+
+            self.play(FadeOut(grid_circle, distance_circle), run_time=0.1)
+            remove_from_queue()
+            self.play(arrow.animate.next_to(bfs_code[0], LEFT), run_time=0.1)
+            self.wait(0.1)
+
+        bfs_step(*q.popleft())
+        self.play(FadeOut(arrow))
