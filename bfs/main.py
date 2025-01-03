@@ -2606,7 +2606,7 @@ class ShortestPathOnGrids(Scene):
 
 
         dist = [[-1] * len(grid[0]) for _ in range(len(grid))]
-        def spread_fire(row: int, col: int, max_dist: int = 2):
+        def spread_fire(row: int, col: int, max_dist: int = 2, replace_grid_with_distance: bool = True):
             """ Perform a BFS starting from the given cell """
             dist[row][col] = 0
             q = deque([(row, col)])
@@ -2626,11 +2626,9 @@ class ShortestPathOnGrids(Scene):
                         fire, animations = burn(nr, nc, shift=0.1 if grid[nr][nc] != 'E' else 0)
                         fire_icons[(nr, nc)] = fire
                         all_animations += animations
-                all_animations += [
-                    FadeOut(grid_code[r + 1][c + 2]),
-                    FadeIn(dist_code[r + 1][c + 2]),
-                    FadeOut(fire_icons[(r, c)]),
-                ]
+                if replace_grid_with_distance:
+                    all_animations += [FadeOut(grid_code[r + 1][c + 2]), FadeIn(dist_code[r + 1][c + 2])]
+                all_animations.append(FadeOut(fire_icons[(r, c)]))
 
             return fire_icons, all_animations
 
@@ -2878,7 +2876,7 @@ class ShortestPathOnGrids(Scene):
             stroke_width=10, max_stroke_width_to_length_ratio=15,
             max_tip_length_to_length_ratio=0.5, tip_length=0.2,
         ).scale(0.3).next_to(bfs_code[1], LEFT).shift(0.1 * DOWN)
-        dist_grid.scale(0.9).move_to(dist_initial_grid)
+        dist_grid.scale(0.8 * 0.9).move_to(dist_initial_grid)
         distance = [[-1] * len(grid[0]) for _ in range(len(grid))]
 
         def bfs_step(r: int, c: int):
@@ -2906,17 +2904,16 @@ class ShortestPathOnGrids(Scene):
                     to_grid_mobj.save_state()
                     to_dist_mobj.save_state()
                     self.play(
-                        to_grid_mobj.animate.set_color(WHITE).scale(4).set_z_index(100000),
+                        to_grid_mobj.animate.set_color(WHITE).scale(4 if grid[nr][nc] == '.' else 1.5).set_z_index(100000),
                         to_dist_mobj.animate.set_color(WHITE).scale(1.5).set_z_index(100000),
                         run_time=0.1,
                     )
                     self.wait(0.1)
-                if 0 <= nr < len(grid) and 0 <= nc < len(grid[0]) and grid[nr][nc] == '.' and distance[nr][nc] == -1:
+                if 0 <= nr < len(grid) and 0 <= nc < len(grid[0]) and (grid[nr][nc] == '.' or grid[nr][nc] == 'E') and distance[nr][nc] == -1:
                     if statement == 0:
                         self.play(arrow.animate.next_to(bfs_code[line + 3], LEFT).shift(0.12 * DOWN), run_time=0.1)
                         self.wait(0.1)
                         distance[nr][nc] = distance[r][c] + 1
-                        to_dist_mobj = None
                         self.play(arrow.animate.next_to(bfs_code[line + 4], LEFT).shift(0.12 * DOWN), run_time=0.1)
                         self.wait(0.2)
                     self.play(
@@ -2926,8 +2923,8 @@ class ShortestPathOnGrids(Scene):
                         ),
                         run_time=0.1,
                     )
+                    to_dist_mobj = None
                     add2queue(nr, nc)
-                    q.append((nr, nc))
                     self.wait(0.2)
                 if to_grid_mobj is not None:
                     self.play(Restore(to_grid_mobj), run_time=0.1)
@@ -2941,4 +2938,58 @@ class ShortestPathOnGrids(Scene):
             self.wait(0.1)
 
         bfs_step(*q.popleft())
-        self.play(FadeOut(arrow))
+        bfs_step(*q.popleft())
+        self.play(FadeOut(arrow), run_time=0.2)
+
+        dist = [[-1] * len(grid[0]) for _ in range(len(grid))]
+        all_fires, all_anims = spread_fire(6, 2, max_dist=3, replace_grid_with_distance=False)
+        self.play(LaggedStart(*all_anims, lag_ratio=0.4, run_time=1))
+        self.wait(0.2)
+
+        bfs_step(*q.popleft())
+        bfs_step(*q.popleft())
+        self.play(FadeOut(arrow), run_time=0.2)
+
+        # Indicate the distance grid (non-minus-one cells):
+        # (r, c) => r + 1, 4 * c + 3: 4 * c + 4
+        # (6, 2) => 7, 11:12
+        # (5, 2) => 6, 11:12
+        # (6, 3) => 7, 15:16
+        # (6, 1) => 7, 7:8
+        self.play(LaggedStart(
+            Indicate(dist_initial_grid[7][11:12], scale_factor=1.5),
+            AnimationGroup(
+                Indicate(dist_initial_grid[6][11:12], scale_factor=1.5),
+                Indicate(dist_initial_grid[7][15:16], scale_factor=1.5),
+                Indicate(dist_initial_grid[7][7:8], scale_factor=1.5),
+            ),
+            AnimationGroup(
+                Indicate(dist_initial_grid[6][7:8], scale_factor=1.5),
+                Indicate(dist_initial_grid[5][11:12], scale_factor=1.5),
+                Indicate(dist_initial_grid[6][15:16], scale_factor=1.5),
+                Indicate(dist_initial_grid[7][19:20], scale_factor=1.5),
+            ),
+
+            lag_ratio=0.2,
+            run_time=2,
+        ))
+        self.wait(0.1)
+
+        # while q:
+        #     bfs_step(*q.popleft())
+        self.play(FadeOut(arrow), run_time=0.2)
+        self.wait(0.1)
+
+        # Transition to the next scene
+        self.play(
+            ReplacementTransform(title, Title('Breadth First Search', include_underline=False)),
+            FadeOut(dist_initial_grid, wide_grid_code, bfs_code, init_code, queue_text, vline1, vline2, *queue_texts),
+            run_time=0.5,
+        )
+
+
+class ComplexityAnalysis(Scene):
+    def construct(self):
+        title = Title('Breadth First Search', include_underline=False)
+        self.add(title)
+        self.wait(0.1)
