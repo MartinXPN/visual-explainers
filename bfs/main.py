@@ -3100,3 +3100,142 @@ class ComplexityAnalysis(Scene):
             run_time=0.5,
         )
         self.wait(0.1)
+
+
+class Practice(Scene):
+    def construct(self):
+        title = Title('BFS', include_underline=False)
+        self.add(title)
+        self.wait(0.1)
+
+        # Arrow from the title to “Math”
+        math_text = Text('Math').scale(0.7).next_to(title, DOWN, buff=1).to_edge(LEFT, buff=2)
+        math_arrow = Arrow(
+            title.get_center(), math_text.get_center(), buff=0.7, color=RED,
+            stroke_width=6, max_stroke_width_to_length_ratio=15,
+            max_tip_length_to_length_ratio=0.5, tip_length=0.25,
+        )
+        math_subtitle = Text('Get A ⮕ B', color=YELLOW).scale(0.6).next_to(math_text, DOWN, buff=0.5)
+        self.play(LaggedStart(
+            Create(math_arrow),
+            Write(math_text),
+            Write(math_subtitle),
+            lag_ratio=0.5,
+            run_time=0.5,
+        ))
+        self.wait(0.1)
+
+        check = SVGMobject('bfs/check.svg').scale(0.3).set_fill(GREEN).next_to(math_subtitle, DOWN, buff=0.5)
+        self.play(Create(check), run_time=0.2)
+        self.wait(0.1)
+        self.play(FadeOut(check), run_time=0.2)
+        self.wait(0.1)
+
+        # Arrow from title to “Multi-Dimensional”
+        multi_text = Text('Multi-Dimensional').scale(0.7).next_to(math_text, RIGHT, buff=0.5).shift(2 * DOWN)
+        multi_arrow = Arrow(
+            title.get_center(), multi_text.get_center(), buff=0.6, color=RED,
+            stroke_width=6, max_stroke_width_to_length_ratio=15,
+            max_tip_length_to_length_ratio=0.5, tip_length=0.25,
+        )
+        multi_subtitle = Text('used[][][][]', color=YELLOW).scale(0.6).next_to(multi_text, DOWN, buff=0.5)
+        self.play(LaggedStart(
+            Create(multi_arrow),
+            Write(multi_text),
+            Write(multi_subtitle),
+            lag_ratio=0.5,
+            run_time=0.5,
+        ))
+        self.wait(0.1)
+
+        # Arrow from title to “Multi-Source”
+        multi_source_text = Text('Multi-Source').scale(0.7).next_to(multi_text, RIGHT, buff=0.5)
+        multi_source_arrow = Arrow(
+            title.get_center(), multi_source_text.get_center(), buff=0.6, color=RED,
+            stroke_width=6, max_stroke_width_to_length_ratio=15,
+            max_tip_length_to_length_ratio=0.5, tip_length=0.25,
+        )
+        multi_source_subtitle = Text('O O O O', color=YELLOW).scale(0.6).next_to(multi_source_text, DOWN, buff=0.5)
+        self.play(LaggedStart(
+            Create(multi_source_arrow),
+            Write(multi_source_text),
+            Write(multi_source_subtitle),
+            lag_ratio=0.5,
+            run_time=0.5,
+        ))
+        self.wait(0.1)
+
+        # Arrow from title to “Much More…”
+        much_more_text = Text('Much More…').scale(0.7).next_to(title, DOWN, buff=1).to_edge(RIGHT, buff=2)
+        much_more_arrow = Arrow(
+            title.get_center(), much_more_text.get_center(), buff=0.7, color=RED,
+            stroke_width=6, max_stroke_width_to_length_ratio=15,
+            max_tip_length_to_length_ratio=0.5, tip_length=0.25,
+        )
+        much_more_subtitle = Text('...', color=YELLOW).scale(0.6).next_to(much_more_text, DOWN, buff=0.5)
+        self.play(LaggedStart(
+            Create(much_more_arrow),
+            Write(much_more_text),
+            Write(much_more_subtitle),
+            lag_ratio=0.5,
+            run_time=0.5,
+        ))
+        self.wait(0.1)
+
+
+
+class ClosingScene(Scene):
+    def construct(self):
+        title = Title('Breadth First Search', include_underline=False)
+        self.add(title)
+
+        vertices = list(range(len(g)))
+        edges = [(i, j) for i, neighbors in enumerate(g) for j in neighbors]
+
+        graph = Graph(
+            vertices, edges,
+            layout=layout,
+            labels=True,
+            vertex_config={'radius': 0.4, 'stroke_width': 0, 'fill_color': WHITE},
+            edge_config={'stroke_width': 5},
+        ).scale(0.5).next_to(title, DOWN, buff=1).to_edge(LEFT, buff=1)
+        self.add(graph)
+
+        for label in graph._labels.values():
+            label.set_z_index(10)
+
+        code = Code(
+            code=dedent('''
+                used[start] = True
+                q = deque([start])
+
+                while q:
+                    v = q.popleft()
+                    for to in g[v]:
+                        if not used[to]:
+                            q.append(to)
+                            used[to] = True
+            ''').strip(),
+            tab_width=4,
+            language='Python',
+            line_spacing=0.6,
+            font='Monospace',
+            style='monokai',
+        ).code.scale(0.9).next_to(title, DOWN, buff=1).to_edge(RIGHT, buff=1.5)
+
+        self.add(code)
+
+        vertices_text = Text('V vertices').scale(0.6).next_to(graph, DOWN, buff=0.5).align_to(graph, LEFT)
+        edges_text = Text('E edges').scale(0.6).next_to(vertices_text, DOWN, buff=0.2).align_to(vertices_text, LEFT)
+        time_complexity = Tex(r'Time Complexity: $\mathcal{O}(V + E)$').scale(0.8).align_to(code, LEFT).align_to(vertices_text, UP)
+        memory_complexity = Tex(r'{{Memory Complexity:}} {{$\mathcal{O}(V)$}}').scale(0.8).align_to(code, LEFT).align_to(edges_text, UP)
+        self.add(vertices_text, edges_text, time_complexity, memory_complexity)
+        self.wait(0.1)
+
+        # Re-implement the BFS algorithm
+        self.play(FadeOut(code), run_time=0.5)
+        for line in code:
+            if line:
+                self.play(AddTextLetterByLetter(line, run_time=0.01 * len(line)))
+        self.wait(0.1)
+
