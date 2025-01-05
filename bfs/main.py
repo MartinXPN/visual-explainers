@@ -157,7 +157,7 @@ class Introduction(Scene):
         self.add(graph)
         for label in graph._labels.values():
             label.set_z_index(10)
-        self.wait(1)
+        self.wait(2)
 
         def burn(vertex: int, run_time: float = 0.5):
             fire_icon = SVGMobject('bfs/fire.svg').scale(0.7).move_to(graph.vertices[vertex], DOWN)
@@ -167,7 +167,7 @@ class Introduction(Scene):
             return fire_icon
 
         def spread_fire(source: int, target: int, run_time: float = 0.5):
-            sparkler = SVGMobject('bfs/sparks.svg').scale(0.3).move_to(graph.vertices[source], DOWN).set_fill('#ff9d33')
+            sparkler = SVGMobject('bfs/sparks.svg').scale(0.25).move_to(graph.vertices[source], DOWN).set_fill('#ff9d33')
             sparkler.set_z_index(5)
 
             edge = Line(graph.vertices[source].get_center(), graph.vertices[target].get_center(), buff=0.4)
@@ -184,22 +184,22 @@ class Introduction(Scene):
 
         burn(7)
         self.wait(1)
-        spread_fire(7, 5, run_time=0.5)
-        spread_fire(7, 6, run_time=0.5)
-        self.wait(1)
-        spread_fire(5, 8, run_time=0.4)
-        spread_fire(5, 4, run_time=0.4)
-        spread_fire(5, 3, run_time=0.4)
-        self.wait(1)
-        spread_fire(6, 10, run_time=0.4)
-        spread_fire(8, 9, run_time=0.4)
+        spread_fire(7, 5, run_time=0.3)
+        spread_fire(7, 6, run_time=0.3)
         self.wait(0.5)
-        spread_fire(10, 11, run_time=0.5)
-        spread_fire(9, 2, run_time=0.5)
+        spread_fire(5, 8, run_time=0.2)
+        spread_fire(5, 4, run_time=0.2)
+        spread_fire(5, 3, run_time=0.2)
         self.wait(0.5)
-        spread_fire(2, 0, run_time=0.3)
-        spread_fire(2, 1, run_time=0.3)
-        self.wait(2)
+        spread_fire(6, 10, run_time=0.2)
+        spread_fire(8, 9, run_time=0.2)
+        self.wait(0.4)
+        spread_fire(10, 11, run_time=0.6)
+        spread_fire(9, 2, run_time=0.3)
+        self.wait(0.3)
+        spread_fire(2, 0, run_time=0.1)
+        spread_fire(2, 1, run_time=0.1)
+        self.wait(5)
 
 
 class IntroductionImplementation(Scene):
