@@ -261,7 +261,8 @@ class DisplayMultipleGraphs(Scene):
 class GraphDefinition(Scene):
     def construct(self):
         title = Title('Graphs', include_underline=False)
-        self.play(Write(title), run_time=0.2)
+        self.play(Write(title), run_time=1)
+        self.wait(0.25)
 
         vertices = list(range(len(g)))
         edges = [(i, j) for i, neighbors in enumerate(g) for j in neighbors]
@@ -275,8 +276,8 @@ class GraphDefinition(Scene):
         ).shift(1.5 * DOWN).scale(0.8)
 
         # Create all the vertices (not edges yet)
-        self.play(Create(VGroup(*graph.vertices.values())), run_time=0.2)
-        self.wait(0.1)
+        self.play(Create(VGroup(*graph.vertices.values())), run_time=1)
+        self.wait(2)
 
         # Create all the edges
         self.play(Create(VGroup(
@@ -284,12 +285,12 @@ class GraphDefinition(Scene):
         )), *[
             label.animate.set_z_index(100000)
             for label in graph._labels.values()
-        ], run_time=0.1)
-        self.wait(0.2)
+        ], run_time=1)
+        self.wait(2)
 
         # Indicate the graph
-        self.play(Indicate(graph), run_time=0.1)
-        self.wait(0.2)
+        self.play(Indicate(graph), run_time=1)
+        self.wait(0.5)
 
         # Replace the graph with a complete graph
         complete = nx.complete_graph(6)
@@ -302,8 +303,8 @@ class GraphDefinition(Scene):
             vertex_config={'radius': 0.4, 'stroke_width': 0, 'fill_color': WHITE},
             edge_config={'stroke_width': 5},
         ).move_to(graph).scale(0.8)
-        self.play(ReplacementTransform(graph, complete_graph), run_time=0.1)
-        self.wait(0.2)
+        self.play(ReplacementTransform(graph, complete_graph), run_time=0.4)
+        self.wait(0.5)
 
         # Replace the complete graph with a tree
         tree = nx.balanced_tree(2, 3)
@@ -317,8 +318,8 @@ class GraphDefinition(Scene):
             vertex_config={'radius': 0.4, 'stroke_width': 0, 'fill_color': WHITE},
             edge_config={'stroke_width': 5},
         ).move_to(complete_graph).scale(0.8)
-        self.play(ReplacementTransform(complete_graph, tree_graph), run_time=0.1)
-        self.wait(0.2)
+        self.play(ReplacementTransform(complete_graph, tree_graph), run_time=0.4)
+        self.wait(1)
 
         # Replace the tree with a directed graph
         vertices = [i for i in range(5)]
@@ -331,9 +332,9 @@ class GraphDefinition(Scene):
             vertex_config={'radius': 0.4, 'stroke_width': 0, 'fill_color': WHITE},
             edge_config={'stroke_width': 5},
         ).move_to(tree_graph).scale(0.8)
-        self.play(FadeOut(tree_graph), run_time=0.1)
-        self.play(Create(directed_graph), run_time=1)
-        self.wait(2)
+        self.play(FadeOut(tree_graph), run_time=0.2)
+        self.play(Create(directed_graph), run_time=0.5)
+        self.wait(6)
 
 
 class Motivation(Scene):
