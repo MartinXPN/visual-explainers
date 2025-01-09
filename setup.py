@@ -12,6 +12,7 @@ setup(
         'manim>=0.18.0',
         'numpy>=1.26.4',
         'networkx>=3.2.1',
+        'pydub>=0.25.1',
     ],
     include_package_data=True,
     license='MIT',
