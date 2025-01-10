@@ -551,17 +551,17 @@ class BFSOnGraph(Scene):
         self.add(title, graph)
         for label in graph._labels.values():
             label.set_z_index(10)
-        self.wait(0.1)
+        self.wait(1)
 
         # Indicate the graph + node 7
         self.play(Indicate(graph, scale_factor=1.1), run_time=1)
-        self.wait(0.2)
+        self.wait(2)
         self.play(
             Indicate(graph.vertices[7], color=ORANGE),
             graph._labels[7].animate.set_z_index(100000),
-            run_time=1,
+            run_time=4,
         )
-        self.wait(1)
+        self.wait(0.5)
 
         def burn(vertex: int, run_time: float = 0.5):
             fire_icon = SVGMobject('bfs/fire.svg').scale(0.7).move_to(graph.vertices[vertex], DOWN)
@@ -571,7 +571,7 @@ class BFSOnGraph(Scene):
             return fire_icon
 
         def spread_fire(source: int, target: int, run_time: float = 0.5):
-            sparkler = SVGMobject('bfs/sparks.svg').scale(0.3).move_to(graph.vertices[source], DOWN).set_fill('#ff9d33')
+            sparkler = SVGMobject('bfs/sparks.svg').scale(0.25).move_to(graph.vertices[source], DOWN).set_fill('#ff9d33')
             sparkler.set_z_index(5)
 
             edge = Line(graph.vertices[source].get_center(), graph.vertices[target].get_center(), buff=0.4)
@@ -589,22 +589,22 @@ class BFSOnGraph(Scene):
         burning_icons = {}
         burning_icons[7] = burn(7)
         self.wait(1)
-        burning_icons[5] = spread_fire(7, 5, run_time=0.5)
-        burning_icons[6] = spread_fire(7, 6, run_time=0.5)
-        self.wait(1)
+        burning_icons[5] = spread_fire(7, 5, run_time=0.6)
+        burning_icons[6] = spread_fire(7, 6, run_time=0.6)
+        self.wait(2)
         burning_icons[8] = spread_fire(5, 8, run_time=0.4)
         burning_icons[4] = spread_fire(5, 4, run_time=0.4)
         burning_icons[3] = spread_fire(5, 3, run_time=0.4)
         burning_icons[10] = spread_fire(6, 10, run_time=0.4)
         self.wait(1)
-        burning_icons[9] = spread_fire(8, 9, run_time=0.4)
+        burning_icons[9] = spread_fire(8, 9, run_time=0.5)
         burning_icons[11] = spread_fire(10, 11, run_time=0.4)
-        self.wait(0.5)
+        self.wait(0.8)
         burning_icons[2] = spread_fire(9, 2, run_time=0.5)
-        self.wait(0.5)
-        burning_icons[0] = spread_fire(2, 0, run_time=0.3)
-        burning_icons[1] = spread_fire(2, 1, run_time=0.3)
-        self.wait(2)
+        self.wait(0.8)
+        burning_icons[0] = spread_fire(2, 0, run_time=0.4)
+        burning_icons[1] = spread_fire(2, 1, run_time=0.4)
+        self.wait(6)
 
         # Dotted circle around all the nodes accessible from 7
         accessible = [5, 6, 8, 4, 3, 10, 9, 11, 2, 0, 1]
@@ -617,7 +617,7 @@ class BFSOnGraph(Scene):
             animations.append(graph._labels[v].animate.set_z_index(100000))
             animations.append(Create(circles[-1]))
         self.play(LaggedStart(*animations, lag_ratio=0.5), run_time=1)
-        self.wait(1)
+        self.wait(0.5)
 
         circle = DashedVMobject(Circle(radius=0.6, color=ORANGE)).move_to(graph.vertices[7])
         self.play(LaggedStart(
@@ -627,7 +627,7 @@ class BFSOnGraph(Scene):
             Create(circle),
             lag_ratio=0.7,
         ), run_time=1)
-        self.wait(1)
+        self.wait(3)
 
         # Transition to the next scene
         self.play(
@@ -636,7 +636,7 @@ class BFSOnGraph(Scene):
             *[vertex.animate.set_fill(WHITE) for vertex in graph.vertices.values()],
             *[label.animate.set_z_index(10) for label in graph._labels.values()],
             ReplacementTransform(title, Title('BFS State', include_underline=False)),
-            run_time=0.2,
+            run_time=1,
         )
         self.wait(1)
 
