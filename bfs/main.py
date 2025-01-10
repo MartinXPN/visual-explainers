@@ -1082,14 +1082,17 @@ class UsedState(Scene):
             font='Monospace',
             style='monokai',
         ).scale(0.7).code.scale(1.2).to_edge(LEFT, buff=1.5).to_edge(DOWN, buff=0.7)
-        self.play(AddTextLetterByLetter(code[0], run_time=0.01 * len(code[0])))
-        self.wait(0.1)
-        self.play(AddTextLetterByLetter(code[-1], run_time=0.01 * len(code[-1])))
-        self.wait(0.1)
+        self.wait(4)
+        self.play(AddTextLetterByLetter(code[0], run_time=0.1 * len(code[0])))
+        self.wait(2)
+        self.play(AddTextLetterByLetter(code[-1], run_time=0.1 * len(code[-1])))
+        self.wait(1)
+        self.play(Indicate(code[0], scale_factor=1.5), run_time=2)
+        self.wait(4)
 
         for line in code.chars[1:-1]:
             self.play(AddTextLetterByLetter(line, run_time=0.01 * len(line)))
-        self.wait(0.1)
+        self.wait(1)
 
 
         def burn(vertex: int, run_time: float = 0.5, scale: float = 0.6):
@@ -1115,10 +1118,9 @@ class UsedState(Scene):
             burning_target = burn(target, run_time=run_time / 2, scale=scale)
             return burning_target, burned_edge
 
-        self.play(Circumscribe(code.chars[8], buff=0.02), run_time=0.2)
         burning_icons = {}
         burning_icons[7] = burn(7)
-        self.wait(0.5)
+        self.play(Circumscribe(code.chars[8], buff=0.02), run_time=1)
 
         true_code = Code(
             code=dedent('''
@@ -1147,8 +1149,11 @@ class UsedState(Scene):
         ).scale(0.7).code.scale(1.2).to_edge(LEFT, buff=1.5).to_edge(DOWN, buff=0.7)
 
         self.play(RemoveTextLetterByLetter(code[8], run_time=0.01 * len(code[8])))
-        self.play(AddTextLetterByLetter(true_code[8], run_time=0.01 * len(true_code[8])))
-        self.wait(0.1)
+        self.play(AddTextLetterByLetter(true_code[8], run_time=0.05 * len(true_code[8])))
+        self.wait(3)
+
+        self.play(Indicate(true_code[8], scale_factor=1.5), run_time=2)
+        self.wait(2)
 
         # Bring back the full scene with 3 sections
         scene_title = Title('BFS State', include_underline=False)
@@ -1187,8 +1192,9 @@ class UsedState(Scene):
         self.play(
             code.animate.scale(0.8).to_edge(LEFT, buff=1).to_edge(DOWN, buff=0.3),
             true_code[8].animate.scale(1),
-            run_time=0.5,
+            run_time=0.1,
         )
+        self.wait(1)
         self.play(LaggedStart(
             FadeOut(burning_icons[7]),
             graph.animate.scale(0.45).next_to(title, DOWN, buff=0.5),
@@ -1200,7 +1206,7 @@ class UsedState(Scene):
 
         burning_nodes_title = Text('Burning Nodes').scale(0.7).next_to(right, LEFT, buff=1).align_to(right, UP)
         self.play(Write(burning_nodes_title), FadeIn(code_list), run_time=0.2)
-        self.wait(0.2)
+        self.wait(1)
 
         queue = []
         queue_texts = []
@@ -1254,16 +1260,26 @@ class UsedState(Scene):
                 icon.add_updater(update_fire)
 
         spread_from_source(7)
-        self.wait(0.2)
+        self.wait(1)
         spread_from_source(5)
-        self.wait(0.2)
+        self.wait(1)
         spread_from_source(6)
-        self.wait(0.2)
+        self.wait(2)
 
         # Replace the "burning nodes" text with Queue
         queue_title = Text('Queue').scale(0.7).move_to(burning_nodes_title)
-        self.play(ReplacementTransform(burning_nodes_title, queue_title), run_time=0.2)
+        self.play(ReplacementTransform(burning_nodes_title, queue_title), run_time=1)
+        self.wait(1)
+        spread_from_source(3)
         self.wait(0.5)
+        spread_from_source(4)
+        self.wait(0.5)
+        spread_from_source(8)
+        self.wait(0.5)
+        spread_from_source(10)
+        self.wait(1)
+        spread_from_source(9)
+        self.wait(2)
 
         queue_code = Code(
             code=dedent('''
@@ -1275,17 +1291,13 @@ class UsedState(Scene):
             font='Monospace',
             style='monokai',
         ).scale(0.7).code.scale(0.95).move_to(queue_title)
-        self.play(ReplacementTransform(queue_title, queue_code), run_time=0.2)
-        self.wait(0.1)
+        self.play(ReplacementTransform(queue_title, queue_code), run_time=1)
+        self.wait(3)
 
-        spread_from_source(3)
-        self.wait(0.2)
-        spread_from_source(4)
-        self.wait(0.2)
-        spread_from_source(8)
-        self.wait(0.2)
-        spread_from_source(10)
-        self.wait(0.2)
+        spread_from_source(11)
+        self.wait(2)
+        spread_from_source(2)
+        self.wait(4)
 
         # Transition to the next scene
         self.play(LaggedStart(
