@@ -842,7 +842,7 @@ class GraphRepresentation(Scene):
             style='monokai',
         ).scale(0.7).code.scale(1.2).next_to(title, DOWN, buff=1).shift(2.5 * RIGHT)
         self.add(old_code)
-        self.wait(0.1)
+        self.wait(3)
 
         code = Code(
             code=dedent('''
@@ -869,16 +869,15 @@ class GraphRepresentation(Scene):
             font='Monospace',
             style='monokai',
         ).scale(0.7).code.scale(1.2).align_to(old_code, LEFT).align_to(old_code, UP)
-        self.wait(0.1)
 
-        self.play(FadeOut(old_code[-1]), run_time=0.1)
+        self.play(FadeOut(old_code[-1]), run_time=0.2)
         for line in code.chars:
-            self.play(AddTextLetterByLetter(line, run_time=0.01 * len(line)))
-        self.play(FadeOut(old_code[:-1]), run_time=0.1)
-        self.wait(0.1)
+            self.play(AddTextLetterByLetter(line, run_time=0.03 * len(line)))
+        self.play(FadeOut(old_code[:-1]), run_time=0.5)
+        self.wait(2)
 
-        self.play(Indicate(code.chars[0][0], scale_factor=2.5), run_time=0.2)
-        self.wait(0.1)
+        self.play(Indicate(code.chars[0][0], scale_factor=2.5), run_time=2)
+        self.wait(2)
 
         code_list = Code(
             code=dedent('''
@@ -907,23 +906,25 @@ class GraphRepresentation(Scene):
         ).scale(0.7).code.scale(1.2).align_to(old_code, LEFT).align_to(old_code, UP)
 
         self.play(RemoveTextLetterByLetter(code[1], run_time=0.01 * len(code[1])))
-        self.play(AddTextLetterByLetter(code_list[1], run_time=0.01 * len(code_list[1])))
-        self.wait(0.2)
+        self.wait(1)
+        self.play(AddTextLetterByLetter(code_list[1], run_time=0.05 * len(code_list[1])))
 
-        for i in range(2, 9):
-            self.play(RemoveTextLetterByLetter(code[i], run_time=0.01 * len(code[i])))
+        for i in range(2, 8):
+            self.play(RemoveTextLetterByLetter(code[i], run_time=0.006 * len(code[i])))
             self.play(AddTextLetterByLetter(code_list[i], run_time=0.01 * len(code_list[i])))
+        self.play(RemoveTextLetterByLetter(code[8], run_time=0.01 * len(code[8])))
         self.wait(0.5)
+        self.play(AddTextLetterByLetter(code_list[8], run_time=0.1 * len(code_list[8])))
+        self.play(RemoveTextLetterByLetter(code[9], run_time=0.01 * len(code[9])))
+        self.wait(1.5)
+        self.play(AddTextLetterByLetter(code_list[9], run_time=0.1 * len(code_list[9])))
 
-        for i in range(9, 11):
-            self.play(RemoveTextLetterByLetter(code[i], run_time=0.01 * len(code[i])))
+        for i in range(10, 11):
+            self.play(RemoveTextLetterByLetter(code[i], run_time=0.006 * len(code[i])))
             self.play(AddTextLetterByLetter(code_list[i], run_time=0.01 * len(code_list[i])))
-        self.wait(0.2)
-
         for i in range(-4, -1):
-            self.play(RemoveTextLetterByLetter(code[i], run_time=0.01 * len(code[i])))
+            self.play(RemoveTextLetterByLetter(code[i], run_time=0.006 * len(code[i])))
             self.play(AddTextLetterByLetter(code_list[i], run_time=0.01 * len(code_list[i])))
-        self.wait(0.5)
 
         # Highlight node 8 and node 9 + their connection
         connection_8_9 = DashedVMobject(Circle(radius=0.3, color=ORANGE)).move_to(code_list[9][8])
@@ -938,19 +939,20 @@ class GraphRepresentation(Scene):
             graph._labels[9].animate.set_z_index(100000),
             Create(connection_9_8),
             lag_ratio=0.5,
-            run_time=1,
+            run_time=2,
         ))
-        self.wait(0.5)
+        self.wait(2)
 
         # Move from node 8 to node 9 and back
         dot = Dot().set_fill(YELLOW).move_to(graph.vertices[8])
         line_8_9 = Line(graph.vertices[8].get_center(), graph.vertices[9].get_center(), buff=0.22)
         line_9_8 = Line(graph.vertices[9].get_center(), graph.vertices[8].get_center(), buff=0.22)
-        self.play(MoveAlongPath(dot, line_8_9, run_time=0.2, rate_func=linear))
-        self.wait(0.1)
-        self.play(MoveAlongPath(dot, line_9_8, run_time=0.2, rate_func=linear))
+        self.play(MoveAlongPath(dot, line_8_9, run_time=0.2, rate_func=linear), run_time=2)
         self.remove(dot)
         self.wait(0.1)
+        self.play(MoveAlongPath(dot, line_9_8, run_time=0.2, rate_func=linear), run_time=1)
+        self.remove(dot)
+        self.wait(4)
 
         # Draw an arrow from 8 to 9
         arrow = Arrow(
@@ -959,8 +961,8 @@ class GraphRepresentation(Scene):
             buff=0.22,
             color=YELLOW,
         )
-        self.play(Create(arrow), run_time=0.2)
-        self.wait(0.2)
+        self.play(Create(arrow), run_time=1)
+        self.wait(5)
 
         # Transition to the next scene
         scene_title = Title('BFS State', include_underline=False)
@@ -981,8 +983,9 @@ class GraphRepresentation(Scene):
             FadeOut(connection_9_8),
             FadeOut(code),
             lag_ratio=0.5,
-            run_time=1,
+            run_time=0.5,
         ))
+        self.wait(0.5)
 
         self.play(LaggedStart(
             code_list.animate.scale(0.8).to_edge(RIGHT, buff=1).to_edge(DOWN, buff=0.3),
@@ -996,7 +999,6 @@ class GraphRepresentation(Scene):
         burning_title = Text('Burning State').scale(0.7).next_to(left, LEFT, buff=0.5).align_to(left, UP)
         burning_nodes_title = Text('Burning Nodes').scale(0.7).next_to(right, LEFT, buff=1).align_to(right, UP)
         self.play(Write(burning_title), Write(burning_nodes_title), run_time=0.2)
-        self.wait(0.2)
 
         # Draw an untouched node and a burning node (O/🔥)
         untouched = Circle(radius=0.2, color=WHITE, fill_opacity=1).next_to(burning_title, 2 * DOWN).shift(LEFT)
@@ -1023,7 +1025,7 @@ class GraphRepresentation(Scene):
         add2queue(4)
         add2queue(3)
         add2queue(10)
-        self.wait(0.1)
+        self.wait(1)
 
         # Move "Burning State" to be the title
         self.play(LaggedStart(
