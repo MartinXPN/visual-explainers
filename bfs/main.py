@@ -1595,7 +1595,7 @@ class Simulation(Scene):
             style='monokai',
         ).scale(0.7).code.scale(1.14).next_to(title, DOWN, buff=0.5).align_to(ORIGIN, LEFT)
         self.add(code)
-        self.wait(0.1)
+        self.wait(1)
 
         # Arrow to show which part of the code is being executed
         arrow = Arrow(
@@ -1603,7 +1603,7 @@ class Simulation(Scene):
             stroke_width=10, max_stroke_width_to_length_ratio=15,
             max_tip_length_to_length_ratio=0.5, tip_length=0.2,
         ).scale(0.3).next_to(code[2], LEFT)
-        self.play(Create(arrow), run_time=0.2)
+        self.play(Create(arrow), run_time=1)
 
         def burn(vertex: int, run_time: float = 0.5, scale: float = 0.6):
             fire_icon = SVGMobject('bfs/fire.svg').scale(0.7 * scale).move_to(graph.vertices[vertex], DOWN)
@@ -1645,9 +1645,9 @@ class Simulation(Scene):
             7: (burn(7, scale=0.4), None),
         }
         used = {7: True}
-        self.play(arrow.animate.next_to(code[3], LEFT), run_time=0.2)
+        self.play(arrow.animate.next_to(code[3], LEFT), run_time=0.5)
         add2queue(7)
-        self.wait(0.2)
+        self.wait(1)
 
         def spread_from_source(vertex: int):
             # Circle around the queue front
@@ -1656,27 +1656,29 @@ class Simulation(Scene):
                 arrow.animate.next_to(code[6], LEFT).shift(0.1 * DOWN),
                 Create(circle),
                 lag_ratio=0.5,
-                run_time=0.2,
+                run_time=0.6,
             ))
-            self.wait(0.2)
+            self.wait(0.5)
 
             for to in g[vertex]:
                 to_circle = DashedVMobject(Circle(radius=0.35, color=YELLOW)).move_to(graph.vertices[to]).shift(0.05 * UP)
-                self.play(arrow.animate.next_to(code[7], LEFT).shift(0.1 * DOWN), run_time=0.2)
+                self.play(arrow.animate.next_to(code[7], LEFT).shift(0.1 * DOWN), run_time=0.5)
+                self.wait(0.5)
                 self.play(LaggedStart(
                     arrow.animate.next_to(code[8], LEFT).shift(0.12 * DOWN),
                     Create(to_circle),
                     lag_ratio=0.5,
-                    run_time=0.2,
+                    run_time=0.6,
                 ))
                 if used.get(to, False):
                     self.play(FadeOut(to_circle), run_time=0.2)
                     continue
                 used[to] = True
                 burning_icons[to] = spread_fire(vertex, to, scale=0.4)
-                self.play(arrow.animate.next_to(code[9], LEFT).shift(0.15 * DOWN), run_time=0.2)
+                self.play(arrow.animate.next_to(code[9], LEFT).shift(0.15 * DOWN), run_time=0.5)
+                self.wait(0.5)
                 add2queue(to)
-                self.play(arrow.animate.next_to(code[10], LEFT).shift(0.15 * DOWN), run_time=0.2)
+                self.play(arrow.animate.next_to(code[10], LEFT).shift(0.15 * DOWN), run_time=0.5)
                 self.play(FadeOut(to_circle), run_time=0.2)
 
             # Remove vertex from the queue front
@@ -1691,17 +1693,18 @@ class Simulation(Scene):
                     icon.animate.shift(0.65 * UP),
                     text.animate.shift(0.65 * UP),
                 ))
-            self.play(LaggedStart(*animations, lag_ratio=0.2, run_time=0.2))
+            self.play(LaggedStart(*animations, lag_ratio=0.2, run_time=0.6))
             # Add updaters to burning queue elements
             for icon in queue:
                 icon.add_updater(update_fire)
 
             # Move the arrow to the while loop
-            self.play(arrow.animate.next_to(code[5], LEFT), run_time=0.2)
+            self.play(arrow.animate.next_to(code[5], LEFT), run_time=0.5)
+            self.wait(1)
 
         # Move the arrow to the while loop
-        self.play(arrow.animate.next_to(code[5], LEFT), run_time=0.2)
-        self.wait(0.2)
+        self.play(arrow.animate.next_to(code[5], LEFT), run_time=0.5)
+        self.wait(1)
 
         spread_from_source(7)
         spread_from_source(5)
@@ -1715,17 +1718,18 @@ class Simulation(Scene):
         spread_from_source(2)
         spread_from_source(0)
         spread_from_source(1)
-        self.wait(0.2)
-        self.play(arrow.animate.next_to(code[12], LEFT), run_time=0.2)
-        self.play(arrow.animate.next_to(code[13], LEFT).shift(0.1 * DOWN), run_time=0.2)
+        self.play(arrow.animate.next_to(code[12], LEFT), run_time=0.5)
+        self.wait(1)
+        self.play(arrow.animate.next_to(code[13], LEFT).shift(0.1 * DOWN), run_time=0.5)
+        self.wait(1)
         self.play(LaggedStart(
             *[Indicate(burning_icons[node][0], scale_factor=1.5) for node in used.keys()],
             run_time=1,
         ))
-        self.wait(0.1)
+        self.wait(1)
 
-        self.play(Indicate(burning_icons[7][0], scale_factor=1.5), run_time=0.5)
-        self.wait(0.1)
+        self.play(Indicate(burning_icons[7][0], scale_factor=1.5), run_time=1)
+        self.wait(1)
 
         self.play(LaggedStart(
             *[
@@ -1734,9 +1738,9 @@ class Simulation(Scene):
                     graph._labels[node].animate.set_z_index(100000),
                 ) for node in range(17) if node not in used
             ],
-            run_time=1,
+            run_time=2,
         ))
-        self.wait(0.1)
+        self.wait(1)
 
         # Transition to the next scene
         self.play(LaggedStart(
