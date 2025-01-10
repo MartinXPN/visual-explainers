@@ -340,7 +340,8 @@ class GraphDefinition(Scene):
 class Motivation(Scene):
     def construct(self):
         title = Title('Graph Applications', include_underline=False)
-        self.play(Write(title), run_time=0.2)
+        self.play(Write(title), run_time=1)
+        self.wait(2.5)
 
         # Draw a graph with one node in the center and 5 nodes around it (friends)
         vertices = list(range(6))
@@ -361,9 +362,9 @@ class Motivation(Scene):
             Create(graph),
             Create(central),
             *[Create(p) for p in friends],
-            run_time=0.5,
+            run_time=1,
         )
-        self.wait(0.5)
+        self.wait(2)
 
         # Draw a graph of web page documents
         vertices = list(range(10))
@@ -386,9 +387,23 @@ class Motivation(Scene):
             ReplacementTransform(graph, web_graph),
             *[Create(p) for p in webpages],
             FadeOut(central, *friends),
-            run_time=0.5,
+            run_time=1,
+        )
+        self.wait(0.5)
+
+        # Indicate nodes of web_graph + webpages
+        self.play(
+            *[Indicate(n, scale_factor=1.1) for n in web_graph.vertices.values()],
+            *[Indicate(p, scale_factor=1.2, color=BLACK) for p in webpages],
+            run_time=1,
         )
         self.wait(1)
+
+        # Indicate the edges of web_graph
+        self.play(
+            *[Indicate(edge, scale_factor=1.5, color=ORANGE) for edge in web_graph.edges.values()],
+            run_time=2,
+        )
 
         vertices = list(range(len(g)))
         edges = [(i, j) for i, neighbors in enumerate(g) for j in neighbors]
@@ -411,13 +426,13 @@ class Motivation(Scene):
         self.play(
             shortest_path_graph.vertices[7].animate.set_fill(YELLOW),
             shortest_path_graph._labels[7].animate.set_z_index(100000),
-            run_time=0.2,
+            run_time=0.5,
         )
 
         # Draw a dotted circle around node 2
         target = DashedVMobject(Circle(radius=0.6, color=ORANGE)).move_to(shortest_path_graph.vertices[2])
-        self.play(Create(target), run_time=0.2)
-        self.wait(1)
+        self.play(Create(target), run_time=0.5)
+        self.wait(0.5)
 
         # Show pass-through animation going through nodes 7 -> 5 -> 8 -> 9 -> 2
         path = [7, 5, 8, 9, 2]
@@ -436,19 +451,19 @@ class Motivation(Scene):
             ).set_color(YELLOW)))
             self.add(dot, burned_edge)
 
-            self.play(MoveAlongPath(dot, edge, run_time=0.2, rate_func=linear))
+            self.play(MoveAlongPath(dot, edge, run_time=0.2, rate_func=linear), run_time=0.2)
             self.play(
                 shortest_path_graph.vertices[to].animate.set_fill(YELLOW),
                 shortest_path_graph._labels[to].animate.set_z_index(100000),
                 shortest_path_graph.edges[cur, to].animate.set_color(YELLOW),
                 shortest_path_graph.edges[to, cur].animate.set_color(YELLOW),
-                run_time=0.2,
+                run_time=0.05,
             )
             self.remove(burned_edge, edge)
 
 
         self.play(FadeOut(dot), run_time=0.2)
-        self.wait(1)
+        self.wait(2)
 
         # Walk the path 7 -> 6 -> 10 -> 8 -> 9
         # Highlight node 7 with orange
@@ -473,13 +488,13 @@ class Motivation(Scene):
             ).set_color(ORANGE)))
             self.add(dot, burned_edge)
 
-            self.play(MoveAlongPath(dot, edge, run_time=0.2, rate_func=linear))
+            self.play(MoveAlongPath(dot, edge, run_time=0.2, rate_func=linear), run_time=0.4)
             self.play(
                 shortest_path_graph.vertices[to].animate.set_fill(ORANGE),
                 shortest_path_graph._labels[to].animate.set_z_index(100000),
                 shortest_path_graph.edges[cur, to].animate.set_color(ORANGE),
                 shortest_path_graph.edges[to, cur].animate.set_color(ORANGE),
-                run_time=0.2,
+                run_time=0.1,
             )
             self.remove(burned_edge, edge)
 
@@ -491,7 +506,6 @@ class Motivation(Scene):
                   .set_fill(RED).set_z_index(1000000))
         self.play(FadeIn(search), run_time=0.5)
         self.wait(1)
-
         self.play(FadeOut(search), run_time=0.2)
 
         # Draw a dotted line between node 9 and 14
@@ -503,8 +517,8 @@ class Motivation(Scene):
             buff=0.4,
             color=RED,
         )
-        self.play(Create(connection), run_time=0.2)
-        self.wait(0.5)
+        self.play(Create(connection), run_time=0.5)
+        self.wait(2)
 
         # Transition to the next scene
         self.play(
@@ -512,10 +526,13 @@ class Motivation(Scene):
             *[vertex.animate.set_fill(WHITE) for vertex in shortest_path_graph.vertices.values()],
             *[label.animate.set_z_index(10) for label in shortest_path_graph._labels.values()],
             FadeOut(connection, target),
-            ReplacementTransform(title, Title('Breadth First Search', include_underline=False)),
-            run_time=0.2,
+            run_time=1,
         )
-        self.wait(1)
+        self.play(
+            ReplacementTransform(title, Title('Breadth First Search', include_underline=False)),
+            run_time=1,
+        )
+        self.wait(2)
 
 
 class BFSOnGraph(Scene):
