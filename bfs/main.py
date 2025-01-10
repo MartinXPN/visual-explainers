@@ -659,8 +659,8 @@ class BFSState(Scene):
             label.set_z_index(10)
         self.wait(0.1)
 
-        self.play(graph.animate.scale(0.25).next_to(title, DOWN, buff=0.5), run_time=0.2)
-        self.wait(0.2)
+        self.play(graph.animate.scale(0.25).next_to(title, DOWN, buff=0.5), run_time=0.5)
+        self.wait(0.5)
 
         # Split the screen into 3 sections (below the graph)
         screen_width = config.frame_width
@@ -673,28 +673,26 @@ class BFSState(Scene):
             start=section_width * RIGHT / 2 + 3 * DOWN,
             end=section_width * RIGHT / 2 + UP / 2,
         ).set_stroke(WHITE, 2)
-        self.play(Create(left), Create(right), run_time=0.2)
-        self.wait(0.2)
+        self.play(Create(left), Create(right), run_time=1)
+        self.wait(3)
 
         # Write Burning state in the first column
         burning_title = Text('Burning State').scale(0.7).next_to(left, LEFT, buff=0.5).align_to(left, UP)
-        self.play(Write(burning_title), run_time=0.2)
-        self.wait(0.2)
+        self.play(Write(burning_title), run_time=1)
+        self.wait(1)
 
         # Draw an untouched node and a burning node (O/🔥)
         untouched = Circle(radius=0.2, color=WHITE, fill_opacity=1).next_to(burning_title, 2 * DOWN).shift(LEFT)
         slash = Text('/').scale(1.5).next_to(untouched, RIGHT)
         burning = SVGMobject('bfs/fire.svg').scale(0.3).next_to(slash, RIGHT).shift(0.05 * UP)
 
-        self.play(LaggedStart(Create(untouched), Write(slash), ShowIncreasingSubsets(burning), lag_ratio=0.5), run_time=0.5)
+        self.play(LaggedStart(Create(untouched), Write(slash), ShowIncreasingSubsets(burning), lag_ratio=0.5), run_time=1)
         burning.add_updater(update_fire)
-        self.wait(0.2)
+        self.wait(2)
 
         # Write Burning Nodes in the second column
         burning_nodes_title = Text('Burning Nodes').scale(0.7).next_to(right, LEFT, buff=1).align_to(right, UP)
-        self.play(Write(burning_nodes_title), run_time=0.2)
-        self.wait(0.2)
-
+        self.play(Write(burning_nodes_title), run_time=1)
 
         def burn(vertex: int, run_time: float = 0.5):
             fire_icon = SVGMobject('bfs/fire.svg').scale(0.7 * 0.25).move_to(graph.vertices[vertex], DOWN)
@@ -721,15 +719,15 @@ class BFSState(Scene):
 
         burning_icons = {}
         burning_icons[7] = burn(7)
-        self.wait(0.5)
-        burning_icons[5] = spread_fire(7, 5, run_time=0.1)
-        burning_icons[6] = spread_fire(7, 6, run_time=0.1)
-        self.wait(0.5)
-        burning_icons[8] = spread_fire(5, 8, run_time=0.1)
-        burning_icons[4] = spread_fire(5, 4, run_time=0.1)
-        burning_icons[3] = spread_fire(5, 3, run_time=0.1)
-        burning_icons[10] = spread_fire(6, 10, run_time=0.1)
-        self.wait(0.5)
+        self.wait(0.2)
+        burning_icons[5] = spread_fire(7, 5, run_time=0.05)
+        burning_icons[6] = spread_fire(7, 6, run_time=0.05)
+        self.wait(0.2)
+        burning_icons[8] = spread_fire(5, 8, run_time=0.05)
+        burning_icons[4] = spread_fire(5, 4, run_time=0.05)
+        burning_icons[3] = spread_fire(5, 3, run_time=0.05)
+        burning_icons[10] = spread_fire(6, 10, run_time=0.05)
+        self.wait(0.2)
 
         # Draw a queue with the burning nodes (8, 4, 3, 10)
         queue = []
@@ -742,19 +740,18 @@ class BFSState(Scene):
             queue.append(fire_icon)
             vertex_text = Text(str(vertex)).scale(0.4).set_color(BLACK).move_to(queue[-1]).shift(0.12 * DOWN).set_z_index(10)
             queue_texts.append(vertex_text)
-            self.play(ShowIncreasingSubsets(queue[-1]), Write(vertex_text), run_time=0.1)
+            self.play(ShowIncreasingSubsets(queue[-1]), Write(vertex_text), run_time=0.2)
             queue[-1].add_updater(update_fire)
 
         add2queue(8)
         add2queue(4)
         add2queue(3)
         add2queue(10)
-        self.wait(0.2)
+        self.wait(2)
 
         # Write Graph in the third column
         graph_title = Text('Graph').scale(0.7).next_to(right, RIGHT, buff=1).align_to(right, UP)
-        self.play(Write(graph_title), run_time=0.2)
-        self.wait(0.2)
+        self.play(Write(graph_title), run_time=1)
 
         code = Code(
             code=dedent('''
@@ -778,17 +775,17 @@ class BFSState(Scene):
 
         for line in code.chars:
             if line:
-                self.play(AddTextLetterByLetter(line, run_time=0.1 * len(line)))
+                self.play(AddTextLetterByLetter(line, run_time=0.05 * len(line)))
 
         graph_copy = graph.copy()
         self.play(
             graph_copy.animate.scale(0.9).align_to(code, LEFT).align_to(code, DOWN).shift(0.6 * UP).shift(0.2 * RIGHT),
-            run_time=0.2,
+            run_time=0.5,
         )
-        self.wait(0.2)
+        self.wait(1)
 
         # Indicate the 3rd column
-        self.play(Indicate(graph_copy), Indicate(graph_title), Indicate(code), run_time=0.5)
+        self.play(Indicate(graph_copy), Indicate(graph_title), Indicate(code), run_time=1)
         self.wait(0.5)
 
         # Transition to the next scene
@@ -805,8 +802,7 @@ class BFSState(Scene):
             lag_ratio=0.5,
             run_time=1,
         ))
-
-        self.wait(1)
+        self.wait(0.01)
 
 
 class GraphRepresentation(Scene):
