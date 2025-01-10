@@ -1359,7 +1359,7 @@ class Implementation(Scene):
         self.add(title, graph, graph_code)
         for label in graph._labels.values():
             label.set_z_index(10)
-        self.wait(0.1)
+        self.wait(3.5)
 
         used_init_code = Code(
             code=dedent('''
@@ -1371,8 +1371,8 @@ class Implementation(Scene):
             font='Monospace',
             style='monokai',
         ).scale(0.7).code.scale(1.14).next_to(graph_code, DOWN, buff=0.2).align_to(ORIGIN, LEFT)
-        self.play(AddTextLetterByLetter(used_init_code[0], run_time=0.01 * len(used_init_code[0])))
-        self.wait(0.1)
+        self.play(AddTextLetterByLetter(used_init_code[0], run_time=0.1 * len(used_init_code[0])))
+        self.wait(4)
 
 
         bfs_code = Code(
@@ -1442,39 +1442,39 @@ class Implementation(Scene):
         }
         used = {7: True}
         # Remove the code by moving it up
+        self.wait(0.5)
         self.play(
             graph_code.animate.shift(7 * UP),
             used_init_code.animate.shift(7 * UP),
             run_time=0.5,
         )
-        self.wait(0.1)
-        self.play(AddTextLetterByLetter(bfs_code[2], run_time=0.01 * len(bfs_code[2])))
-        self.wait(0.1)
+        self.play(AddTextLetterByLetter(bfs_code[2], run_time=0.1 * len(bfs_code[2])))
+        self.wait(1)
 
-        self.play(AddTextLetterByLetter(bfs_code[0], run_time=0.01 * len(bfs_code[0])))
-        self.play(AddTextLetterByLetter(bfs_code[3], run_time=0.01 * len(bfs_code[3])))
-        self.wait(0.1)
+        self.play(AddTextLetterByLetter(bfs_code[0], run_time=0.05 * len(bfs_code[0])))
+        self.play(AddTextLetterByLetter(bfs_code[3], run_time=0.05 * len(bfs_code[3])))
+        self.wait(1)
 
-        self.play(Write(burning_nodes_title), run_time=0.2)
+        self.play(Write(burning_nodes_title), run_time=1)
         add2queue(7)
-        self.wait(0.2)
+        self.wait(2)
 
-        def spread_from_source(vertex: int):
+        def spread_from_source(vertex: int, run_time=0.2):
             # Circle around the queue front
             circle = DashedVMobject(Circle(radius=0.4, color=ORANGE)).move_to(queue_texts[0]).shift(0.1 * UP)
-            self.play(Create(circle), run_time=0.2)
-            self.wait(0.2)
+            self.play(Create(circle), run_time=run_time)
+            self.wait(run_time)
 
             for to in g[vertex]:
                 if used.get(to, False):
                     continue
                 used[to] = True
-                burning_icons[to] = spread_fire(vertex, to, scale=0.4)
+                burning_icons[to] = spread_fire(vertex, to, scale=0.4, run_time=2 * run_time)
                 add2queue(to)
-                self.wait(0.2)
+                self.wait(run_time)
 
             # Remove vertex from the queue front
-            self.play(FadeOut(queue[0], queue_texts[0], circle), run_time=0.2)
+            self.play(FadeOut(queue[0], queue_texts[0], circle), run_time=run_time)
             queue.pop(0)
             queue_texts.pop(0)
             animations = []
@@ -1485,52 +1485,59 @@ class Implementation(Scene):
                     icon.animate.shift(0.65 * UP),
                     text.animate.shift(0.65 * UP),
                 ))
-            self.play(LaggedStart(*animations, lag_ratio=0.2, run_time=0.2))
+            if len(animations) > 0:
+                self.play(LaggedStart(*animations, lag_ratio=0.2, run_time=run_time))
             # Add updaters to burning queue elements
             for icon in queue:
                 icon.add_updater(update_fire)
 
         spread_from_source(7)
-        self.wait(0.2)
+        self.wait(1)
 
-        for line in bfs_code[5:11]:
-            self.play(AddTextLetterByLetter(line, run_time=0.01 * len(line)))
-        self.wait(0.1)
+        self.play(AddTextLetterByLetter(bfs_code[5], run_time=0.1 * len(bfs_code[5])))
+        self.wait(1)
+        self.play(AddTextLetterByLetter(bfs_code[6], run_time=0.1 * len(bfs_code[6])))
+        self.wait(2.7)
+        self.play(AddTextLetterByLetter(bfs_code[7], run_time=0.1 * len(bfs_code[7])))
+        self.play(AddTextLetterByLetter(bfs_code[8], run_time=0.1 * len(bfs_code[8])))
+        self.play(AddTextLetterByLetter(bfs_code[9], run_time=0.07 * len(bfs_code[9])))
+        self.play(AddTextLetterByLetter(bfs_code[10], run_time=0.07 * len(bfs_code[10])))
+        self.wait(1)
 
         # Indicate the burning nodes (5 and 6)
         self.play(
             Indicate(burning_icons[5][0], scale_factor=1.5),
             Indicate(burning_icons[6][0], scale_factor=1.5),
-            run_time=0.5,
+            run_time=2,
         )
-        self.wait(0.1)
+        self.wait(1)
 
         # Circumscribe the `if not used[to]` line
-        self.play(Circumscribe(bfs_code[8].copy().shift(0.1 * DOWN), buff=0.02, stroke_width=6), run_time=1)
-        self.wait(0.1)
-        spread_from_source(5)
-        spread_from_source(6)
-        spread_from_source(3)
-        spread_from_source(4)
-        spread_from_source(8)
-        spread_from_source(10)
-        spread_from_source(9)
-        spread_from_source(11)
-        spread_from_source(2)
-        spread_from_source(0)
-        spread_from_source(1)
-        self.wait(0.2)
+        self.play(Circumscribe(bfs_code[8].copy().shift(0.1 * DOWN), buff=0.02, stroke_width=6), run_time=2)
+        self.wait(0.5)
+
+        spread_from_source(5, run_time=0.09)
+        spread_from_source(6, run_time=0.09)
+        spread_from_source(3, run_time=0.08)
+        spread_from_source(4, run_time=0.08)
+        spread_from_source(8, run_time=0.07)
+        spread_from_source(10, run_time=0.07)
+        spread_from_source(9, run_time=0.06)
+        spread_from_source(11, run_time=0.06)
+        spread_from_source(2, run_time=0.06)
+        spread_from_source(0, run_time=0.05)
+        spread_from_source(1, run_time=0.05)
 
         # Write the last 3 lines of code
         for line in bfs_code[-3:]:
-            self.play(AddTextLetterByLetter(line, run_time=0.01 * len(line)))
-        self.wait(0.1)
+            self.play(AddTextLetterByLetter(line, run_time=0.03 * len(line)))
+
         # Indicate all the burned nodes
         self.play(*[
             Indicate(burning_icons[node][0], scale_factor=1.5)
             for node in used.keys()
         ], run_time=1)
-        self.wait(0.1)
+        self.wait(1)
 
         # Transition to the next scene
         self.play(LaggedStart(
