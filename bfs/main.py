@@ -1962,7 +1962,16 @@ class BFSOnGridsImplementation(Scene):
             style='monokai',
         ).code.scale(1.2).next_to(title, DOWN, buff=1)
         self.add(title, grid_code)
-        self.play(grid_code.animate.scale(1 / 1.2).next_to(title, DOWN, buff=1).shift(2 * LEFT))
+        self.wait(2)
+
+        # Indicate each line of the code
+        self.play(LaggedStart(
+            *[Indicate(line) for line in grid_code[1:-1]],
+            lag_ratio=0.2,
+            run_time=2,
+        ))
+        self.play(grid_code.animate.scale(1 / 1.2).next_to(title, DOWN, buff=1).shift(2 * LEFT), run_time=1)
+        self.wait(1)
 
         def get_initialization_code(counter: int):
             return Code(
@@ -1978,10 +1987,10 @@ class BFSOnGridsImplementation(Scene):
         ).code.next_to(grid_code, DOWN, buff=0.2).align_to(grid_code, LEFT)
 
         initialization_code = {i: get_initialization_code(i) for i in range(6)}
-        self.play(AddTextLetterByLetter(initialization_code[0][0], run_time=0.01 * len(initialization_code[0][0])))
-        self.wait(0.1)
-        self.play(AddTextLetterByLetter(initialization_code[0][1], run_time=0.01 * len(initialization_code[0][1])))
-        self.wait(0.1)
+        self.play(AddTextLetterByLetter(initialization_code[0][0], run_time=0.1 * len(initialization_code[0][0])))
+        self.wait(3)
+        self.play(AddTextLetterByLetter(initialization_code[0][1], run_time=0.1 * len(initialization_code[0][1])))
+        self.wait(2)
 
         # Highlight each island one by one and increment the islands counter
         self.play(LaggedStart(
@@ -1996,7 +2005,7 @@ class BFSOnGridsImplementation(Scene):
             ),
             TransformMatchingShapes(initialization_code[0], initialization_code[1]),
             lag_ratio=0.1,
-            run_time=0.5,
+            run_time=0.4,
         ))
 
         self.play(LaggedStart(
@@ -2010,7 +2019,7 @@ class BFSOnGridsImplementation(Scene):
             ),
             TransformMatchingShapes(initialization_code[1], initialization_code[2]),
             lag_ratio=0.1,
-            run_time=0.5,
+            run_time=0.4,
         ))
 
         self.play(LaggedStart(
@@ -2034,34 +2043,31 @@ class BFSOnGridsImplementation(Scene):
             ),
             TransformMatchingShapes(initialization_code[2], initialization_code[3]),
             lag_ratio=0.1,
-            run_time=1,
+            run_time=0.5,
         ))
 
         self.play(LaggedStart(
             Indicate(grid_code[6][3], scale_factor=1.5, color=ORANGE),
             TransformMatchingShapes(initialization_code[3], initialization_code[4]),
             lag_ratio=0.1,
-            run_time=0.5,
+            run_time=0.4,
         ))
 
         self.play(LaggedStart(
             Indicate(grid_code[7][2], scale_factor=1.5, color=ORANGE),
             TransformMatchingShapes(initialization_code[4], initialization_code[5]),
             lag_ratio=0.1,
-            run_time=1,
+            run_time=0.4,
         ))
-        self.wait(0.1)
+        self.wait(0.2)
 
         # Reset the counter to 0
         self.play(TransformMatchingShapes(initialization_code[5], initialization_code[0]), run_time=0.5)
-        self.wait(0.1)
-
         self.play(
             grid_code.animate.scale(0.8).next_to(title, DOWN, buff=0.5).to_edge(RIGHT, buff=2),
             FadeOut(initialization_code[0]),
             run_time=0.5,
         )
-        self.wait(0.1)
 
         loops_code = Code(
             code=dedent('''
@@ -2091,17 +2097,13 @@ class BFSOnGridsImplementation(Scene):
             iteration_animations.append(Indicate(grid_code[1][c + 2], scale_factor=1.5, color=YELLOW))
             if grid[0][c] == '#':
                 break
-        self.play(AddTextLetterByLetter(loops_code[0], run_time=0.01 * len(loops_code[0])))
-        self.play(AddTextLetterByLetter(loops_code[1], run_time=0.01 * len(loops_code[1])))
-        self.wait(0.1)
+        self.play(AddTextLetterByLetter(loops_code[0], run_time=0.02 * len(loops_code[0])))
+        self.play(AddTextLetterByLetter(loops_code[1], run_time=0.02 * len(loops_code[1])))
         self.play(LaggedStart(*iteration_animations, lag_ratio=0.1), run_time=1)
-        self.wait(0.1)
-        self.play(AddTextLetterByLetter(loops_code[2], run_time=0.01 * len(loops_code[2])))
-        self.wait(0.1)
-        self.play(AddTextLetterByLetter(loops_code[3], run_time=0.01 * len(loops_code[3])))
-        self.play(AddTextLetterByLetter(loops_code[4], run_time=0.01 * len(loops_code[4])))
-        self.wait(0.1)
-
+        self.play(AddTextLetterByLetter(loops_code[2], run_time=0.06 * len(loops_code[2])))
+        self.play(AddTextLetterByLetter(loops_code[3], run_time=0.12 * len(loops_code[3])))
+        self.play(AddTextLetterByLetter(loops_code[4], run_time=0.12 * len(loops_code[4])))
+        self.wait(2)
 
         bfs_code = Code(
             code=dedent('''
@@ -2133,13 +2135,13 @@ class BFSOnGridsImplementation(Scene):
             font='Monospace',
             style='monokai',
         ).code.scale(0.75).next_to(loops_code, DOWN, buff=0.5).to_edge(LEFT, buff=1)
-        self.play(AddTextLetterByLetter(bfs_code[0], run_time=0.01 * len(bfs_code[0])))
-        self.play(AddTextLetterByLetter(bfs_code[1], run_time=0.01 * len(bfs_code[1])))
-        self.wait(0.1)
+        self.play(AddTextLetterByLetter(bfs_code[0], run_time=0.1 * len(bfs_code[0])))
+        self.play(AddTextLetterByLetter(bfs_code[1], run_time=0.1 * len(bfs_code[1])))
+        self.wait(1)
 
-        self.play(AddTextLetterByLetter(bfs_code[3], run_time=0.01 * len(bfs_code[3])))
-        self.play(AddTextLetterByLetter(bfs_code[4], run_time=0.01 * len(bfs_code[4])))
-        self.wait(0.1)
+        self.play(AddTextLetterByLetter(bfs_code[3], run_time=0.05 * len(bfs_code[3])))
+        self.play(AddTextLetterByLetter(bfs_code[4], run_time=0.1 * len(bfs_code[4])))
+        self.wait(0.5)
 
         self.play(
             loops_code.animate.shift(2 * UP).set_opacity(0),
@@ -2147,52 +2149,51 @@ class BFSOnGridsImplementation(Scene):
             run_time=0.5,
         )
         VGroup(*bfs_code[5:]).next_to(bfs_code[4], DOWN, buff=0).align_to(bfs_code[4], LEFT)
-        self.wait(0.1)
+        self.wait(1)
 
-        self.play(AddTextLetterByLetter(bfs_code[6], run_time=0.01 * len(bfs_code[6])))
-        self.play(AddTextLetterByLetter(bfs_code[7], run_time=0.01 * len(bfs_code[7])))
-        self.wait(0.1)
+        self.play(AddTextLetterByLetter(bfs_code[6], run_time=0.1 * len(bfs_code[6])))
+        self.wait(0.5)
+        self.play(AddTextLetterByLetter(bfs_code[7], run_time=0.1 * len(bfs_code[7])))
+        self.wait(2.5)
 
-        self.play(AddTextLetterByLetter(bfs_code[9], run_time=0.01 * len(bfs_code[9])))
-        self.wait(0.1)
-        self.play(AddTextLetterByLetter(bfs_code[10], run_time=0.01 * len(bfs_code[10])))
-        self.play(AddTextLetterByLetter(bfs_code[11], run_time=0.01 * len(bfs_code[11])))
-        self.wait(0.1)
+        self.play(AddTextLetterByLetter(bfs_code[9], run_time=0.09 * len(bfs_code[9])))
+        self.wait(0.5)
+        self.play(AddTextLetterByLetter(bfs_code[10], run_time=0.08 * len(bfs_code[10])))
+        self.play(AddTextLetterByLetter(bfs_code[11], run_time=0.08 * len(bfs_code[11])))
+        self.wait(0.5)
 
-        self.play(AddTextLetterByLetter(bfs_code[12], run_time=0.01 * len(bfs_code[12])))
-        self.play(AddTextLetterByLetter(bfs_code[13], run_time=0.01 * len(bfs_code[13])))
-        self.play(AddTextLetterByLetter(bfs_code[14], run_time=0.01 * len(bfs_code[14])))
-        self.wait(0.1)
+        self.play(AddTextLetterByLetter(bfs_code[12], run_time=0.04 * len(bfs_code[12])))
+        self.play(AddTextLetterByLetter(bfs_code[13], run_time=0.04 * len(bfs_code[13])))
+        self.play(AddTextLetterByLetter(bfs_code[14], run_time=0.04 * len(bfs_code[14])))
+        self.wait(0.2)
 
-        self.play(AddTextLetterByLetter(bfs_code[15], run_time=0.01 * len(bfs_code[15])))
-        self.play(AddTextLetterByLetter(bfs_code[16], run_time=0.01 * len(bfs_code[16])))
-        self.play(AddTextLetterByLetter(bfs_code[17], run_time=0.01 * len(bfs_code[17])))
-        self.wait(0.1)
+        self.play(AddTextLetterByLetter(bfs_code[15], run_time=0.02 * len(bfs_code[15])))
+        self.play(AddTextLetterByLetter(bfs_code[16], run_time=0.02 * len(bfs_code[16])))
+        self.play(AddTextLetterByLetter(bfs_code[17], run_time=0.02 * len(bfs_code[17])))
 
-        self.play(AddTextLetterByLetter(bfs_code[18], run_time=0.01 * len(bfs_code[18])))
-        self.play(AddTextLetterByLetter(bfs_code[19], run_time=0.01 * len(bfs_code[19])))
-        self.play(AddTextLetterByLetter(bfs_code[20], run_time=0.01 * len(bfs_code[20])))
-        self.wait(0.1)
+        self.play(AddTextLetterByLetter(bfs_code[18], run_time=0.02 * len(bfs_code[18])))
+        self.play(AddTextLetterByLetter(bfs_code[19], run_time=0.02 * len(bfs_code[19])))
+        self.play(AddTextLetterByLetter(bfs_code[20], run_time=0.02 * len(bfs_code[20])))
+        self.wait(2.5)
 
         # Highlight the diagonal neighbors
         self.play(LaggedStart(
             Indicate(grid_code[5][8], scale_factor=1.5, color=ORANGE),
             AnimationGroup(
-                Indicate(grid_code[6][8], scale_factor=1.5, color=YELLOW),
-                Indicate(grid_code[4][8], scale_factor=1.5, color=YELLOW),
-                Indicate(grid_code[5][9], scale_factor=1.5, color=YELLOW),
-                Indicate(grid_code[5][7], scale_factor=1.5, color=YELLOW),
+                Indicate(grid_code[6][8], scale_factor=1.5, color=RED),
+                Indicate(grid_code[4][8], scale_factor=1.5, color=RED),
+                Indicate(grid_code[5][9], scale_factor=1.5, color=RED),
+                Indicate(grid_code[5][7], scale_factor=1.5, color=RED),
             ),
             AnimationGroup(
-                Indicate(grid_code[6][9], scale_factor=1.5, color=RED),
-                Indicate(grid_code[4][7], scale_factor=1.5, color=RED),
-                Indicate(grid_code[4][9], scale_factor=1.5, color=RED),
-                Indicate(grid_code[6][7], scale_factor=1.5, color=RED),
+                Indicate(grid_code[6][9], scale_factor=1.8, color=WHITE),
+                Indicate(grid_code[4][7], scale_factor=1.8, color=WHITE),
+                Indicate(grid_code[4][9], scale_factor=1.8, color=WHITE),
+                Indicate(grid_code[6][7], scale_factor=1.8, color=WHITE),
             ),
             lag_ratio=0.1,
-            run_time=1,
+            run_time=3,
         ))
-        self.wait(0.1)
 
         # Indicate the if statements
         self.play(LaggedStart(
@@ -2201,10 +2202,9 @@ class BFSOnGridsImplementation(Scene):
             Indicate(bfs_code[15]),
             Indicate(bfs_code[18]),
             lag_ratio=0.2,
-            run_time=0.5,
+            run_time=2,
         ))
-        self.wait(0.1)
-
+        self.wait(2.5)
 
         # Wave the if statements
         self.play(LaggedStart(
@@ -2213,9 +2213,9 @@ class BFSOnGridsImplementation(Scene):
             ApplyWave(bfs_code[15]),
             ApplyWave(bfs_code[18]),
             lag_ratio=0.2,
-            run_time=0.5,
+            run_time=3,
         ))
-        self.wait(0.1)
+        self.wait(3)
 
         # Transition to the next scene
         init = get_initialization_code(0).scale(0.75).next_to(title, DOWN, buff=0.5).to_edge(LEFT, buff=1).shift(2 * UP)
@@ -2223,9 +2223,9 @@ class BFSOnGridsImplementation(Scene):
             bfs_code.animate.shift(2 * DOWN).set_opacity(0),
             init.animate.shift(2 * DOWN),
             loops_code.animate.next_to(init, DOWN, buff=0.5).align_to(init, LEFT).shift(2 * DOWN).set_opacity(1),
-            run_time=0.5,
+            run_time=1,
         )
-        self.wait(0.1)
+        self.wait(1)
 
 
 class BFSOnGridsSimulation(Scene):
