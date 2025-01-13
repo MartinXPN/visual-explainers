@@ -2490,8 +2490,7 @@ class BFSOnGridsSimulation(Scene):
 class ShortestPath(Scene):
     def construct(self):
         title = Title('Shortest Path', include_underline=False)
-        self.play(Write(title), run_time=0.5)
-        self.wait(0.1)
+        self.wait(1)
 
         vertices = list(range(len(g)))
         edges = [(i, j) for i, neighbors in enumerate(g) for j in neighbors]
@@ -2504,14 +2503,15 @@ class ShortestPath(Scene):
 
         clock = SVGMobject('bfs/clock.svg').scale(0.3)
         clocks = VGroup(*[
-            clock.copy().move_to(graph.vertices[i]).set_fill(ORANGE if i == 7 else BLACK) for i in range(len(g))
+            clock.copy().move_to(graph.vertices[i]).set_fill(BLACK) for i in range(len(g))
         ])
         burning_times = {7: 0}
         burning_times_mobjects = {}
         burned_edges = []
 
-        self.play(Create(graph), *[Create(p) for p in clocks], run_time=0.5)
-        self.wait(0.2)
+        self.play(Write(title), Create(graph), *[Create(p) for p in clocks], run_time=1.5)
+        self.play(clocks[7].animate.set_fill(ORANGE), run_time=0.5)
+        self.wait(3)
 
         def burn(vertex: int, run_time: float = 0.5):
             fire_icon = SVGMobject('bfs/fire.svg').scale(0.6).move_to(graph.vertices[vertex], DOWN)
@@ -2538,26 +2538,25 @@ class ShortestPath(Scene):
 
             self.play(MoveAlongPath(sparkler, edge, run_time=run_time, rate_func=linear))
             self.remove(sparkler)
-            burn(target, run_time=run_time / 2)
+            burn(target, run_time=run_time)
 
         burn(7)
         self.wait(0.5)
-        spread_fire(7, 5, run_time=0.3)
-        spread_fire(7, 6, run_time=0.3)
+        spread_fire(7, 5, run_time=0.1)
+        spread_fire(7, 6, run_time=0.1)
         self.wait(0.5)
-        spread_fire(5, 8, run_time=0.2)
-        spread_fire(5, 4, run_time=0.2)
-        spread_fire(5, 3, run_time=0.2)
+        spread_fire(5, 8, run_time=0.08)
+        spread_fire(5, 4, run_time=0.08)
+        spread_fire(5, 3, run_time=0.08)
+        spread_fire(6, 10, run_time=0.08)
         self.wait(0.5)
-        spread_fire(6, 10, run_time=0.2)
-        spread_fire(8, 9, run_time=0.2)
-        self.wait(0.2)
-        spread_fire(10, 11, run_time=0.3)
-        spread_fire(9, 2, run_time=0.3)
-        self.wait(0.2)
-        spread_fire(2, 0, run_time=0.1)
-        spread_fire(2, 1, run_time=0.1)
+        spread_fire(8, 9, run_time=0.08)
+        spread_fire(10, 11, run_time=0.08)
         self.wait(0.5)
+        spread_fire(9, 2, run_time=0.08)
+        self.wait(0.3)
+        spread_fire(2, 0, run_time=0.08)
+        spread_fire(2, 1, run_time=0.08)
 
         # Highlight the path 7 -> 5 -> 8 -> 9 -> 2 with ShowPassingFlash with LaggedStart
         path = [7, 5, 8, 9, 2]
@@ -2569,7 +2568,6 @@ class ShortestPath(Scene):
             lag_ratio=0.4,
             run_time=2,
         ))
-        self.wait(0.5)
 
         # Transition to the next scene
         grid_code = Code(
@@ -2600,7 +2598,7 @@ class ShortestPath(Scene):
             lag_ratio=0.2,
             run_time=1,
         ))
-        self.wait(0.1)
+        self.wait(0.5)
 
 
 class ShortestPathOnGrids(Scene):
