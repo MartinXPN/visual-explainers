@@ -2278,29 +2278,32 @@ class BFSOnGridsSimulation(Scene):
             style='monokai',
         ).code.scale(0.75).next_to(init_code, DOWN, buff=0.5).to_edge(LEFT, buff=1)
         self.add(init_code, loops_code)
-        self.play(grid_code.animate.scale(0.72 / 0.8).shift(LEFT), run_time=0.5)
-        self.wait(0.1)
+        self.wait(1)
+        self.play(grid_code.animate.scale(0.72 / 0.8).shift(LEFT), run_time=1)
+        self.wait(1)
 
         arrow = Arrow(
             start=LEFT, end=RIGHT, color=RED, buff=0.1,
             stroke_width=10, max_stroke_width_to_length_ratio=15,
             max_tip_length_to_length_ratio=0.5, tip_length=0.2,
         ).scale(0.3).next_to(init_code[0], LEFT)
-        self.play(Create(arrow), run_time=0.2)
-        self.wait(0.1)
+        self.play(Create(arrow), run_time=1)
+        self.wait(1)
 
-        self.play(arrow.animate.next_to(init_code[1], LEFT), run_time=0.2)
-        self.wait(0.1)
+        self.play(arrow.animate.next_to(init_code[1], LEFT), run_time=0.5)
+        self.wait(1)
 
         self.play(
             arrow.animate.next_to(loops_code[0], LEFT),
             FadeOut(init_code[0]),
             init_code[1].animate.next_to(grid_code, UP, buff=0.1).align_to(grid_code, LEFT),
-            run_time=0.2,
+            run_time=1,
         )
-        self.wait(0.1)
-        self.play(arrow.animate.next_to(loops_code[1], LEFT).shift(0.1 * DOWN), run_time=0.2)
-        self.wait(0.1)
+        self.wait(1)
+        self.play(arrow.animate.next_to(loops_code[1], LEFT).shift(0.1 * DOWN), run_time=0.5)
+        self.wait(1)
+        self.play(arrow.animate.next_to(loops_code[2], LEFT).shift(0.1 * DOWN), run_time=0.5)
+        self.wait(1)
 
         bfs_code = Code(
             code=dedent('''
@@ -2349,67 +2352,74 @@ class BFSOnGridsSimulation(Scene):
             # fire_icon.next_to(burning_nodes_title if len(queue) == 0 else queue[-1], DOWN, buff=0.4 if len(queue) == 0 else 0.2)
             vertex_text = Text(f'({row}, {col})').scale(0.4).next_to(queue_text if len(queue_texts) == 0 else queue_texts[-1], DOWN, buff=0.2 if len(queue_texts) == 0 else 0.1)
             queue_texts.append(vertex_text)
-            self.play(Write(queue_texts[-1]), run_time=0.1)
+            self.play(Write(queue_texts[-1]), run_time=0.5)
 
         def remove_from_queue():
             animations = []
             for text, prev_text in zip(queue_texts[1:], queue_texts):
                 animations.append(text.animate.move_to(prev_text))
-            self.play(LaggedStart(FadeOut(queue_texts[0]), *animations, lag_ratio=0.3, run_time=0.2))
+            self.play(LaggedStart(FadeOut(queue_texts[0]), *animations, lag_ratio=0.3, run_time=1))
             queue_texts.pop(0)
 
         def burn(row: int, col: int):
             fire_icon = SVGMobject('bfs/fire.svg').scale(0.15).move_to(grid_code[row + 1][col + 2])
             fire_icon.set_z_index(5)
             self.add(fire_icon)
-            fire_icon.add_updater(update_fire)
+            # fire_icon.add_updater(update_fire)
             return fire_icon
 
         def spread_fire(row: int, col: int):
             """ Perform a BFS starting from the given cell """
             q = deque([(row, col)])
 
-            self.play(arrow.animate.next_to(bfs_code[0], LEFT), run_time=0.2)
-            self.wait(0.1)
-            self.play(arrow.animate.next_to(bfs_code[1], LEFT).shift(0.1 * DOWN), run_time=0.2)
-            self.play(arrow.animate.next_to(bfs_code[3], LEFT).shift(0.1 * DOWN), run_time=0.2)
-            self.wait(0.1)
-            self.play(arrow.animate.next_to(bfs_code[4], LEFT).shift(0.1 * DOWN), run_time=0.2)
+            self.play(arrow.animate.next_to(bfs_code[0], LEFT), run_time=0.5)
+            self.wait(0.5)
+            self.play(arrow.animate.next_to(bfs_code[1], LEFT).shift(0.1 * DOWN), run_time=0.5)
+            self.wait(0.5)
+            self.play(arrow.animate.next_to(bfs_code[3], LEFT).shift(0.25 * DOWN), run_time=0.5)
+            self.wait(0.5)
+            fire_icons = [burn(row, col)]
+            self.wait(0.5)
+            self.play(arrow.animate.next_to(bfs_code[4], LEFT).shift(0.1 * DOWN), run_time=0.5)
             add2queue(row, col)
-            self.wait(0.1)
+            self.wait(1)
 
-            self.play(arrow.animate.next_to(bfs_code[6], LEFT).shift(0.1 * DOWN), run_time=0.2)
-            fire_icons = []
+            self.play(arrow.animate.next_to(bfs_code[6], LEFT).shift(0.25 * DOWN), run_time=0.5)
+            self.wait(1)
             while q:
                 r, c = q.popleft()
 
                 # Add circle around the current cell
                 circle = DashedVMobject(Circle(radius=0.2, color=ORANGE)).move_to(grid_code[r + 1][c + 2])
-                self.play(arrow.animate.next_to(bfs_code[7], LEFT).shift(0.12 * DOWN), Create(circle), run_time=0.1)
+                self.play(arrow.animate.next_to(bfs_code[7], LEFT).shift(0.12 * DOWN), Create(circle), run_time=0.5)
                 remove_from_queue()
-                self.wait(0.1)
+                self.wait(0.5)
 
                 for statement, (dr, dc) in enumerate(((-1, 0), (1, 0), (0, -1), (0, 1))):
                     nr, nc = r + dr, c + dc
                     to_circle = None
-                    self.play(arrow.animate.next_to(bfs_code[9 + 3 * statement], LEFT).shift(0.12 * DOWN), run_time=0.1)
-                    if 0 <= nr < len(grid) and 0 <= nc < len(grid[0]):
-                        to_circle = DashedVMobject(Circle(radius=0.2, color=YELLOW)).move_to(grid_code[nr + 1][nc + 2])
-                        self.play(Create(to_circle), run_time=0.1)
-                        self.wait(0.1)
+                    self.play(arrow.animate.next_to(bfs_code[9 + 3 * statement], LEFT).shift(0.12 * DOWN), run_time=0.5)
+                    self.wait(0.5)
+
+                    if 0 <= nr < len(grid):
+                        to_circle = DashedVMobject(Circle(radius=0.15, color=WHITE)).move_to(grid_code[nr + 1][nc + 2])
+                        self.play(Create(to_circle), run_time=0.5)
+                        self.wait(1)
                     if 0 <= nr < len(grid) and 0 <= nc < len(grid[0]) and grid[nr][nc] == '#' and not used[nr][nc]:
-                        self.play(arrow.animate.next_to(bfs_code[10 + 3 * statement], LEFT).shift(0.12 * DOWN), run_time=0.1)
+                        self.play(arrow.animate.next_to(bfs_code[10 + 3 * statement], LEFT).shift(0.35 * DOWN if statement == 0 else 0.12 * DOWN), run_time=0.5)
+                        self.wait(0.5)
                         used[nr][nc] = True
-                        self.play(arrow.animate.next_to(bfs_code[11 + 3 * statement], LEFT).shift(0.12 * DOWN), run_time=0.1)
+                        self.play(arrow.animate.next_to(bfs_code[11 + 3 * statement], LEFT).shift(0.12 * DOWN), run_time=0.5)
+                        self.wait(0.5)
                         add2queue(nr, nc)
                         q.append((nr, nc))
                         fire_icons.append(burn(nr, nc))
-                        self.wait(0.1)
+                        self.wait(1)
                     if to_circle is not None:
                         self.remove(to_circle)
-                self.play(FadeOut(circle), run_time=0.1)
+                self.play(FadeOut(circle), run_time=0.2)
 
-            self.play(FadeOut(arrow))
+            self.play(FadeOut(arrow), run_time=0.2)
             return fire_icons
 
         islands_counter_mobj = init_code[1]
@@ -2433,35 +2443,34 @@ class BFSOnGridsSimulation(Scene):
         found_islands = 0
         for r in range(len(grid)):
             for c in range(len(grid[0])):
-                iteration_animations.append(Indicate(grid_code[r + 1][c + 2], scale_factor=1.5, color=YELLOW))
+                iteration_animations.append(Indicate(grid_code[r + 1][c + 2], scale_factor=1.8, color=YELLOW))
                 if grid[r][c] == '#' and not used[r][c]:
                     self.play(LaggedStart(
                         *iteration_animations,
                         *([
-                            loops_code.animate.shift(2 * UP).set_opacity(0),
                             arrow.animate.next_to(bfs_code[0], LEFT),
+                            loops_code.animate.shift(2 * UP).set_opacity(0),
                             FadeIn(bfs_code),
                             Write(queue_text),
                         ] if r == 0 else []),
                         lag_ratio=0.3,
-                        run_time=2 if r == 0 else 0.1 * len(iteration_animations),
+                        run_time=3 if r == 0 else 0.3 * len(iteration_animations),
                     ))
                     used[r][c] = True
-                    all_fire_icons.append(burn(r, c))
                     all_fire_icons += spread_fire(r, c)
                     found_islands += 1
                     new_init_code = get_islands(found_islands)
-                    self.play(TransformMatchingShapes(islands_counter_mobj, new_init_code), run_time=0.2)
+                    self.play(TransformMatchingShapes(islands_counter_mobj, new_init_code), run_time=0.5)
                     islands_counter_mobj = new_init_code
                     iteration_animations.clear()
-                    self.wait(0.2)
+                    self.wait(1)
         self.play(LaggedStart(
             *iteration_animations,
             lag_ratio=0.3,
-            run_time=0.1 * len(iteration_animations),
+            run_time=0.3 * len(iteration_animations),
         ))
         iteration_animations.clear()
-        self.wait(0.1)
+        self.wait(1)
 
         # Transition to the next scene
         self.play(LaggedStart(
@@ -2470,12 +2479,12 @@ class BFSOnGridsSimulation(Scene):
             FadeOut(grid_code),
             islands_counter_mobj.animate.center().scale(3),
             lag_ratio=0.5,
-            run_time=1,
+            run_time=2,
         ))
-        self.wait(0.5)
+        self.wait(1)
 
-        self.play(LaggedStart(FadeOut(title), FadeOut(islands_counter_mobj), lag_ratio=0.5, run_time=0.5))
-        self.wait(0.1)
+        self.play(LaggedStart(FadeOut(title), FadeOut(islands_counter_mobj), lag_ratio=0.5, run_time=1))
+        self.wait(1)
 
 
 class ShortestPath(Scene):
