@@ -3057,7 +3057,7 @@ class ShortestPathOnGrids(Scene):
         self.wait(1)
 
         cnt = 0
-        while q and cnt < 30:
+        while q:
             print(f'step {cnt}:', end='\t')
             cell = q.popleft()
             bfs_step(*cell)
