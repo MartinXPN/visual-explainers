@@ -2641,7 +2641,7 @@ class ShortestPathOnGrids(Scene):
             style='monokai',
         ).code.scale(1.2).next_to(title, DOWN, buff=1)
         self.add(title, grid_code)
-        self.wait(0.1)
+        self.wait(0.5)
 
         grid = [
             '#####...#',
@@ -2655,24 +2655,22 @@ class ShortestPathOnGrids(Scene):
 
         paths = [(r + 1, c + 2) for r in range(len(grid)) for c in range(len(grid[0])) if grid[r][c] == '.']
         walls = [(r + 1, c + 2) for r in range(len(grid)) for c in range(len(grid[0])) if grid[r][c] == '#']
-        self.play(*[Indicate(grid_code[r][c], scale_factor=2.5, color=YELLOW) for r, c in paths], run_time=0.2)
-        self.wait(0.1)
-        self.play(*[Indicate(grid_code[r][c], scale_factor=1.5, color=RED) for r, c in walls], run_time=0.2)
-        self.wait(0.1)
+        self.play(*[Indicate(grid_code[r][c], scale_factor=2.5, color=YELLOW) for r, c in paths], run_time=2)
+        self.play(*[Indicate(grid_code[r][c], scale_factor=1.5, color=RED) for r, c in walls], run_time=3)
+        self.wait(3.5)
 
         # Highlight the starting coordinate and then the ending one
-        self.play(Indicate(grid_code[7][4], scale_factor=1.5, color=ORANGE), run_time=0.2)
-        self.wait(0.1)
-        self.play(Indicate(grid_code[2][10], scale_factor=1.5, color=ORANGE), run_time=0.2)
-        self.wait(0.1)
+        self.play(Indicate(grid_code[7][4], scale_factor=1.8, color=ORANGE), run_time=2)
+        self.play(Indicate(grid_code[2][10], scale_factor=1.8, color=ORANGE), run_time=2)
+        self.wait(0.5)
 
         # Pass-through (ShowPassingFlash) from start to end
         path = [(7, 4), (6, 4), (5, 4), (5, 5), (5, 6), (4, 6), (3, 6), (3, 7), (3, 8), (3, 9), (2, 9), (2, 10)]
         self.play(LaggedStart(*[
             ShowPassingFlash(Line(grid_code[u[0]][u[1]].get_center(), grid_code[v[0]][v[1]].get_center(), color=ORANGE, stroke_width=10), time_width=0.9)
             for u, v in zip(path, path[1:])
-        ], lag_ratio=0.2, run_time=0.5))
-        self.wait(0.1)
+        ], lag_ratio=0.2, run_time=3))
+        self.wait(1)
 
         def burn(row: int, col: int, shift: float = 0):
             fire_icon = SVGMobject('bfs/fire.svg').scale(0.2).move_to(grid_code[row + 1][col + 2])
@@ -2708,9 +2706,10 @@ class ShortestPathOnGrids(Scene):
 
             return fire_icons, all_animations
 
+        self.wait(4)
         all_fires, all_anims = spread_fire(6, 2, max_dist=2)
-        self.play(LaggedStart(*all_anims, lag_ratio=0.7, run_time=1))
-        self.wait(0.5)
+        self.play(LaggedStart(*all_anims, lag_ratio=0.7, run_time=15))
+        self.wait(1)
 
         dist_initial_grid = Code(
             code=dedent('''
@@ -2755,53 +2754,54 @@ class ShortestPathOnGrids(Scene):
             dist_code[6][3], dist_code[6][4], dist_code[6][5],
             dist_code[5][4],
         )
-        self.play(grid_code.animate.scale(1 / 1.2).next_to(title, DOWN, buff=1).to_edge(LEFT, buff=1), run_time=0.2)
-        self.wait(0.1)
+        self.play(grid_code.animate.scale(1 / 1.2).next_to(title, DOWN, buff=1).to_edge(LEFT, buff=1), run_time=1)
+        self.wait(0.5)
 
-        self.play(Indicate(grid_code[7][4], color=ORANGE, scale_factor=1.5), run_time=0.2)
-        self.wait(0.1)
+        self.play(Indicate(grid_code[7][4], color=ORANGE, scale_factor=1.5), run_time=1)
+        self.wait(1)
 
-        self.play(Write(dist_initial_grid), run_time=0.2)
-        self.wait(0.1)
+        self.play(AddTextLetterByLetter(dist_initial_grid[0], run_time=1))
+        self.play(AddTextLetterByLetter(dist_initial_grid[-1], run_time=1))
+        self.play(Write(dist_initial_grid[1: -1]), run_time=2)
+        self.wait(3)
 
         # Wiggle all the -1 cells
         self.play(*[
             Wiggle(VGroup(line[i], line[i + 1]), scale_value=1.5, rotation_angle=0.02 * TAU)
             for line in dist_initial_grid[1:-1]
             for i in range(2, len(line) - 1, 4)
-        ], run_time=0.5)
-        self.wait(0.1)
+        ], run_time=2)
+        self.wait(5)
 
         # Replace the -1 of the starting coordinate with 0
         dist_initial_grid.save_state()
         self.play(ReplacementTransform(dist_initial_grid[7][10:12], dist_grid[7][10:12]), run_time=0.5)
-        self.wait(0.1)
+        self.wait(2)
 
         # Indicate the neighbors
         self.play(
             Indicate(dist_initial_grid[7][6:8], scale_factor=1.5),
             Indicate(dist_initial_grid[6][10:12], scale_factor=1.5),
             Indicate(dist_initial_grid[7][14:16], scale_factor=1.5),
-            run_time=0.2,
+            run_time=1,
         )
-        self.wait(0.1)
+        self.wait(2.5)
 
         # Set the neighbor values to 1 (dist_grid)
         self.play(
             ReplacementTransform(dist_initial_grid[7][6:8], dist_grid[7][6:8]),
             ReplacementTransform(dist_initial_grid[6][10:12], dist_grid[6][10:12]),
             ReplacementTransform(dist_initial_grid[7][14:16], dist_grid[7][14:16]),
-            run_time=0.2,
+            run_time=1,
         )
-        self.wait(0.1)
+        self.wait(3.5)
 
         # Pass-through (ShowPassingFlash) from start to end
         self.play(LaggedStart(*[
             ShowPassingFlash(Line(grid_code[u[0]][u[1]].get_center(), grid_code[v[0]][v[1]].get_center(), color=ORANGE, stroke_width=10), time_width=0.9)
             for u, v in zip(path, path[1:])
-        ], lag_ratio=0.2, run_time=0.5))
-        self.wait(0.1)
-
+        ], lag_ratio=0.2, run_time=2))
+        self.wait(1)
 
         init_code = Code(
             code=dedent('''
@@ -2817,21 +2817,19 @@ class ShortestPathOnGrids(Scene):
         ).code.to_edge(DOWN, buff=1)
 
         # Bring back the distance code
-        self.play(AddTextLetterByLetter(init_code[0]), run_time=0.01 * len(init_code[0]))
+        self.play(AddTextLetterByLetter(init_code[0]), run_time=0.1 * len(init_code[0]))
         self.play(
             FadeOut(dist_grid[7][10:12], dist_grid[7][6:8], dist_grid[6][10:12], dist_grid[7][14:16]),
             Restore(dist_initial_grid),
-            run_time=0.1,
+            run_time=0.5,
         )
-        self.wait(0.1)
+        self.wait(1)
 
         # Replace the -1 of the starting coordinate with 0
-        self.play(AddTextLetterByLetter(init_code[1]), run_time=0.01 * len(init_code[1]))
+        self.play(AddTextLetterByLetter(init_code[1]), run_time=0.1 * len(init_code[1]))
         self.play(ReplacementTransform(dist_initial_grid[7][10:12], dist_grid[7][10:12]), run_time=0.5)
-        self.wait(0.1)
-
-        self.play(AddTextLetterByLetter(init_code[2]), run_time=0.01 * len(init_code[2]))
-        self.wait(0.1)
+        self.play(AddTextLetterByLetter(init_code[2]), run_time=0.1 * len(init_code[2]))
+        self.wait(1)
 
         wide_grid_code = Code(
             code=dedent('''
@@ -2851,14 +2849,14 @@ class ShortestPathOnGrids(Scene):
             font='Monospace',
             style='monokai',
         ).code.scale(0.8).next_to(title, DOWN, buff=0.5).to_edge(RIGHT, buff=0.7)
-        self.play(FadeOut(dist_grid[7][10:12]), run_time=0.01)
+        self.play(FadeOut(dist_grid[7][10:12]), run_time=0.001)
         self.play(
             TransformMatchingShapes(grid_code, wide_grid_code),
             init_code.animate.scale(0.8).next_to(title, DOWN, buff=0.5).to_edge(LEFT, buff=0.7),
             dist_initial_grid.animate.scale(0.8).to_edge(RIGHT, buff=0.7).to_edge(DOWN, buff=1),
             run_time=0.5,
         )
-        self.wait(0.1)
+        self.wait(1)
 
         bfs_code = Code(
             code=dedent(r'''
@@ -2869,7 +2867,7 @@ class ShortestPathOnGrids(Scene):
                             d[r - 1][c] == -1:
                         d[r - 1][c] = d[r][c] + 1
                         q.append((r - 1, c))
-                        
+
                     if 0 <= r + 1 < len(g) and    ...
                     if 0 <= c - 1 < len(g[r]) and ...
                     if 0 <= c + 1 < len(g[r]) and ...
@@ -2881,45 +2879,41 @@ class ShortestPathOnGrids(Scene):
             style='monokai',
         ).code.scale(0.8).next_to(init_code, DOWN, buff=0.5).align_to(init_code, LEFT)
 
-        self.play(AddTextLetterByLetter(bfs_code[0], run_time=0.01 * len(bfs_code[0])))
-        self.wait(0.1)
-        self.play(AddTextLetterByLetter(bfs_code[1], run_time=0.01 * len(bfs_code[1])))
-        self.wait(0.1)
+        self.play(AddTextLetterByLetter(bfs_code[0], run_time=0.1 * len(bfs_code[0])))
+        self.wait(2)
+        self.play(AddTextLetterByLetter(bfs_code[1], run_time=0.1 * len(bfs_code[1])))
+        self.wait(2.5)
 
         # Write the first if statement
-        self.play(AddTextLetterByLetter(bfs_code[2], run_time=0.01 * len(bfs_code[2])))
-        self.wait(0.1)
-        self.play(AddTextLetterByLetter(bfs_code[3], run_time=0.01 * len(bfs_code[3])))
-        self.wait(0.1)
-        self.play(AddTextLetterByLetter(bfs_code[4], run_time=0.01 * len(bfs_code[4])))
-        self.wait(0.1)
-        self.play(AddTextLetterByLetter(bfs_code[5], run_time=0.01 * len(bfs_code[5])))
-        self.wait(0.1)
-        self.play(AddTextLetterByLetter(bfs_code[6], run_time=0.01 * len(bfs_code[6])))
-        self.wait(0.1)
+        self.play(AddTextLetterByLetter(bfs_code[2], run_time=0.1 * len(bfs_code[2])))
+        self.play(AddTextLetterByLetter(bfs_code[3], run_time=0.08 * len(bfs_code[3])))
+        self.play(AddTextLetterByLetter(bfs_code[4], run_time=0.05 * len(bfs_code[4])))
+        self.play(AddTextLetterByLetter(bfs_code[5], run_time=0.06 * len(bfs_code[5])))
+        self.play(AddTextLetterByLetter(bfs_code[6], run_time=0.05 * len(bfs_code[6])))
+        self.wait(0.2)
 
         # Write the other 3 if statements
-        self.play(AddTextLetterByLetter(bfs_code[8], run_time=0.01 * len(bfs_code[8])))
+        self.play(AddTextLetterByLetter(bfs_code[8], run_time=0.03 * len(bfs_code[8])))
         self.wait(0.1)
-        self.play(AddTextLetterByLetter(bfs_code[9], run_time=0.01 * len(bfs_code[9])))
+        self.play(AddTextLetterByLetter(bfs_code[9], run_time=0.03 * len(bfs_code[9])))
         self.wait(0.1)
-        self.play(AddTextLetterByLetter(bfs_code[10], run_time=0.01 * len(bfs_code[10])))
-        self.wait(0.1)
+        self.play(AddTextLetterByLetter(bfs_code[10], run_time=0.03 * len(bfs_code[10])))
+        self.wait(0.5)
 
         self.play(
             init_code.animate.scale(0.9).next_to(title, DOWN, buff=0.5).to_edge(LEFT, buff=0.7),
             bfs_code.animate.scale(0.9).next_to(init_code, DOWN, buff=0.5).to_edge(LEFT, buff=0.7),
             wide_grid_code.animate.scale(0.9).next_to(title, DOWN, buff=0.5).to_edge(RIGHT, buff=0.7),
             dist_initial_grid.animate.scale(0.9).to_edge(RIGHT, buff=0.7).to_edge(DOWN, buff=1),
-            run_time=0.2,
+            run_time=0.5,
         )
-        self.wait(0.1)
+        self.wait(1)
 
         # Create the queue
         vline1 = DashedLine(3 * UP, 3 * DOWN).next_to(init_code, RIGHT, buff=0.5).align_to(init_code, UP).set_color(ORANGE)
         vline2 = DashedLine(3 * UP, 3 * DOWN).next_to(wide_grid_code, LEFT, buff=0.2).align_to(wide_grid_code, UP).set_color(ORANGE)
         queue_text = Text('Queue:').scale(0.4).next_to(vline1, RIGHT, buff=0.2).align_to(vline1, UP)
-        self.play(Create(vline1), Create(vline2), Write(queue_text), run_time=0.5)
+        self.play(Create(vline1), Create(vline2), Write(queue_text), run_time=1)
 
         # Highlight the starting coordinate (both in the grid and the distance grid) and add it to the queue
         queue_texts = []
@@ -2928,17 +2922,14 @@ class ShortestPathOnGrids(Scene):
             vertex_text = Text(f'({row}, {col})').scale(0.4).next_to(queue_text if len(queue_texts) == 0 else queue_texts[-1], DOWN, buff=0.2 if len(queue_texts) == 0 else 0.1)
             queue_texts.append(vertex_text)
             q.append((row, col))
-            self.play(Write(queue_texts[-1]), run_time=0.1)
+            self.play(Write(queue_texts[-1]), run_time=0.5)
 
         def remove_from_queue():
             animations = []
             for text, prev_text in zip(queue_texts[1:], queue_texts):
                 animations.append(text.animate.move_to(prev_text))
-            self.play(LaggedStart(FadeOut(queue_texts[0]), *animations, lag_ratio=0.3, run_time=0.2))
+            self.play(LaggedStart(FadeOut(queue_texts[0]), *animations, lag_ratio=0.3, run_time=1))
             queue_texts.pop(0)
-
-        add2queue(6, 2)
-        self.wait(0.2)
 
         # Redefine the `burn` function to use the wide_grid_code
         def burn(row: int, col: int, shift: float = 0):
@@ -2947,84 +2938,98 @@ class ShortestPathOnGrids(Scene):
             animations = [ShowIncreasingSubsets(fire_icon.shift(shift * UP))]
             return fire_icon, animations
 
+        distance = [[-1] * len(grid[0]) for _ in range(len(grid))]
+        add2queue(6, 2)
+        distance[6][2] = 0
+        self.wait(1)
         arrow = Arrow(
             start=LEFT, end=RIGHT, color=RED, buff=0.1,
             stroke_width=10, max_stroke_width_to_length_ratio=15,
             max_tip_length_to_length_ratio=0.5, tip_length=0.2,
         ).scale(0.3).next_to(bfs_code[1], LEFT).shift(0.1 * DOWN)
         dist_grid.scale(0.8 * 0.9).move_to(dist_initial_grid)
-        distance = [[-1] * len(grid[0]) for _ in range(len(grid))]
+        self.play(ReplacementTransform(dist_initial_grid[7][10:12], dist_grid[7][10:12]), run_time=0.0001)
+        self.play(FadeOut(dist_initial_grid[7][10:12], run_time=0.0001))
 
         def bfs_step(r: int, c: int):
+            print('bfs step:', r, c, '->', q)
             # Add circle around the current cell
-            grid_circle = DashedVMobject(Circle(radius=0.2, color=ORANGE)).move_to(wide_grid_code[r + 1][4 * c + 6])
+            grid_circle = DashedVMobject(Circle(radius=0.2, color=ORANGE)).move_to(wide_grid_code[r + 1][(4 * c + 6) if c < 8 else (4 * c + 4)])
             distance_circle = DashedVMobject(Circle(radius=0.2, color=ORANGE)).move_to(dist_initial_grid[r + 1][4 * c + 3])
             self.play(LaggedStart(
                 arrow.animate.next_to(bfs_code[1], LEFT).shift(0.08 * DOWN),
                 queue_texts[0].animate.set_color(ORANGE),
                 Create(grid_circle), Create(distance_circle),
                 lag_ratio=0.5,
-                run_time=0.2,
+                run_time=1,
             ))
-            self.wait(0.1)
+            self.wait(1)
 
             for statement, (dr, dc) in enumerate([(-1, 0), (1, 0), (0, -1), (0, 1)]):
                 nr, nc = r + dr, c + dc
                 to_grid_mobj = None
                 to_dist_mobj = None
                 line = 1 + statement + (1 if statement == 0 else 6)
-                self.play(arrow.animate.next_to(bfs_code[line], LEFT).shift(0.06 * DOWN), run_time=0.1)
+                changed = False
+                self.play(arrow.animate.next_to(bfs_code[line], LEFT).shift((0.06 * DOWN) if statement != 1 else (0.2 * DOWN)), run_time=1)
                 if 0 <= nr < len(grid) and 0 <= nc < len(grid[0]):
-                    to_grid_mobj = wide_grid_code[nr + 1][4 * nc + 3 : 4 * nc + 5]
-                    to_dist_mobj = dist_initial_grid[nr + 1][4 * nc + 2 : 4 * nc + 4]
+                    to_grid_mobj = wide_grid_code[nr + 1][4 * nc + 3 : 4 * nc + 4]
+                    to_dist_mobj = dist_initial_grid[nr + 1][4 * nc + 2 : 4 * nc + 4] if distance[nr][nc] == -1 \
+                        else dist_grid[nr + 1][4 * nc + 3 : 4 * nc + 4] if 0 <= distance[nr][nc] < 10 \
+                        else dist_grid[nr + 1][4 * nc + 2 : 4 * nc + 4]
                     to_grid_mobj.save_state()
                     to_dist_mobj.save_state()
+
                     self.play(
                         to_grid_mobj.animate.set_color(WHITE).scale(4 if grid[nr][nc] == '.' else 1.5).set_z_index(100000),
                         to_dist_mobj.animate.set_color(WHITE).scale(1.5).set_z_index(100000),
-                        run_time=0.1,
+                        run_time=1,
                     )
-                    self.wait(0.1)
+                    self.wait(1)
+
                 if 0 <= nr < len(grid) and 0 <= nc < len(grid[0]) and (grid[nr][nc] == '.' or grid[nr][nc] == 'E') and distance[nr][nc] == -1:
+                    distance[nr][nc] = distance[r][c] + 1
                     if statement == 0:
-                        self.play(arrow.animate.next_to(bfs_code[line + 3], LEFT).shift(0.12 * DOWN), run_time=0.1)
-                        self.wait(0.1)
-                        distance[nr][nc] = distance[r][c] + 1
-                        self.play(arrow.animate.next_to(bfs_code[line + 4], LEFT).shift(0.12 * DOWN), run_time=0.1)
-                        self.wait(0.2)
+                        self.play(arrow.animate.next_to(bfs_code[line + 3], LEFT).shift(0.12 * DOWN), run_time=1)
+                        self.wait(1)
+                        self.play(arrow.animate.next_to(bfs_code[line + 4], LEFT).shift(0.12 * DOWN), run_time=1)
                     self.play(
                         ReplacementTransform(
                             dist_initial_grid[nr + 1][4 * nc + 2: 4 * nc + 4],
                             dist_grid[nr + 1][4 * nc + 2: 4 * nc + 4]
                         ),
-                        run_time=0.1,
+                        run_time=0.5,
                     )
+                    changed = True
                     to_dist_mobj = None
                     add2queue(nr, nc)
-                    self.wait(0.2)
+                    self.wait(1)
+
                 if to_grid_mobj is not None:
-                    self.play(Restore(to_grid_mobj), run_time=0.1)
+                    self.play(Restore(to_grid_mobj), run_time=0.5)
                 if to_dist_mobj is not None:
-                    self.play(Restore(to_dist_mobj), run_time=0.1)
+                    self.play(Restore(to_dist_mobj), run_time=0.5)
+                if changed:
+                    self.play(FadeOut(dist_initial_grid[nr + 1][4 * nc + 2: 4 * nc + 4], run_time=0.0001))
 
-
-            self.play(FadeOut(grid_circle, distance_circle), run_time=0.1)
+            self.play(FadeOut(grid_circle, distance_circle), run_time=0.5)
             remove_from_queue()
-            self.play(arrow.animate.next_to(bfs_code[0], LEFT), run_time=0.1)
-            self.wait(0.1)
+            self.wait(1)
+            self.play(arrow.animate.next_to(bfs_code[0], LEFT), run_time=0.5)
+            self.wait(1)
 
         bfs_step(*q.popleft())
         bfs_step(*q.popleft())
-        self.play(FadeOut(arrow), run_time=0.2)
+        self.play(FadeOut(arrow), run_time=0.5)
 
         dist = [[-1] * len(grid[0]) for _ in range(len(grid))]
         all_fires, all_anims = spread_fire(6, 2, max_dist=3, replace_grid_with_distance=False)
-        self.play(LaggedStart(*all_anims, lag_ratio=0.4, run_time=1))
-        self.wait(0.2)
+        self.play(LaggedStart(*all_anims, lag_ratio=0.4, run_time=3))
+        self.wait(1)
 
         bfs_step(*q.popleft())
         bfs_step(*q.popleft())
-        self.play(FadeOut(arrow), run_time=0.2)
+        self.play(FadeOut(arrow), run_time=0.5)
 
         # Indicate the distance grid (non-minus-one cells):
         # (r, c) => r + 1, 4 * c + 3: 4 * c + 4
@@ -3033,35 +3038,39 @@ class ShortestPathOnGrids(Scene):
         # (6, 3) => 7, 15:16
         # (6, 1) => 7, 7:8
         self.play(LaggedStart(
-            Indicate(dist_initial_grid[7][11:12], scale_factor=1.5),
+            Indicate(dist_grid[7][11:12], scale_factor=1.5),
             AnimationGroup(
-                Indicate(dist_initial_grid[6][11:12], scale_factor=1.5),
-                Indicate(dist_initial_grid[7][15:16], scale_factor=1.5),
-                Indicate(dist_initial_grid[7][7:8], scale_factor=1.5),
+                Indicate(dist_grid[6][11:12], scale_factor=1.5),
+                Indicate(dist_grid[7][15:16], scale_factor=1.5),
+                Indicate(dist_grid[7][7:8], scale_factor=1.5),
             ),
             AnimationGroup(
-                Indicate(dist_initial_grid[6][7:8], scale_factor=1.5),
-                Indicate(dist_initial_grid[5][11:12], scale_factor=1.5),
-                Indicate(dist_initial_grid[6][15:16], scale_factor=1.5),
-                Indicate(dist_initial_grid[7][19:20], scale_factor=1.5),
+                Indicate(dist_grid[6][7:8], scale_factor=1.5),
+                Indicate(dist_grid[5][11:12], scale_factor=1.5),
+                Indicate(dist_grid[6][15:16], scale_factor=1.5),
+                Indicate(dist_grid[7][19:20], scale_factor=1.5),
             ),
 
             lag_ratio=0.2,
             run_time=2,
         ))
-        self.wait(0.1)
+        self.wait(1)
 
-        # while q:
-        #     bfs_step(*q.popleft())
-        self.play(FadeOut(arrow), run_time=0.2)
-        self.wait(0.1)
+        cnt = 0
+        while q and cnt < 30:
+            print(f'step {cnt}:', end='\t')
+            cell = q.popleft()
+            bfs_step(*cell)
+            cnt += 1
+        self.play(FadeOut(arrow), run_time=0.5)
 
         # Transition to the next scene
         self.play(
             ReplacementTransform(title, Title('Breadth First Search', include_underline=False)),
-            FadeOut(dist_initial_grid, wide_grid_code, bfs_code, init_code, queue_text, vline1, vline2, *queue_texts),
+            FadeOut(dist_initial_grid, dist_grid, wide_grid_code, bfs_code, init_code, queue_text, vline1, vline2, *queue_texts),
             run_time=0.5,
         )
+        self.wait(1)
 
 
 class ComplexityAnalysis(Scene):
