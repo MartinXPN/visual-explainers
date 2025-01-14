@@ -3191,7 +3191,7 @@ class Practice(Scene):
     def construct(self):
         title = Title('BFS', include_underline=False)
         self.add(title)
-        self.wait(0.1)
+        self.wait(5)
 
         # Arrow from the title to “Math”
         math_text = Text('Math').scale(0.7).next_to(title, DOWN, buff=1).to_edge(LEFT, buff=2)
@@ -3206,15 +3206,15 @@ class Practice(Scene):
             Write(math_text),
             Write(math_subtitle),
             lag_ratio=0.5,
-            run_time=0.5,
+            run_time=2,
         ))
-        self.wait(0.1)
+        self.wait(5)
 
         check = SVGMobject('bfs/check.svg').scale(0.3).set_fill(GREEN).next_to(math_subtitle, DOWN, buff=0.5)
-        self.play(Create(check), run_time=0.2)
-        self.wait(0.1)
+        self.play(Create(check), run_time=0.5)
+        self.wait(4)
         self.play(FadeOut(check), run_time=0.2)
-        self.wait(0.1)
+        self.wait(1)
 
         # Arrow from title to “Multi-Dimensional”
         multi_text = Text('Multi-Dimensional').scale(0.7).next_to(math_text, RIGHT, buff=0.5).shift(2 * DOWN)
@@ -3229,9 +3229,9 @@ class Practice(Scene):
             Write(multi_text),
             Write(multi_subtitle),
             lag_ratio=0.5,
-            run_time=0.5,
+            run_time=2,
         ))
-        self.wait(0.1)
+        self.wait(7)
 
         # Arrow from title to “Multi-Source”
         multi_source_text = Text('Multi-Source').scale(0.7).next_to(multi_text, RIGHT, buff=0.5)
@@ -3246,9 +3246,9 @@ class Practice(Scene):
             Write(multi_source_text),
             Write(multi_source_subtitle),
             lag_ratio=0.5,
-            run_time=0.5,
+            run_time=2,
         ))
-        self.wait(0.1)
+        self.wait(6)
 
         # Arrow from title to “Much More…”
         much_more_text = Text('Much More…').scale(0.7).next_to(title, DOWN, buff=1).to_edge(RIGHT, buff=2)
@@ -3263,9 +3263,9 @@ class Practice(Scene):
             Write(much_more_text),
             Write(much_more_subtitle),
             lag_ratio=0.5,
-            run_time=0.5,
+            run_time=1,
         ))
-        self.wait(0.1)
+        self.wait(10)
 
 
 
