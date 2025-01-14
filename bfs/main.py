@@ -3077,7 +3077,6 @@ class ComplexityAnalysis(Scene):
     def construct(self):
         title = Title('Breadth First Search', include_underline=False)
         self.add(title)
-        self.wait(0.1)
 
         vertices = list(range(len(g)))
         edges = [(i, j) for i, neighbors in enumerate(g) for j in neighbors]
@@ -3090,10 +3089,9 @@ class ComplexityAnalysis(Scene):
             edge_config={'stroke_width': 5},
         ).scale(0.5).next_to(title, DOWN, buff=1).to_edge(LEFT, buff=1)
 
-        self.play(Create(graph), run_time=0.5)
+        self.play(Create(graph), run_time=1)
         for label in graph._labels.values():
             label.set_z_index(10)
-        self.wait(0.2)
 
         code = Code(
             code=dedent('''
@@ -3116,8 +3114,7 @@ class ComplexityAnalysis(Scene):
 
         for line in code.chars:
             if line:
-                self.play(AddTextLetterByLetter(line, run_time=0.01 * len(line)))
-        self.wait(0.1)
+                self.play(AddTextLetterByLetter(line, run_time=0.005 * len(line)))
 
         vertices_text = Text('V vertices').scale(0.6).next_to(graph, DOWN, buff=0.5).align_to(graph, LEFT)
         edges_text = Text('E edges').scale(0.6).next_to(vertices_text, DOWN, buff=0.2).align_to(vertices_text, LEFT)
@@ -3129,7 +3126,7 @@ class ComplexityAnalysis(Scene):
                 *[label.animate.set_z_index(100) for label in graph._labels.values()],
             ),
             lag_ratio=0.5,
-            run_time=0.5,
+            run_time=1,
         ))
 
         self.play(LaggedStart(
@@ -3138,53 +3135,56 @@ class ComplexityAnalysis(Scene):
                 *[Indicate(edge, scale_factor=1, color=RED) for edge in graph.edges.values()],
             ),
             lag_ratio=0.5,
-            run_time=0.5,
+            run_time=2,
         ))
+        self.wait(2)
 
         # Highlight the not used parts of the if statement
-        self.play(Indicate(code[6]), run_time=0.2)
-        self.wait(0.1)
+        self.play(Indicate(code[6]), run_time=2)
+        self.wait(6)
 
         # Highlight the for loop
-        self.play(Indicate(code[5]), run_time=0.2)
-        self.wait(0.1)
+        self.play(Indicate(code[5]), run_time=2)
+        self.wait(1)
 
         # Move from node 7 to node 6
         dot = Dot(radius=0.1, color=ORANGE).move_to(graph.vertices[7])
         line = Line(graph.vertices[7], graph.vertices[6], color=ORANGE, stroke_width=5, buff=0.1)
-        self.play(MoveAlongPath(dot, line), run_time=0.5)
-        self.wait(0.1)
-        self.play(MoveAlongPath(dot, line.rotate(PI), run_time=0.5))
-        self.play(FadeOut(dot), run_time=0.1)
+        self.play(MoveAlongPath(dot, line), run_time=2)
+        self.wait(2)
+        self.play(MoveAlongPath(dot, line.rotate(PI), run_time=2))
+        self.play(FadeOut(dot), run_time=0.2)
+        self.wait(2)
 
         time_complexity = Tex(r'Time Complexity: $\mathcal{O}(V + E)$').scale(0.8).align_to(code, LEFT).align_to(vertices_text, UP)
-        self.play(Write(time_complexity), run_time=0.2)
+        self.play(Write(time_complexity), run_time=1)
+        self.wait(2)
 
-        memory_complexity = Tex(r'{{Memory Complexity:}} {{$\mathcal{O}(V)$}}').scale(0.8).align_to(code, LEFT).align_to(edges_text, UP)
-        self.play(Write(memory_complexity[0]), run_time=0.2)
+        memory_complexity = Tex(r'{{Memory Complexity:}} {{$\mathcal{O}(V + E)$}}').scale(0.8).align_to(code, LEFT).align_to(edges_text, UP)
+        self.play(Write(memory_complexity[0]), run_time=1)
 
         # Indicate the graph
-        self.play(Indicate(graph), *[label.animate.set_z_index(10) for label in graph._labels.values()], run_time=0.2)
-        self.wait(0.1)
+        self.play(Indicate(graph), *[label.animate.set_z_index(10) for label in graph._labels.values()], run_time=1)
+        self.wait(4)
 
         # Indicate the used array
-        self.play(Indicate(code[0][:5]), run_time=0.5)
-        self.wait(0.1)
+        self.play(Indicate(code[0][:4]), run_time=1)
+        self.wait(2)
 
         # Indicate the queue
-        self.play(Indicate(code[1]), run_time=0.5)
-        self.wait(0.1)
+        self.play(Indicate(code[1]), run_time=1)
+        self.wait(6)
 
-        self.play(Write(memory_complexity[2]), run_time=0.2)
-        self.wait(0.1)
+        self.play(Write(memory_complexity[2]), run_time=1)
+        self.wait(2)
 
         # Transition to the next scene
         self.play(
             ReplacementTransform(title, Title('BFS', include_underline=False)),
             FadeOut(graph, code, time_complexity, memory_complexity, vertices_text, edges_text),
-            run_time=0.5,
+            run_time=1,
         )
-        self.wait(0.1)
+        self.wait(1)
 
 
 class Practice(Scene):
