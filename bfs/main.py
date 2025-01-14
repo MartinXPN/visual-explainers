@@ -2932,12 +2932,14 @@ class ShortestPathOnGrids(Scene):
             queue_texts.pop(0)
 
         # Redefine the `burn` function to use the wide_grid_code
-        def burn(row: int, col: int, shift: float = 0):
-            fire_icon = SVGMobject('bfs/fire.svg').scale(0.2).move_to(wide_grid_code[row + 1][4 * col + 6])
-            fire_icon.set_z_index(50)
-            animations = [ShowIncreasingSubsets(fire_icon.shift(shift * UP))]
-            return fire_icon, animations
+        def burn_wide(row: int, col: int, shift_up: float = 0, shift_left: float = 0):
+            fire_icon = SVGMobject('bfs/fire.svg').scale(0.2).move_to(wide_grid_code[row + 1][(4 * col + 6) if col < 8 else (4 * col + 4)])
+            fire_icon.set_z_index(5)
+            fire_icon.shift(shift_up * UP).shift(shift_left * LEFT)
+            self.add(fire_icon)
+            return fire_icon
 
+        fire_icons = []
         distance = [[-1] * len(grid[0]) for _ in range(len(grid))]
         add2queue(6, 2)
         distance[6][2] = 0
@@ -2950,11 +2952,12 @@ class ShortestPathOnGrids(Scene):
         dist_grid.scale(0.8 * 0.9).move_to(dist_initial_grid)
         self.play(ReplacementTransform(dist_initial_grid[7][10:12], dist_grid[7][10:12]), run_time=0.0001)
         self.play(FadeOut(dist_initial_grid[7][10:12], run_time=0.0001))
+        fire_icons.append(burn_wide(6, 2, shift_up=0.1))
 
         def bfs_step(r: int, c: int):
             print('bfs step:', r, c, '->', q)
             # Add circle around the current cell
-            grid_circle = DashedVMobject(Circle(radius=0.2, color=ORANGE)).move_to(wide_grid_code[r + 1][(4 * c + 6) if c < 8 else (4 * c + 4)])
+            grid_circle = DashedVMobject(Circle(radius=0.2, color=ORANGE)).move_to(wide_grid_code[r + 1][(4 * c + 6) if c < 8 else (4 * c + 3)])
             distance_circle = DashedVMobject(Circle(radius=0.2, color=ORANGE)).move_to(dist_initial_grid[r + 1][4 * c + 3])
             self.play(LaggedStart(
                 arrow.animate.next_to(bfs_code[1], LEFT).shift(0.08 * DOWN),
@@ -3002,6 +3005,11 @@ class ShortestPathOnGrids(Scene):
                     )
                     changed = True
                     to_dist_mobj = None
+                    fire_icons.append(burn_wide(
+                        nr, nc,
+                        shift_up=-0.1 if nc == 8 and grid[nr][nc] == '.' else 0.1 if grid[nr][nc] != 'E' else 0,
+                        shift_left=0.1 if nc == 8 else 0,
+                    ))
                     add2queue(nr, nc)
                     self.wait(1)
 
@@ -3067,7 +3075,7 @@ class ShortestPathOnGrids(Scene):
         # Transition to the next scene
         self.play(
             ReplacementTransform(title, Title('Breadth First Search', include_underline=False)),
-            FadeOut(dist_initial_grid, dist_grid, wide_grid_code, bfs_code, init_code, queue_text, vline1, vline2, *queue_texts),
+            FadeOut(dist_initial_grid, dist_grid, wide_grid_code, bfs_code, init_code, queue_text, vline1, vline2, *queue_texts, *fire_icons),
             run_time=0.5,
         )
         self.wait(1)
