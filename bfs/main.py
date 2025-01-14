@@ -3313,14 +3313,13 @@ class ClosingScene(Scene):
         vertices_text = Text('V vertices').scale(0.6).next_to(graph, DOWN, buff=0.5).align_to(graph, LEFT)
         edges_text = Text('E edges').scale(0.6).next_to(vertices_text, DOWN, buff=0.2).align_to(vertices_text, LEFT)
         time_complexity = Tex(r'Time Complexity: $\mathcal{O}(V + E)$').scale(0.8).align_to(code, LEFT).align_to(vertices_text, UP)
-        memory_complexity = Tex(r'{{Memory Complexity:}} {{$\mathcal{O}(V)$}}').scale(0.8).align_to(code, LEFT).align_to(edges_text, UP)
+        memory_complexity = Tex(r'{{Memory Complexity:}} {{$\mathcal{O}(V + E)$}}').scale(0.8).align_to(code, LEFT).align_to(edges_text, UP)
         self.add(vertices_text, edges_text, time_complexity, memory_complexity)
-        self.wait(0.1)
+        self.wait(1)
 
         # Re-implement the BFS algorithm
         self.play(FadeOut(code), run_time=0.5)
         for line in code:
             if line:
-                self.play(AddTextLetterByLetter(line, run_time=0.01 * len(line)))
-        self.wait(0.1)
-
+                self.play(AddTextLetterByLetter(line, run_time=0.05 * len(line)))
+        self.wait(2)
